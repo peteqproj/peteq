@@ -10,6 +10,7 @@ import CardContent from '@material-ui/core/CardContent';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 import { TaskAPI, Task } from "./../../services/tasks";
 import { ListAPI, List as ListModel } from "./../../services/list";
 
@@ -33,7 +34,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     card: {
         display: 'flex',
-        height: 60,
+        maxHeight: 200,
         marginBottom: 5
     },
     progress: {
@@ -183,7 +184,9 @@ export function HomePage(props: IProps) {
                                                             ref={provided.innerRef} 
                                                             className={classes.card}>
                                                                 <CardContent>
-                                                                {task.metadata.name}
+                                                                    <Typography variant="body2" component="p">
+                                                                        {task.metadata.name}
+                                                                    </Typography>
                                                                 </CardContent>
                                                             </Card>
                                                         )}
