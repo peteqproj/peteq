@@ -18,7 +18,8 @@ import { API as ProjectAPI } from './services/project'
 import { API as TaskAPI } from './services/tasks'
 import { API as ListAPI } from './services/list'
 import { API as BacklogViewAPI } from './services/view.backlog'
-import { API as ProjectViewAPI } from './services/view.projects'
+import { API as ProjectsViewAPI } from './services/view.projects'
+import { API as ProjectViewAPI } from './services/view.project'
 import {
   BrowserRouter as Router,
   Switch,
@@ -180,10 +181,10 @@ function App() {
               <Route path="/backlog">
                 <BacklogPage ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} BacklogViewAPI={BacklogViewAPI} />
               </Route>
-              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} ProjectAPI={ProjectAPI}></ProjectPage>)}>
+              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
               </Route>
               <Route path="/projects">
-                  <ProjectsPage ProjectsViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}/>
+                  <ProjectsPage ProjectsViewAPI={ProjectsViewAPI} ProjectAPI={ProjectAPI}/>
               </Route>
               <Route path="/">
                 <HomePage TaskAPI={TaskAPI} ListAPI={ListAPI} />
