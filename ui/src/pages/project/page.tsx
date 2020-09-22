@@ -1,59 +1,34 @@
-import React, { useState, useEffect } from 'react'
-import { createStyles, makeStyles, useTheme, Theme } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
-import Input from '@material-ui/core/Input';
-import MenuItem from '@material-ui/core/MenuItem';
-import { ProjectAPI, Project } from './../../services/project'
+import React, { useState , useEffect } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Card from '@material-ui/core/Card';
+import CardActionArea from '@material-ui/core/CardActionArea';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 import { RouteComponentProps } from "react-router-dom";
+import { ProjectAPI, Project } from './../../services/project'
 
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    formControl: {
-      margin: theme.spacing(1),
-      minWidth: 120,
-      maxWidth: 300,
-    },
-    chips: {
-      display: 'flex',
-      flexWrap: 'wrap',
-    },
-    chip: {
-      margin: 2,
-    },
-    noLabel: {
-      marginTop: theme.spacing(3),
-    },
-  }),
-);
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
+const useStyles = makeStyles({
+  root: {
+    display: 'flex'
   },
-};
-
-const types = [
-  'Read A Book',
-  'Meditate',
-];
+  media: {
+    height: 320,
+    width: 320
+  },
+});
 
 
 interface IProps extends RouteComponentProps {
-  name?: string;
+  id?: string;
   ProjectAPI: ProjectAPI
 }
 
-export function ProjectPage(props: IProps) {
-  const [state, setState] = useState({ metadata: {}} as Project);
+export function ProjectPage (props: IProps) {
+  const classes = useStyles();
+  const [state, setState] = useState({ metadata: { name: '', id: '', description: ''}, tasks: []} as Project);
   const id = (props.match.params as any)['id'];
   useEffect(() => {    
     const fetch = async () => {
@@ -64,6 +39,29 @@ export function ProjectPage(props: IProps) {
   
   }, [props.ProjectAPI, id]);
   return (
-    <div>{JSON.stringify(state)}</div>
-  )
+    <Card className={classes.root}>
+      <CardActionArea>
+        <CardContent>
+          <Typography gutterBottom variant="h3" component="h2">
+            {state.metadata.name}
+          </Typography>
+          <Typography variant="body1" color="textSecondary" component="p">
+            {state.metadata.description}
+          </Typography>
+          <Typography gutterBottom variant="h6" component="h2">
+            Tasks:
+          </Typography>
+          <Typography variant="body2" color="textSecondary" component="p">
+            {state.tasks.map((t) => (<div>{t}</div>))}
+          </Typography>
+        </CardContent>
+      </CardActionArea>
+      <CardMedia
+          className={classes.media}
+          image="https://images-na.ssl-images-amazon.com/images/I/41FH9qC4BrL._SX379_BO1,204,203,200_.jpg"
+          title="Contemplative Reptile"
+        />
+    </Card>
+  );
 }
+

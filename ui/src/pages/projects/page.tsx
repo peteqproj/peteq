@@ -19,7 +19,7 @@ import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { Link } from "react-router-dom";
 import { ProjectModal } from './new-project-modal/modal';
 import { ProjectAPI, Project } from './../../services/project'
-import { ProjectsViewAPI, ProjectView } from './../../services/view.project'
+import { ProjectsViewAPI, ProjectView } from '../../services/view.projects'
 
 const useStyles = makeStyles((theme) => ({
   root: {

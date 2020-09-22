@@ -116,7 +116,7 @@ func main() {
 		ProjectRepo: projectRepo,
 	}
 
-	projectViewAPI := view.ProjectViewAPI{
+	projectsViewAPI := view.ProjectsViewAPI{
 		TaskRepo:    taskRepo,
 		ProjectRepo: projectRepo,
 	}
@@ -129,7 +129,7 @@ func main() {
 		projectCommandAPI: projectCommandAPI,
 		projectQueryAPI:   projectQueryAPI,
 		backlogViewAPI:    backlogViewAPI,
-		projectViewAPI:    projectViewAPI,
+		projectsViewAPI:   projectsViewAPI,
 	}))
 
 	initiateLists(*listQueryAPI.Repo)
@@ -260,7 +260,7 @@ type buildAPIOptions struct {
 	projectQueryAPI   project.QueryAPI
 	projectCommandAPI project.CommandAPI
 	backlogViewAPI    view.BacklogViewAPI
-	projectViewAPI    view.ProjectViewAPI
+	projectsViewAPI   view.ProjectsViewAPI
 }
 
 func buildAPI(options buildAPIOptions) api.Resource {
@@ -366,7 +366,7 @@ func buildAPI(options buildAPIOptions) api.Resource {
 					},
 					{
 						Path:    "/projects",
-						Handler: options.projectViewAPI.Get,
+						Handler: options.projectsViewAPI.Get,
 						Verb:    "GET",
 					},
 				},

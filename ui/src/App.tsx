@@ -18,7 +18,7 @@ import { API as ProjectAPI } from './services/project'
 import { API as TaskAPI } from './services/tasks'
 import { API as ListAPI } from './services/list'
 import { API as BacklogViewAPI } from './services/view.backlog'
-import { API as ProjectViewAPI } from './services/view.project'
+import { API as ProjectViewAPI } from './services/view.projects'
 import {
   BrowserRouter as Router,
   Switch,

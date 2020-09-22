@@ -7,13 +7,13 @@ import (
 )
 
 type (
-	// ProjectViewAPI for project view
-	ProjectViewAPI struct {
+	// ProjectsViewAPI for projects view
+	ProjectsViewAPI struct {
 		TaskRepo    *task.Repo
 		ProjectRepo *project.Repo
 	}
 
-	projectView struct {
+	projectsView struct {
 		Projects []populatedProject `json:"projects"`
 	}
 
@@ -23,8 +23,8 @@ type (
 	}
 )
 
-// Get build project view
-func (b *ProjectViewAPI) Get(c *gin.Context) {
+// Get build projects view
+func (b *ProjectsViewAPI) Get(c *gin.Context) {
 	projects, err := b.ProjectRepo.List(project.QueryOptions{})
 	if err != nil {
 		handleError(400, err, c)
@@ -52,5 +52,5 @@ func (b *ProjectViewAPI) Get(c *gin.Context) {
 		populatedProjects = append(populatedProjects, project)
 	}
 
-	c.JSON(200, projectView{Projects: populatedProjects})
+	c.JSON(200, projectsView{Projects: populatedProjects})
 }
