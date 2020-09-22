@@ -49,7 +49,8 @@ export function ProjectModal(props: IProps) {
                 name,
                 description,
                 id: '',
-            }
+            },
+            tasks: [],
         }
         const project = await props.ProjectAPI.create(proj)
         setShowProgress(true)

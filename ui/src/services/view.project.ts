@@ -3,7 +3,7 @@ import { Project } from './project';
 import { Task } from './tasks';
 
 export interface ProjectView extends Project {
-    tasks: Task[];
+    objects: Task[];
 }
 
 export interface ProjectsViewModel {

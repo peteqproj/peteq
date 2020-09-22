@@ -186,7 +186,7 @@ export function ProjectsPage(props: IProps) {
             setProjectModalOpen(false)
             const row: Row = {
               ...project,
-              tasks: [],
+              objects: [],
             }
             addProject(row)
           }} ProjectAPI={props.ProjectAPI}></ProjectModal>
