@@ -7,7 +7,9 @@ import Paper from '@material-ui/core/Paper';
 import Container from '@material-ui/core/Container';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/Add';
+import TextField from '@material-ui/core/TextField';
 import { TaskAPI, Task } from "./../../services/tasks";
 import { ListAPI, List as ListModel } from "./../../services/list";
 
@@ -40,6 +42,11 @@ const useStyles = makeStyles((theme: Theme) =>
           marginLeft: theme.spacing(2),
         },
     },
+    addCard: {
+        position: 'relative',
+        bottom: '45px',
+        left: '250px'
+    }
   }),
 );
 
@@ -59,6 +66,9 @@ interface IState {
 
 export function HomePage(props: IProps) {
     const classes = useStyles();
+    const [showNewTask, setShowNewTask] = useState(false);
+    const [newTaskListIndex, setNewTaskListIndex] = useState(-1);
+    const [newTaskName, setNewTaskName] = useState("");
     const [state, setState] = useState<IState>(() => {
         return {
             lists: [],
@@ -115,6 +125,40 @@ export function HomePage(props: IProps) {
         fetchAndUpdate()
         
     }
+
+    const onShowNewTask = (index: number) => {
+        setShowNewTask(true);
+        setNewTaskListIndex(index);
+    }
+
+    const onAddTask = (list: string, index: number) => {
+        return async (e: any) => {
+            if(e.keyCode !== 13){
+                return;
+            }
+            const task = await props.TaskAPI.create({
+                metadata: {
+                    name: newTaskName,
+                    description: '',
+                    id: ''
+                },
+                spec: {},
+                status: {
+                    completed: false,
+                }
+            });
+            await props.ListAPI.moveTasks('', list, [ task.metadata.id ]);
+            setShowNewTask(true);
+            setNewTaskName('')
+            setState((prev) => {
+                const s = cloneDeep(prev);
+                s.lists[index].objects.push(task);
+                s.lists[index].tasks.push(task.metadata.id)
+                return s;
+            })
+
+        }
+    };
     return (
         <Grid container className={classes.root}>
             <Grid item xs={12}>
@@ -145,9 +189,22 @@ export function HomePage(props: IProps) {
                                                         )}
                                                     </Draggable>
                                                 ))}
+                                                {showNewTask && newTaskListIndex === index && <Card className={classes.card}>
+                                                    <CardContent>
+                                                        <TextField onBlur={(e: any) => {
+                                                                    if (e.currentTarget.contains(e.relatedTarget)) {
+                                                                      return
+                                                                    }
+                                                                    setShowNewTask(false)
+                                                        }} autoFocus onKeyDown={onAddTask(list.metadata.id, index)} onChange={(ev: any) => setNewTaskName(ev.target.value)} value={newTaskName}/>
+                                                    </CardContent>
+                                                </Card>}
                                             </Container>
                                         </Paper>
                                     {provided.placeholder}
+                                    <IconButton onClick={() => onShowNewTask(index)} aria-label="add" color="primary" className={classes.addCard}>
+                                        <AddIcon />
+                                    </IconButton>
                                     </Grid>
                                 )}
                             </Droppable>
