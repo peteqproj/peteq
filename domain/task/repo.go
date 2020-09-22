@@ -69,16 +69,16 @@ func (r *Repo) Delete(id string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to load tasks: %w", err)
 	}
-	var index *int
+	index := -1
 	for i, t := range allTasks {
 		if t.Metadata.ID == id {
-			index = &i
+			index = i
 		}
 	}
-	if index == nil {
+	if index == -1 {
 		return fmt.Errorf("Task not found")
 	}
-	set := append(allTasks[:*index], allTasks[*index+1:]...)
+	set := append(allTasks[:index], allTasks[index+1:]...)
 	bytes, err := yaml.Marshal(set)
 	if err != nil {
 		return fmt.Errorf("Failed to marshal task: %w", err)
