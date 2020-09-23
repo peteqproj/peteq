@@ -1,25 +1,5 @@
-import { Chance } from 'chance';
 import axios from "axios";
 import { CommnadResponse } from './commandResponse';
- 
-export function buildTask(name: string, description : string, id?: string): Task {
-    const c = new Chance()
-    let guid = c.guid();
-    if (id) {
-      guid = id;
-    }
-    return {
-        metadata: {
-            id: guid,
-            name,
-            description,
-        },
-        spec: {},
-        status: {
-            completed: false
-        }
-    }
-}
 
 
 export interface Task {
@@ -69,7 +49,7 @@ async function create(task: Task): Promise<Task> {
 }
 
 async function update(task: Task): Promise<Task> {
-    const res = await axios.put(`http://localhost:8080/api/task/update`, task);
+    const res = await axios.post(`http://localhost:8080/api/task/update`, task);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to update task: ${cmdResponse.reason}`)
