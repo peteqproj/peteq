@@ -11,8 +11,12 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import Dialog from '@material-ui/core/Dialog';
+import Fade from '@material-ui/core/Fade';
+import Backdrop from '@material-ui/core/Backdrop';
 import { TaskAPI, Task } from "./../../services/tasks";
 import { ListAPI, List as ListModel } from "./../../services/list";
+import { Task as TaskComponent } from './../../components/task/task';
 
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -25,6 +29,11 @@ const useStyles = makeStyles((theme: Theme) =>
       width: 300,
       backgroundColor: '#80808047'
     },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
     control: {
       padding: theme.spacing(5),
     },
@@ -70,6 +79,8 @@ export function HomePage(props: IProps) {
     const [showNewTask, setShowNewTask] = useState(false);
     const [newTaskListIndex, setNewTaskListIndex] = useState(-1);
     const [newTaskName, setNewTaskName] = useState("");
+    const [ showTaskModal, setShowTaskModal ] = useState(false);
+    const [ taskModal, setTaskModal ] = useState<Task>({} as Task);
     const [state, setState] = useState<IState>(() => {
         return {
             lists: [],
@@ -160,6 +171,11 @@ export function HomePage(props: IProps) {
 
         }
     };
+
+    const onTaskClick = (task: Task) => {
+        setShowTaskModal(true);
+        setTaskModal(task);
+    }
     return (
         <Grid container className={classes.root}>
             <Grid item xs={12}>
@@ -179,6 +195,7 @@ export function HomePage(props: IProps) {
                                                     draggableId={task.metadata.id}>
                                                         {(provided, snapshot) => (
                                                             <Card
+                                                            onClick={() => onTaskClick(task)}
                                                             {...provided.draggableProps}
                                                             {...provided.dragHandleProps}
                                                             ref={provided.innerRef} 
@@ -214,6 +231,22 @@ export function HomePage(props: IProps) {
                         ))}
                     </DragDropContext>
                 </Grid>
+                    <Dialog
+                        aria-labelledby="transition-modal-title"
+                        aria-describedby="transition-modal-description"
+                        className={classes.modal}
+                        open={showTaskModal}
+                        onClose={() => setShowTaskModal(false)}
+                        closeAfterTransition
+                        BackdropComponent={Backdrop}
+                        BackdropProps={{
+                            timeout: 500,
+                        }}
+                    >
+                        <Fade in={showTaskModal}>
+                            <TaskComponent TaskAPI={props.TaskAPI} task={taskModal}></TaskComponent>
+                        </Fade>
+                    </Dialog>
             </Grid>
         </Grid>
     );
