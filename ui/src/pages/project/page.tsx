@@ -2,8 +2,10 @@ import React, { useState , useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
+import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
+import Chip from '@material-ui/core/Chip';
 import Typography from '@material-ui/core/Typography';
 import { RouteComponentProps } from "react-router-dom";
 import { ProjectAPI } from './../../services/project'
@@ -50,6 +52,7 @@ export function ProjectPage (props: IProps) {
     <Card className={classes.root}>
       <CardActionArea>
         <CardContent>
+          <CardHeader component={() => (<Chip style={{ width: '70px', backgroundColor: state.metadata.color }}/>)}/>
           <Typography gutterBottom variant="h3" component="h2">
             {state.metadata.name}
           </Typography>
