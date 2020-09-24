@@ -110,20 +110,31 @@ func main() {
 		Repo: listRepo,
 	}
 
-	backlogViewAPI := view.BacklogViewAPI{
-		TaskRepo:    taskRepo,
-		ListRepo:    listRepo,
-		ProjectRepo: projectRepo,
-	}
-
-	projectsViewAPI := view.ProjectsViewAPI{
-		TaskRepo:    taskRepo,
-		ProjectRepo: projectRepo,
-	}
-
-	projectViewAPI := view.ProjectViewAPI{
-		TaskRepo:    taskRepo,
-		ProjectRepo: projectRepo,
+	views := map[string]view.View{
+		"backlog": view.NewView(view.Options{
+			Type:        "backlog",
+			TaskRepo:    taskRepo,
+			ListRepo:    listRepo,
+			ProjectRepo: projectRepo,
+		}),
+		"projects": view.NewView(view.Options{
+			Type:        "projects",
+			TaskRepo:    taskRepo,
+			ListRepo:    listRepo,
+			ProjectRepo: projectRepo,
+		}),
+		"projects/:id": view.NewView(view.Options{
+			Type:        "project",
+			TaskRepo:    taskRepo,
+			ListRepo:    listRepo,
+			ProjectRepo: projectRepo,
+		}),
+		"home": view.NewView(view.Options{
+			Type:        "home",
+			TaskRepo:    taskRepo,
+			ListRepo:    listRepo,
+			ProjectRepo: projectRepo,
+		}),
 	}
 
 	s.AddResource(buildAPI(buildAPIOptions{
@@ -133,9 +144,7 @@ func main() {
 		listCommandAPI:    listCommandAPI,
 		projectCommandAPI: projectCommandAPI,
 		projectQueryAPI:   projectQueryAPI,
-		backlogViewAPI:    backlogViewAPI,
-		projectsViewAPI:   projectsViewAPI,
-		projectViewAPI:    projectViewAPI,
+		views:             views,
 	}))
 
 	initiateLists(*listQueryAPI.Repo)
@@ -265,9 +274,7 @@ type buildAPIOptions struct {
 	listCommandAPI    list.CommandAPI
 	projectQueryAPI   project.QueryAPI
 	projectCommandAPI project.CommandAPI
-	backlogViewAPI    view.BacklogViewAPI
-	projectsViewAPI   view.ProjectsViewAPI
-	projectViewAPI    view.ProjectViewAPI
+	views             map[string]view.View
 }
 
 func buildAPI(options buildAPIOptions) api.Resource {
@@ -364,31 +371,26 @@ func buildAPI(options buildAPIOptions) api.Resource {
 				},
 			},
 			{
-				Path: "/view",
-				Endpoints: []api.Endpoint{
-					{
-						Path:    "/backlog",
-						Handler: options.backlogViewAPI.Get,
-						Verb:    "GET",
-					},
-				},
+				Path:      "/view",
+				Endpoints: []api.Endpoint{},
 				Subresource: []api.Resource{
 					{
-						Endpoints: []api.Endpoint{
-							{
-								Path:    "/projects",
-								Handler: options.projectsViewAPI.Get,
-								Verb:    "GET",
-							},
-							{
-								Path:    "/projects/:id",
-								Handler: options.projectViewAPI.Get,
-								Verb:    "GET",
-							},
-						},
+						Endpoints: buildViews(options.views),
 					},
 				},
 			},
 		},
 	}
+}
+
+func buildViews(views map[string]view.View) []api.Endpoint {
+	endpoints := []api.Endpoint{}
+	for name, view := range views {
+		endpoints = append(endpoints, api.Endpoint{
+			Path:    fmt.Sprintf("/%s", name),
+			Verb:    "GET",
+			Handler: view.Get,
+		})
+	}
+	return endpoints
 }

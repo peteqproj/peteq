@@ -20,6 +20,7 @@ import { API as ListAPI } from './services/list'
 import { API as BacklogViewAPI } from './services/view.backlog'
 import { API as ProjectsViewAPI } from './services/view.projects'
 import { API as ProjectViewAPI } from './services/view.project'
+import { API as HomeViewAPI } from './services/view.home'
 import {
   BrowserRouter as Router,
   Switch,
@@ -187,7 +188,7 @@ function App() {
                   <ProjectsPage ProjectsViewAPI={ProjectsViewAPI} ProjectAPI={ProjectAPI}/>
               </Route>
               <Route path="/">
-                <HomePage TaskAPI={TaskAPI} ListAPI={ListAPI} />
+                <HomePage HomeViewAPI={HomeViewAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} />
               </Route>
             </Switch>
           </Grid>
