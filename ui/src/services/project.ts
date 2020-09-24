@@ -6,6 +6,8 @@ export interface Project {
         name: string;
         description: string;
         id: string;
+        color: string;
+        imageUrl: string;
     },
     tasks: string[];
 }

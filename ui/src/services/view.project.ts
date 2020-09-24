@@ -6,6 +6,8 @@ export interface ProjectView {
         name: string;
         description: string;
         id: string;
+        color: string;
+        imageUrl: string;
     },
     tasks: Task[];
 }

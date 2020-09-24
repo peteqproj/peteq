@@ -114,6 +114,7 @@ export function ProjectsPage(props: IProps) {
         <Table stickyHeader aria-label="sticky table" size={'small'}>
           <TableHead>
               <TableRow>
+                <TableCell key={"color"}/>
                 {columns.map((column, index) => (
                   <TableCell
                     key={index}
@@ -129,6 +130,11 @@ export function ProjectsPage(props: IProps) {
             {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
               return (
                 <TableRow hover role="checkbox" tabIndex={-1} key={index}>
+                  <TableCell key={'c-00'} style={{
+                      backgroundColor: row.metadata.color || 'gray',
+                      width: '2px'
+                    }}>
+                  </TableCell>
                   <TableCell key={'c-0'}>
                   <Tooltip title={"Open"} aria-label={"open"}>
                       <Link to={`/projects/${row.metadata.id}`}>

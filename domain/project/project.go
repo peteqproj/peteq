@@ -12,5 +12,7 @@ type (
 		ID          string `json:"id" yaml:"id"`
 		Name        string `json:"name" yaml:"name"`
 		Description string `json:"description" yaml:"description" validate:"required"`
+		Color       string `json:"color" yaml:"color"`
+		ImageURL    string `json:"imageUrl" yaml:"imageUrl"`
 	}
 )

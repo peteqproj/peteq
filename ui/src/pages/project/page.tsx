@@ -28,7 +28,15 @@ interface IProps extends RouteComponentProps {
 
 export function ProjectPage (props: IProps) {
   const classes = useStyles();
-  const [state, setState] = useState({ metadata: { name: '', id: '', description: ''}, tasks: []} as ProjectView);
+  const [state, setState] = useState({
+    metadata: {
+      name: '',
+      id: '',
+      description: '',
+      color: '',
+      imageUrl: '',
+    }, tasks: []
+  } as ProjectView);
   const id = (props.match.params as any)['id'];
   useEffect(() => {    
     const fetch = async () => {
@@ -56,11 +64,11 @@ export function ProjectPage (props: IProps) {
           </Typography>
         </CardContent>
       </CardActionArea>
-      <CardMedia
+      {state.metadata.imageUrl !== '' && <CardMedia
           className={classes.media}
-          image="https://images-na.ssl-images-amazon.com/images/I/41FH9qC4BrL._SX379_BO1,204,203,200_.jpg"
+          image={state.metadata.imageUrl}
           title="Contemplative Reptile"
-        />
+        />}
     </Card>
   );
 }
