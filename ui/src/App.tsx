@@ -182,7 +182,7 @@ function App() {
               <Route path="/backlog">
                 <BacklogPage ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} BacklogViewAPI={BacklogViewAPI} />
               </Route>
-              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
+              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} TaskAPI={TaskAPI} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
               </Route>
               <Route path="/projects">
                   <ProjectsPage ProjectsViewAPI={ProjectsViewAPI} ProjectAPI={ProjectAPI}/>

@@ -61,7 +61,7 @@ interface IProps {
   BacklogViewAPI: BacklogViewAPI;
 }
 
-interface Row extends BacklogTask {}
+interface Row extends BacklogTask { }
 interface Column {
   title: string;
   minWidth: number;
@@ -88,7 +88,7 @@ interface Selection {
   id: string;
   name: string;
 }
-function makeListSelection(name: string, selected: Selection, row: Row, items: Selection[], className: string, onChange: (source: SelectionChanged, destination: SelectionChanged) => void ) {
+function makeListSelection(name: string, selected: Selection, row: Row, items: Selection[], className: string, onChange: (source: SelectionChanged, destination: SelectionChanged) => void) {
   const menuItems = concat([{ name: 'Empty', id: "-1" }], items).map(({ name, id }) => {
     return (
       <MenuItem key={id} value={id}>{name}</MenuItem>
@@ -99,12 +99,12 @@ function makeListSelection(name: string, selected: Selection, row: Row, items: S
       <InputLabel >{name}</InputLabel>
       <Select
         value={selected.id || "-1"}
-        onChange={( event: React.ChangeEvent<{ name?: string; value: unknown }>,child: React.ReactNode) => {
+        onChange={(event: React.ChangeEvent<{ name?: string; value: unknown }>, child: React.ReactNode) => {
           const id = get(child, 'props.value', "-1");
           const name = get(child, 'props.children', "Empty");
           const destination = {
             id: id === "-1" ? "" : id,
-            name: name === "Empty"? "" : name,
+            name: name === "Empty" ? "" : name,
           }
           const source = {
             id: selected.id,
@@ -123,7 +123,7 @@ function makeTaskCompletionButton(row: Row, onClick: (action: string) => void) {
   const icon = row.status.completed ? <UndoIcon></UndoIcon> : <DoneIcon></DoneIcon>
   const action = !row.status.completed ? 'Complete' : 'Reopen'
   return (
-    <Tooltip title={action} aria-label={action}>    
+    <Tooltip title={action} aria-label={action}>
       <IconButton aria-label="toggelCompletion" color="primary" id={row.metadata.id} onClick={() => {
         onClick(action)
       }}>
@@ -131,7 +131,7 @@ function makeTaskCompletionButton(row: Row, onClick: (action: string) => void) {
       </IconButton>
     </Tooltip>
   )
-}  
+}
 
 export function BacklogPage(props: IProps) {
   const classes = useStyles();
@@ -162,9 +162,9 @@ export function BacklogPage(props: IProps) {
   });
 
   useEffect(() => {
-    (async() => {
+    (async () => {
       const view = await props.BacklogViewAPI.get()
-      const state : IState = {
+      const state: IState = {
         lists: view.lists,
         projects: view.projects,
         columns: [
@@ -181,64 +181,64 @@ export function BacklogPage(props: IProps) {
   }, [props.ListAPI, props.TaskAPI, props.BacklogViewAPI])
 
   const onUpdate = async (newData: Row, oldData?: Row): Promise<any> => {
-      return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-            updateRows((prevState) => {
-              let index;
-              for (let i = 0; i < prevState.length; i++) {
-                const element = prevState[i];
-                if (element.metadata.id === newData.metadata.id) {
-                  index = i
-                }
-              }
-              // index does not found, return previous state
-              if (isUndefined(index)) {
-                return prevState
-              };
-              const data = [...prevState];
-              data[index] = newData;
-              return data;
-            });
-          }, 600);
-      });
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+        updateRows((prevState) => {
+          let index;
+          for (let i = 0; i < prevState.length; i++) {
+            const element = prevState[i];
+            if (element.metadata.id === newData.metadata.id) {
+              index = i
+            }
+          }
+          // index does not found, return previous state
+          if (isUndefined(index)) {
+            return prevState
+          };
+          const data = [...prevState];
+          data[index] = newData;
+          return data;
+        });
+      }, 600);
+    });
   }
 
   const addTask = async (row: Row): Promise<void> => {
     return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-          updateRows((prevState) => {
-            const data = [...prevState];
-            data.splice(0, 0, row)
-            return data;
-          });
-        }, 600);
+      setTimeout(() => {
+        resolve();
+        updateRows((prevState) => {
+          const data = [...prevState];
+          data.splice(0, 0, row)
+          return data;
+        });
+      }, 600);
     });
   }
 
   const deleteTask = async (row: Row): Promise<void> => {
     await props.TaskAPI.remove(row.metadata.id)
     return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-          updateRows((prevState) => {
-            let index;
-            for (let i = 0; i < prevState.length; i++) {
-              const element = prevState[i];
-              if (element.metadata.id === row.metadata.id) {
-                index = i
-              }
+      setTimeout(() => {
+        resolve();
+        updateRows((prevState) => {
+          let index;
+          for (let i = 0; i < prevState.length; i++) {
+            const element = prevState[i];
+            if (element.metadata.id === row.metadata.id) {
+              index = i
             }
-            // index does not found, return previous state
-            if (isUndefined(index)) {
-              return prevState
-            };
-            const data = [...prevState];
-            data.splice(index, 1)
-            return data;
-          });
-        }, 600);
+          }
+          // index does not found, return previous state
+          if (isUndefined(index)) {
+            return prevState
+          };
+          const data = [...prevState];
+          data.splice(index, 1)
+          return data;
+        });
+      }, 600);
     });
   }
 
@@ -247,19 +247,19 @@ export function BacklogPage(props: IProps) {
       <TableContainer className={classes.container}>
         <Table stickyHeader aria-label="sticky table" size={'small'}>
           <TableHead>
-              <TableRow>
-                {state.columns.map((column, index) => (
-                  <TableCell
-                    key={index}
-                  
-                    style={{ minWidth: column.minWidth }}
-                  >
-                    {column.title}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
+            <TableRow>
+              {state.columns.map((column, index) => (
+                <TableCell
+                  key={index}
+
+                  style={{ minWidth: column.minWidth }}
+                >
+                  {column.title}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
               return (
                 <TableRow hover role="checkbox" tabIndex={-1} key={index}>
@@ -268,7 +268,7 @@ export function BacklogPage(props: IProps) {
                       if (action === 'Reopen') {
                         await props.TaskAPI.reopen(row.metadata.id);
                       }
-                      
+
                       if (action === 'Complete') {
                         await props.TaskAPI.complete(row.metadata.id);
                       }
@@ -276,11 +276,11 @@ export function BacklogPage(props: IProps) {
                       newRow.status.completed = !newRow.status.completed
                       onUpdate(newRow, row)
                     })}
-                    <Tooltip title={"Delete"} aria-label={"delete"}>    
+                    <Tooltip title={"Delete"} aria-label={"delete"}>
                       <IconButton aria-label="toggelCompletion" color="primary" id={row.metadata.id} onClick={() => {
                         deleteTask(row)
                       }}>
-                        <DeleteIcon/>
+                        <DeleteIcon />
                       </IconButton>
                     </Tooltip>
                   </TableCell>
@@ -324,11 +324,11 @@ export function BacklogPage(props: IProps) {
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
       <Fab
-          color="primary"
-          style={{ position: 'fixed', right: '15px', bottom: '15px' }}
-          onClick={handleTaskModalOpen}
-          >
-            <AddIcon />
+        color="primary"
+        style={{ position: 'fixed', right: '15px', bottom: '15px' }}
+        onClick={handleTaskModalOpen}
+      >
+        <AddIcon />
       </Fab>
       <Dialog
         aria-labelledby="transition-modal-title"
