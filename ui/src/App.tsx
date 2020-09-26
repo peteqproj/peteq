@@ -182,13 +182,13 @@ function App() {
               <Route path="/backlog">
                 <BacklogPage ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} BacklogViewAPI={BacklogViewAPI} />
               </Route>
-              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} TaskAPI={TaskAPI} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
+              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} ListAPI={ListAPI} TaskAPI={TaskAPI} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
               </Route>
               <Route path="/projects">
                   <ProjectsPage ProjectsViewAPI={ProjectsViewAPI} ProjectAPI={ProjectAPI}/>
               </Route>
               <Route path="/">
-                <HomePage HomeViewAPI={HomeViewAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} />
+                <HomePage HomeViewAPI={HomeViewAPI} ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} />
               </Route>
             </Switch>
           </Grid>

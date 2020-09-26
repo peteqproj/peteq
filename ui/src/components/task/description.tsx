@@ -6,12 +6,14 @@ import TextField from '@material-ui/core/TextField';
 
 interface IProps {
     description: string;
+    new?: boolean;
+    disableAutoFocus?: boolean;
     onUpdate(description: string): void;
 }
 
 export function TaskDescription(props: IProps) {
     const input = useRef();
-    const [editMode, setEditMode] = useState(false);
+    const [editMode, setEditMode] = useState(props.new);
     const [taskDescription] = useState(props.description);
     if (editMode) {
         return (
@@ -35,7 +37,8 @@ export function TaskDescription(props: IProps) {
                         defaultValue={taskDescription}
                         variant="outlined"
                         fullWidth
-                        autoFocus
+                        autoFocus={!props.disableAutoFocus}
+                        placeholder="Add more details"
                 />
         )} />)
     }

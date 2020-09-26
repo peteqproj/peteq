@@ -18,6 +18,7 @@ import Backdrop from '@material-ui/core/Backdrop';
 import { HomeViewAPI, HomeViewModel } from './../../services/view.home';
 import { TaskAPI, Task } from "./../../services/tasks";
 import { ListAPI } from "./../../services/list";
+import { ProjectAPI } from "./../../services/project";
 import { Task as TaskComponent } from './../../components/task/task';
 
 
@@ -65,6 +66,7 @@ const useStyles = makeStyles((theme: Theme) =>
 interface IProps {
     TaskAPI: TaskAPI;
     ListAPI: ListAPI;
+    ProjectAPI: ProjectAPI;
     HomeViewAPI: HomeViewAPI;
 }
 
@@ -219,7 +221,7 @@ export function HomePage(props: IProps) {
                     }}
                 >
                     <Fade in={showTaskModal}>
-                        <TaskComponent TaskAPI={props.TaskAPI} task={taskModal}></TaskComponent>
+                        <TaskComponent onChange={() => {}} ProjectAPI={props.ProjectAPI} ListAPI={props.ListAPI} projects={[]} TaskAPI={props.TaskAPI} task={taskModal}></TaskComponent>
                     </Fade>
                 </Dialog>
             </Grid>

@@ -14,6 +14,7 @@ import { Fab } from './../../components/fab';
 import { Task as TaskComponent } from './../../components/task/task';
 import { ProjectAPI } from './../../services/project'
 import { Task, TaskAPI } from './../../services/tasks'
+import { List, ListAPI } from './../../services/list'
 import { ProjectViewAPI, ProjectView } from './../../services/view.project'
 import { Progress } from './progress';
 
@@ -36,6 +37,7 @@ interface IProps extends RouteComponentProps {
   ProjectAPI: ProjectAPI;
   ProjectViewAPI: ProjectViewAPI;
   TaskAPI: TaskAPI;
+  ListAPI: ListAPI;
 }
 
 export function ProjectPage(props: IProps) {
@@ -102,7 +104,24 @@ export function ProjectPage(props: IProps) {
         image={state.metadata.imageUrl}
         title="Contemplative Reptile"
       />}
-      <Fab modal={<TaskComponent new={true} task={{ metadata: { id: '', name: '', description: '' }, spec: {}, status: {completed: false}}} TaskAPI={props.TaskAPI} />}/>
+      <Fab
+        modal={
+          <TaskComponent
+            onChange={async () => {
+              const view = await props.ProjectViewAPI.get(projectId);
+              setState(view);
+            }}
+            defaultProject={ { name: state.metadata.name, id: state.metadata.id } }
+            projects={[
+              { name: state.metadata.name, id: state.metadata.id }
+            ]} 
+            new={true}
+            task={{ metadata: { id: '', name: '', description: '' }, spec: {}, status: {completed: false}}} 
+            TaskAPI={props.TaskAPI}
+            ListAPI={props.ListAPI}
+            ProjectAPI={props.ProjectAPI}
+          />}
+      />
     </Card>
   );
 }
