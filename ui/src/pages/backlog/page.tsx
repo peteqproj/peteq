@@ -26,7 +26,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { TaskAPI, Task } from "./../../services/tasks";
 import { ListAPI } from "./../../services/list";
 import { ProjectAPI } from "./../../services/project";
-import { BacklogViewAPI, BacklogList, BacklogTask, BacklogProject } from "./../../services/view.backlog";
+import { BacklogViewAPI, BacklogList, BacklogTask, BacklogProject } from "../../services/views/backlog";
 import { TaskModal } from './new-task-modal/modal';
 
 const useStyles = makeStyles((theme) => ({

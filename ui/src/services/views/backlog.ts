@@ -1,5 +1,5 @@
-import http from './http';
-import { Task } from './tasks';
+import http from '../http';
+import { Task } from '../tasks';
 
 export interface BacklogTask extends Task {
     list: BacklogList;

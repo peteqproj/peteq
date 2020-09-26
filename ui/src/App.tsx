@@ -17,10 +17,10 @@ import { Menu } from './components/menu/menu'
 import { API as ProjectAPI } from './services/project'
 import { API as TaskAPI } from './services/tasks'
 import { API as ListAPI } from './services/list'
-import { API as BacklogViewAPI } from './services/view.backlog'
-import { API as ProjectsViewAPI } from './services/view.projects'
-import { API as ProjectViewAPI } from './services/view.project'
-import { API as HomeViewAPI } from './services/view.home'
+import { API as BacklogViewAPI } from './services/views/backlog'
+import { API as ProjectsViewAPI } from './services/views/projects'
+import { API as ProjectViewAPI } from './services/views/project'
+import { API as HomeViewAPI } from './services/views/home'
 import {
   BrowserRouter as Router,
   Switch,

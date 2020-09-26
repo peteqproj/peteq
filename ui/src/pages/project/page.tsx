@@ -14,8 +14,8 @@ import { Fab } from './../../components/fab';
 import { Task as TaskComponent } from './../../components/task/task';
 import { ProjectAPI } from './../../services/project'
 import { Task, TaskAPI } from './../../services/tasks'
-import { List, ListAPI } from './../../services/list'
-import { ProjectViewAPI, ProjectView } from './../../services/view.project'
+import { ListAPI } from './../../services/list'
+import { ProjectViewAPI, ProjectView } from './../../services/views/project'
 import { Progress } from './progress';
 
 const useStyles = makeStyles({

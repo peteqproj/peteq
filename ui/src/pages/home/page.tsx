@@ -15,7 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import Dialog from '@material-ui/core/Dialog';
 import Fade from '@material-ui/core/Fade';
 import Backdrop from '@material-ui/core/Backdrop';
-import { HomeViewAPI, HomeViewModel } from './../../services/view.home';
+import { HomeViewAPI, HomeViewModel } from '../../services/views/home';
 import { TaskAPI, Task } from "./../../services/tasks";
 import { ListAPI } from "./../../services/list";
 import { ProjectAPI } from "./../../services/project";

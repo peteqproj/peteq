@@ -1,6 +1,6 @@
-import http from './http';
-import { Task } from './tasks';
-import { Project } from './project';
+import http from '../http';
+import { Task } from '../tasks';
+import { Project } from '../project';
 
 export interface HomeViewModel {
     lists: HomeViewList[];
