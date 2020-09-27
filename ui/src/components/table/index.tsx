@@ -75,7 +75,7 @@ function makeColumns(columns: Column[]) {
 function makeRows(rows: Row[]) {
     return map(rows, (r, i) => {
         return (
-            <TableRow>
+            <TableRow key={i}>
                 {map(r.data, (c, i) => {
                     return (
                         <TableCell key={i}>
