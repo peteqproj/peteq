@@ -1,6 +1,8 @@
 package view
 
 import (
+	"sort"
+
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
@@ -72,6 +74,10 @@ func (b *BacklogViewAPI) Get(c *gin.Context) {
 			Name: p.Metadata.Name,
 		})
 	}
+	sort.SliceStable(taskSet, func(i, j int) bool {
+		t1 := taskSet[i]
+		return !t1.Status.Completed
+	})
 	for _, task := range taskSet {
 		backlogList := backlogTaskList{
 			ID:   "-1",
