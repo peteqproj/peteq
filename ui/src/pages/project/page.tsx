@@ -14,7 +14,7 @@ import { Fab } from './../../components/fab';
 import { Task as TaskComponent } from './../../components/task/task';
 import { ProjectAPI } from './../../services/project'
 import { Task, TaskAPI } from './../../services/tasks'
-import { ListAPI } from './../../services/list'
+import { List, ListAPI } from './../../services/list'
 import { ProjectViewAPI, ProjectView } from './../../services/views/project'
 import { Progress } from './progress';
 
@@ -43,6 +43,7 @@ interface IProps extends RouteComponentProps {
 export function ProjectPage(props: IProps) {
   const classes = useStyles();
   const projectId = (props.match.params as any)['id'];
+  const [lists, updateLists] = useState<List[]>([]) 
   const [state, setState] = useState({
     metadata: {
       name: '',
@@ -56,6 +57,8 @@ export function ProjectPage(props: IProps) {
     const fetch = async () => {
       const prj = await props.ProjectViewAPI.get(projectId)
       setState(prj)
+      const l = await props.ListAPI.list()
+      updateLists(l);
     }
     fetch();
 
@@ -115,6 +118,7 @@ export function ProjectPage(props: IProps) {
             projects={[
               { name: state.metadata.name, id: state.metadata.id }
             ]} 
+            lists={lists.map(l => ({ name: l.metadata.name, id: l.metadata.id }))} 
             new={true}
             task={{ metadata: { id: '', name: '', description: '' }, spec: {}, status: {completed: false}}} 
             TaskAPI={props.TaskAPI}

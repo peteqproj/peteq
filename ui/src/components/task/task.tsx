@@ -25,7 +25,12 @@ interface IProps {
     ListAPI: ListAPI;
     ProjectAPI: ProjectAPI;
     projects: { name: string, id: string }[];
+    lists: { name: string, id: string }[];
     defaultProject?: {
+        name: string;
+        id: string;
+    }
+    defaultList?: {
         name: string;
         id: string;
     }
@@ -38,6 +43,17 @@ export function Task(props: IProps) {
     const [task, updateTask] = useState(props.task);
     const [projectHasSet, updateProjectHasSet] = useState(false);
     const [project, updateProject] = useState(props.defaultProject?.id || "");
+    const [listHasSet, updateListHasSet] = useState(false);
+    const [list, updateList] = useState(props.defaultList?.id || "");
+
+    const updateTaskList = async (task: string, list: string) => {
+        if (listHasSet) {
+            return; // was set previously, no changes
+        }
+        await props.ListAPI.moveTasks('', list, [task])
+        updateListHasSet(true);
+
+    }
     return (
         <Card className={classes.root}>
             <TaskTitle
@@ -52,6 +68,7 @@ export function Task(props: IProps) {
                         await props.ProjectAPI.addTasks(project, [t.metadata.id])
                         updateProjectHasSet(true);
                     }
+
                     props.onChange();
                 }}
             />
@@ -74,7 +91,7 @@ export function Task(props: IProps) {
                 />
                 <Select
                     onSelectionChanged={async (ev: SelectionChangedEvent) => {
-                        if(task.metadata.id === "") {
+                        if (task.metadata.id === "") {
                             return
                         }
                         const destination = get(ev, 'destination.value');
@@ -87,6 +104,24 @@ export function Task(props: IProps) {
                     title={"Projects"}
                     items={props.projects.map(l => ({ title: l.name, value: l.id }))}
                 />
+                <Select
+                    onSelectionChanged={async (ev: SelectionChangedEvent) => {
+                        if (task.metadata.id === "") {
+                            return
+                        }
+                        console.log(`changed triggers: ${ev.destination?.value}`)
+                        const destination = get(ev, 'destination.value');
+                        console.log(`Setting destination=${destination}`)
+                        await updateList(destination);
+                        await updateListHasSet(false);
+                        await updateTaskList(task.metadata.id, destination)
+                        props.onChange();
+                    }}
+                    key={props.defaultList?.name}
+                    value={props.defaultList?.id}
+                    title={"Lists"}
+                    items={props.lists.map(l => ({ title: l.name, value: l.id }))}
+                />
             </Grid>
         </Card>
     )
@@ -94,7 +129,7 @@ export function Task(props: IProps) {
 
 async function upsert(task: TaskModal, api: TaskAPI): Promise<TaskModal> {
     if (task.metadata.id === "") {
-        return api.create(task); 
+        return api.create(task);
     }
     await api.update(task);
     return task

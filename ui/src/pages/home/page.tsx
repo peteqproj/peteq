@@ -221,7 +221,15 @@ export function HomePage(props: IProps) {
                     }}
                 >
                     <Fade in={showTaskModal}>
-                        <TaskComponent onChange={() => {}} ProjectAPI={props.ProjectAPI} ListAPI={props.ListAPI} projects={[]} TaskAPI={props.TaskAPI} task={taskModal}></TaskComponent>
+                        <TaskComponent 
+                            onChange={() => {}} 
+                            ProjectAPI={props.ProjectAPI} 
+                            ListAPI={props.ListAPI} 
+                            projects={[]}
+                            lists={[]}
+                            TaskAPI={props.TaskAPI} 
+                            task={taskModal}
+                        />
                     </Fade>
                 </Dialog>
             </Grid>
