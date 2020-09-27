@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { get } from "lodash";
 import { makeStyles } from '@material-ui/core/styles';
 import FormControl from '@material-ui/core/FormControl';
@@ -40,11 +40,12 @@ const UnsetSelection = {
 
 export function Select(props: IProps) {
     const classes = useStyles();
+    const [selected, setSelected] = useState(props.value || UnsetSelection.value)
     return (
         <FormControl className={classes.formControl}>
             <InputLabel >{props.title}</InputLabel>
             <MSelect
-                value={props.value || UnsetSelection.value}
+                value={selected}
                 onChange={(event: React.ChangeEvent<{ name?: string; value: unknown }>, child: React.ReactNode) => {
                     const value = get(child, 'props.value', UnsetSelection.value);
                     const title = get(child, 'props.children', UnsetSelection.title);
@@ -53,6 +54,7 @@ export function Select(props: IProps) {
                         props.onSelectionChanged({});
                         return;
                     }
+                    setSelected(value);
                     props.onSelectionChanged({ destination: { value, title }});
                 }}
             >
