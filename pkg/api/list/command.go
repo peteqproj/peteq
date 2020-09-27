@@ -37,6 +37,22 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 	if err := api.UnmarshalInto(body, opt); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
+	var source *list.List
+	var destination *list.List
+	if opt.Source != "" {
+		src, err := ca.Repo.Get(opt.Source)
+		if err != nil {
+			return api.NewRejectedCommandResponse(err.Error())
+		}
+		source = &src
+	}
+	if opt.Destination != "" {
+		dst, err := ca.Repo.Get(opt.Destination)
+		if err != nil {
+			return api.NewRejectedCommandResponse(err.Error())
+		}
+		destination = &dst
+	}
 	for _, t := range opt.TaskIDs {
 		err := ca.Commandbus.ExecuteAndWait(ctx, "list.move-task", command.MoveTaskArguments{
 			Source:      opt.Source,
@@ -45,6 +61,16 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 		})
 		if err != nil {
 			return api.NewRejectedCommandResponse(err.Error())
+		}
+		if destination != nil && destination.Metadata.Name == "Done" {
+			if err := ca.Commandbus.ExecuteAndWait(ctx, "task.complete", t); err != nil {
+				return api.NewRejectedCommandResponse(err.Error())
+			}
+		}
+		if source != nil && source.Metadata.Name == "Done" {
+			if err := ca.Commandbus.ExecuteAndWait(ctx, "task.reopen", t); err != nil {
+				return api.NewRejectedCommandResponse(err.Error())
+			}
 		}
 	}
 	return api.NewAcceptedCommandResponse("list", opt.Source)
