@@ -6,7 +6,6 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Container from '@material-ui/core/Container';
 import Card from '@material-ui/core/Card';
-import Chip from '@material-ui/core/Chip';
 import CardContent from '@material-ui/core/CardContent';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
@@ -30,7 +29,8 @@ const useStyles = makeStyles((theme: Theme) =>
         paper: {
             height: 800,
             width: 300,
-            backgroundColor: '#80808047'
+            backgroundColor: '#80808047',
+            overflow: 'auto'
         },
         modal: {
             display: 'flex',
@@ -175,9 +175,9 @@ export function HomePage(props: IProps) {
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
                                                                 ref={provided.innerRef}
-                                                                className={classes.card}>
+                                                                className={classes.card}
+                                                                style={{ borderLeftColor: get(task, 'project.metadata.color', 'gray'), borderLeftStyle: 'outset', borderLeftWidth: '10px'}}>
                                                                 <CardContent>
-                                                                    <Chip style={{width: '20px', height: '20px', backgroundColor: get(task, 'project.metadata.color', 'gray')}}/>
                                                                     <Typography variant="body2" component="p">
                                                                         {task.metadata.name}
                                                                     </Typography>
