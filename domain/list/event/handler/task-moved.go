@@ -21,5 +21,5 @@ func (t *TaskMovedHandler) Handle(ev event.Event) error {
 	if !ok {
 		return fmt.Errorf("Failed to cast to task object")
 	}
-	return t.Repo.MoveTask(opt.Source, opt.Destination, opt.TaskID)
+	return t.Repo.MoveTask(ev.Tenant.ID, opt.Source, opt.Destination, opt.TaskID)
 }

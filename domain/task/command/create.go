@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -24,7 +25,12 @@ func (c *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 		done <- fmt.Errorf("Failed to convert arguments to Task object")
 		return
 	}
+	u := tenant.UserFromContext(ctx)
 	c.Eventbus.Publish(event.Event{
+		Tenant: tenant.Tenant{
+			ID:   u.Metadata.ID,
+			Type: tenant.User.String(),
+		},
 		Metadata: event.Metadata{
 			Name:           "task.created",
 			CreatedAt:      time.Now(),

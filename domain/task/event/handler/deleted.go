@@ -20,5 +20,5 @@ func (c *DeleteHandler) Handle(ev event.Event) error {
 	if !ok {
 		return fmt.Errorf("Failed to cast to task object")
 	}
-	return c.Repo.Delete(t.Metadata.ID)
+	return c.Repo.Delete(t.Tenant.ID, t.Metadata.ID)
 }

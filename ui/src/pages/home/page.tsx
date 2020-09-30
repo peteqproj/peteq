@@ -21,46 +21,47 @@ import { ProjectAPI } from "./../../services/project";
 import { Task as TaskComponent } from './../../components/task/task';
 
 
-const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        root: {
-            flexGrow: 1,
+const useStyles = makeStyles((theme: Theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    paper: {
+        height: 800,
+        width: 300,
+        backgroundColor: '#80808047',
+        overflow: 'auto'
+    },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    control: {
+        padding: theme.spacing(5),
+    },
+    listTitle: {
+        paddingTop: 10,
+        paddingBottom: 10,
+    },
+    card: {
+        display: 'flex',
+        maxHeight: 200,
+        marginBottom: 5,
+        borderLeftStyle: 'outset',
+        borderLeftWidth: '10px'
+    },
+    progress: {
+        display: 'flex',
+        '& > * + *': {
+            marginLeft: theme.spacing(2),
         },
-        paper: {
-            height: 800,
-            width: 300,
-            backgroundColor: '#80808047',
-            overflow: 'auto'
-        },
-        modal: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        control: {
-            padding: theme.spacing(5),
-        },
-        listTitle: {
-            paddingTop: 10,
-            paddingBottom: 10,
-        },
-        card: {
-            display: 'flex',
-            maxHeight: 200,
-            marginBottom: 5
-        },
-        progress: {
-            display: 'flex',
-            '& > * + *': {
-                marginLeft: theme.spacing(2),
-            },
-        },
-        addCard: {
-            position: 'relative',
-            bottom: '45px',
-            left: '250px'
-        }
-    }),
+    },
+    addCard: {
+        position: 'relative',
+        bottom: '45px',
+        left: '250px'
+    }
+}),
 );
 
 interface IProps {
@@ -77,7 +78,7 @@ export function HomePage(props: IProps) {
     const [newTaskName, setNewTaskName] = useState("");
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [taskModal, setTaskModal] = useState<Task>({} as Task);
-    const [state, setState] = useState<HomeViewModel>({ lists: []});
+    const [state, setState] = useState<HomeViewModel>({ lists: [] });
 
     useEffect(() => {
         (async () => {
@@ -176,7 +177,10 @@ export function HomePage(props: IProps) {
                                                                 {...provided.dragHandleProps}
                                                                 ref={provided.innerRef}
                                                                 className={classes.card}
-                                                                style={{ borderLeftColor: get(task, 'project.metadata.color', 'gray'), borderLeftStyle: 'outset', borderLeftWidth: '10px'}}>
+                                                                style={{
+                                                                    borderLeftColor: get(task, 'project.metadata.color', 'gray'),
+                                                                    ...provided.draggableProps.style
+                                                                }}>
                                                                 <CardContent>
                                                                     <Typography variant="body2" component="p">
                                                                         {task.metadata.name}
@@ -221,13 +225,13 @@ export function HomePage(props: IProps) {
                     }}
                 >
                     <Fade in={showTaskModal}>
-                        <TaskComponent 
-                            onChange={() => {}} 
-                            ProjectAPI={props.ProjectAPI} 
-                            ListAPI={props.ListAPI} 
+                        <TaskComponent
+                            onChange={() => { }}
+                            ProjectAPI={props.ProjectAPI}
+                            ListAPI={props.ListAPI}
                             projects={[]}
                             lists={[]}
-                            TaskAPI={props.TaskAPI} 
+                            TaskAPI={props.TaskAPI}
                             task={taskModal}
                         />
                     </Fade>

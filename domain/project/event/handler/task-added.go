@@ -22,5 +22,5 @@ func (t *TaskAddedHandler) Handle(ev event.Event) error {
 	if !ok {
 		return fmt.Errorf("Failed to cast to Project object")
 	}
-	return t.Repo.AddTask(opt.Project, opt.TaskID)
+	return t.Repo.AddTask(ev.Tenant.ID, opt.Project, opt.TaskID)
 }

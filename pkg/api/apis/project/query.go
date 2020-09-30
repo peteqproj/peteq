@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -16,7 +17,11 @@ type (
 
 // List projects
 func (q *QueryAPI) List(c *gin.Context) {
-	res, err := q.Repo.List(project.QueryOptions{})
+	u := tenant.UserFromContext(c.Request.Context())
+
+	res, err := q.Repo.List(project.QueryOptions{
+		UserID: u.Metadata.ID,
+	})
 	if err != nil {
 		handleError(500, err, c)
 		return
@@ -26,7 +31,8 @@ func (q *QueryAPI) List(c *gin.Context) {
 
 // Get returns a one project
 func (q *QueryAPI) Get(c *gin.Context) {
-	p, err := q.Repo.Get(c.Param("id"))
+	u := tenant.UserFromContext(c.Request.Context())
+	p, err := q.Repo.Get(u.Metadata.ID, c.Param("id"))
 	if err != nil {
 		handleError(404, fmt.Errorf("Project not found"), c)
 		return

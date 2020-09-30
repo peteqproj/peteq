@@ -1,13 +1,18 @@
 package task
 
-import "time"
+import (
+	"time"
+
+	"github.com/peteqproj/peteq/pkg/tenant"
+)
 
 type (
 	// Task entity
 	Task struct {
-		Metadata Metadata `json:"metadata" yaml:"metadata" validate:"required"`
-		Spec     Spec     `json:"spec" yaml:"spec" validate:"required"`
-		Status   Status   `json:"status" yaml:"status"`
+		tenant.Tenant `json:"tenant" yaml:"tenant"`
+		Metadata      Metadata `json:"metadata" yaml:"metadata" validate:"required"`
+		Spec          Spec     `json:"spec" yaml:"spec" validate:"required"`
+		Status        Status   `json:"status" yaml:"status"`
 	}
 
 	// Metadata of task

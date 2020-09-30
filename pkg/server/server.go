@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/peteqproj/peteq/pkg/api"
+	"github.com/peteqproj/peteq/pkg/config"
 )
 
 type (
@@ -18,21 +19,17 @@ type (
 
 	// Options to create server
 	Options struct {
-		Port string
+		Config *config.Server
 	}
 
 	server struct {
-		srv  *gin.Engine
-		port string
+		cnf *config.Server
+		srv *gin.Engine
 	}
 )
 
 // New build server
 func New(options Options) Server {
-	port := "8080"
-	if options.Port != "" {
-		port = options.Port
-	}
 	srv := gin.Default()
 	srv.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -50,13 +47,13 @@ func New(options Options) Server {
 
 	})
 	return &server{
-		srv:  srv,
-		port: port,
+		srv: srv,
+		cnf: options.Config,
 	}
 }
 
 func (s *server) Start() error {
-	s.srv.Run(fmt.Sprintf("0.0.0.0:%s", s.port))
+	s.srv.Run(fmt.Sprintf("0.0.0.0:%s", s.cnf.Port))
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/peteqproj/peteq/pkg/command/handler"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -13,6 +14,7 @@ type (
 	CommandBus struct {
 		Handlers map[string]handler.CommandHandler
 		Lock     *sync.Mutex
+		Logger   logger.Logger
 	}
 )
 
@@ -26,6 +28,7 @@ func (c *CommandBus) Execute(ctx context.Context, name string, arguments interfa
 		done <- fmt.Errorf("Handler not found")
 		return
 	}
+	c.Logger.Info("Calling command handler", "name", name)
 	h.Handle(ctx, done, arguments)
 }
 

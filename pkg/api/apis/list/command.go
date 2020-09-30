@@ -8,6 +8,8 @@ import (
 	"github.com/peteqproj/peteq/domain/list/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -15,6 +17,7 @@ type (
 	CommandAPI struct {
 		Repo       *list.Repo
 		Commandbus commandbus.CommandBus
+		Logger     logger.Logger
 	}
 
 	// MoveTasksRequestBody passed from http client
@@ -33,6 +36,7 @@ type (
 
 // MoveTasks move multiple tasks from one list to another
 func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.CommandResponse {
+	u := tenant.UserFromContext(ctx)
 	opt := &MoveTasksRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
@@ -40,14 +44,14 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 	var source *list.List
 	var destination *list.List
 	if opt.Source != "" {
-		src, err := ca.Repo.Get(opt.Source)
+		src, err := ca.Repo.Get(u.Metadata.ID, opt.Source)
 		if err != nil {
 			return api.NewRejectedCommandResponse(err.Error())
 		}
 		source = &src
 	}
 	if opt.Destination != "" {
-		dst, err := ca.Repo.Get(opt.Destination)
+		dst, err := ca.Repo.Get(u.Metadata.ID, opt.Destination)
 		if err != nil {
 			return api.NewRejectedCommandResponse(err.Error())
 		}
@@ -63,11 +67,13 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 			return api.NewRejectedCommandResponse(err.Error())
 		}
 		if destination != nil && destination.Metadata.Name == "Done" {
+			ca.Logger.Info("Completing task", "name", t)
 			if err := ca.Commandbus.ExecuteAndWait(ctx, "task.complete", t); err != nil {
 				return api.NewRejectedCommandResponse(err.Error())
 			}
 		}
 		if source != nil && source.Metadata.Name == "Done" {
+			ca.Logger.Info("Reopenning task", "name", t)
 			if err := ca.Commandbus.ExecuteAndWait(ctx, "task.reopen", t); err != nil {
 				return api.NewRejectedCommandResponse(err.Error())
 			}

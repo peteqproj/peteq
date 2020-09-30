@@ -9,6 +9,8 @@ import (
 	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -16,6 +18,7 @@ type (
 	CommandAPI struct {
 		Repo       *project.Repo
 		Commandbus commandbus.CommandBus
+		Logger     logger.Logger
 	}
 
 	// AddTasksRequestBody body spec of the request command AddTasks
@@ -27,6 +30,7 @@ type (
 
 // Create creates new project
 func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
+	u := tenant.UserFromContext(ctx)
 	proj := project.Project{}
 	if err := api.UnmarshalInto(body, &proj); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
@@ -37,6 +41,10 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 	}
 
 	proj.Metadata.ID = u2.String()
+	proj.Tenant = tenant.Tenant{
+		ID:   u.Metadata.ID,
+		Type: "User",
+	}
 	err = ca.Commandbus.ExecuteAndWait(ctx, "project.create", proj)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err.Error())

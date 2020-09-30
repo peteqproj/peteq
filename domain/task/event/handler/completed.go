@@ -16,7 +16,7 @@ type (
 
 // Handle will handle the event the process it
 func (c *CompletedHandler) Handle(ev event.Event) error {
-	task, err := c.Repo.Get(ev.Metadata.AggregatorID)
+	task, err := c.Repo.Get(ev.Tenant.ID, ev.Metadata.AggregatorID)
 	if err != nil {
 		return fmt.Errorf("Failed to get task %s: %v", ev.Metadata.AggregatorID, err)
 	}

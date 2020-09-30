@@ -17,22 +17,29 @@ import (
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
 	taskEventHandlers "github.com/peteqproj/peteq/domain/task/event/handler"
-	"github.com/peteqproj/peteq/pkg/api"
-	"github.com/peteqproj/peteq/pkg/api/list"
-	"github.com/peteqproj/peteq/pkg/api/project"
-	"github.com/peteqproj/peteq/pkg/api/task"
-	"github.com/peteqproj/peteq/pkg/api/view"
+	userDomain "github.com/peteqproj/peteq/domain/user"
+	userCommands "github.com/peteqproj/peteq/domain/user/command"
+	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
+	"github.com/peteqproj/peteq/pkg/api/apis/list"
+	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/db/local"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
+	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
 )
 
 var locatDBLocation = path.Join(os.Getenv("HOME"), ".peteq")
 
 func main() {
+	logr := logger.New(logger.Options{})
+	cnf := &config.Server{
+		Port:                 "8080",
+		EncryptionPassphrase: "local",
+	}
 	s := server.New(server.Options{
-		Port: "8080",
+		Config: cnf,
 	})
 	wsserver, err := socketio.NewServer(nil)
 	defer wsserver.Close()
@@ -49,6 +56,7 @@ func main() {
 		Type:            "local",
 		LocalEventStore: taskEventStore,
 		WS:              wsserver,
+		Logger:          logr.Fork("module", "eventbus"),
 	})
 	taskLocalDB := &local.DB{
 		Path: path.Join(locatDBLocation, "tasks.yaml"),
@@ -61,91 +69,56 @@ func main() {
 	projectLocalDB := &local.DB{
 		Path: path.Join(locatDBLocation, "projects.yaml"),
 	}
+
+	userLocalDB := &local.DB{
+		Path: path.Join(locatDBLocation, "users.yaml"),
+	}
 	taskRepo := &taskDomain.Repo{
-		DB: taskLocalDB,
+		DB:     taskLocalDB,
+		Logger: logr.Fork("repo", "task"),
 	}
 
 	listRepo := &listDomain.Repo{
-		DB: listLocalDB,
+		DB:     listLocalDB,
+		Logger: logr.Fork("repo", "list"),
 	}
 
 	projectRepo := &projectDomain.Repo{
-		DB: projectLocalDB,
+		DB:     projectLocalDB,
+		Logger: logr.Fork("repo", "project"),
+	}
+
+	userRepo := &userDomain.Repo{
+		DB:     userLocalDB,
+		Logger: logr.Fork("repo", "user"),
 	}
 
 	cb := commandbus.New(commandbus.Options{
-		Type: "local",
+		Type:   "local",
+		Logger: logr.Fork("module", "commandbus"),
 	})
 
 	registerTaskEventHandlers(inmemoryEventbus, taskRepo)
 	registerListEventHandlers(inmemoryEventbus, listRepo)
 	registerProjectEventHandlers(inmemoryEventbus, projectRepo)
+	registerUserEventHandlers(inmemoryEventbus, userRepo)
 	registerCommandHandlers(cb, inmemoryEventbus)
 
-	commandAPI := task.CommandAPI{
-		Repo: &taskDomain.Repo{
-			DB: taskLocalDB,
-		},
-		Commandbus: cb,
-	}
-	queryAPI := task.QueryAPI{
-		Repo: &taskDomain.Repo{
-			DB: taskLocalDB,
-		},
-	}
-
-	projectCommandAPI := project.CommandAPI{
-		Repo:       projectRepo,
-		Commandbus: cb,
-	}
-	projectQueryAPI := project.QueryAPI{
-		Repo: projectRepo,
-	}
-
-	listCommandAPI := list.CommandAPI{
-		Repo:       listRepo,
-		Commandbus: cb,
-	}
 	listQueryAPI := list.QueryAPI{
 		Repo: listRepo,
 	}
 
-	views := map[string]view.View{
-		"backlog": view.NewView(view.Options{
-			Type:        "backlog",
-			TaskRepo:    taskRepo,
-			ListRepo:    listRepo,
-			ProjectRepo: projectRepo,
-		}),
-		"projects": view.NewView(view.Options{
-			Type:        "projects",
-			TaskRepo:    taskRepo,
-			ListRepo:    listRepo,
-			ProjectRepo: projectRepo,
-		}),
-		"projects/:id": view.NewView(view.Options{
-			Type:        "project",
-			TaskRepo:    taskRepo,
-			ListRepo:    listRepo,
-			ProjectRepo: projectRepo,
-		}),
-		"home": view.NewView(view.Options{
-			Type:        "home",
-			TaskRepo:    taskRepo,
-			ListRepo:    listRepo,
-			ProjectRepo: projectRepo,
-		}),
+	apiBuilder := builder.Builder{
+		UserRepo:    userRepo,
+		ListRpeo:    listRepo,
+		ProjectRepo: projectRepo,
+		TaskRepo:    taskRepo,
+		Commandbus:  cb,
+		Logger:      logr,
 	}
 
-	s.AddResource(buildAPI(buildAPIOptions{
-		taskQueryAPI:      queryAPI,
-		taskCommandAPI:    commandAPI,
-		listQuestAPI:      listQueryAPI,
-		listCommandAPI:    listCommandAPI,
-		projectCommandAPI: projectCommandAPI,
-		projectQueryAPI:   projectQueryAPI,
-		views:             views,
-	}))
+	s.AddResource(apiBuilder.BuildCommandAPI())
+	s.AddResource(apiBuilder.BuildViewAPI())
 
 	initiateLists(*listQueryAPI.Repo)
 	err = s.Start()
@@ -224,6 +197,13 @@ func registerListEventHandlers(eventbus eventbus.Eventbus, repo *listDomain.Repo
 	})
 }
 
+func registerUserEventHandlers(eventbus eventbus.Eventbus, repo *userDomain.Repo) {
+	// User related event handlers
+	go eventbus.Subscribe("user.registred", &userEventHandlers.RegistredHandler{
+		Repo: repo,
+	})
+}
+
 func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomain.Repo) {
 	// List related event handlers
 	go eventbus.Subscribe("project.created", &projectEventHandlers.CreatedHandler{
@@ -265,132 +245,9 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 	cb.RegisterHandler("project.add-task", &projectCommands.AddTaskCommand{
 		Eventbus: eventbus,
 	})
-}
 
-type buildAPIOptions struct {
-	taskQueryAPI      task.QueryAPI
-	taskCommandAPI    task.CommandAPI
-	listQuestAPI      list.QueryAPI
-	listCommandAPI    list.CommandAPI
-	projectQueryAPI   project.QueryAPI
-	projectCommandAPI project.CommandAPI
-	views             map[string]view.View
-}
-
-func buildAPI(options buildAPIOptions) api.Resource {
-	return api.Resource{
-		Path: "/api",
-		Subresource: []api.Resource{
-			{
-				Path: "/task",
-				Endpoints: []api.Endpoint{
-					{
-						Verb:    "GET",
-						Handler: options.taskQueryAPI.List,
-					},
-					{
-						Verb:    "POST",
-						Path:    "/complete",
-						Handler: api.WrapCommandAPI(options.taskCommandAPI.Complete),
-					},
-					{
-						Verb:    "POST",
-						Path:    "/reopen",
-						Handler: api.WrapCommandAPI(options.taskCommandAPI.Reopen),
-					},
-					{
-						Verb:    "POST",
-						Path:    "/create",
-						Handler: api.WrapCommandAPI(options.taskCommandAPI.Create),
-					},
-					{
-						Verb:    "POST",
-						Path:    "/update",
-						Handler: api.WrapCommandAPI(options.taskCommandAPI.Update),
-					},
-					{
-						Verb:    "POST",
-						Path:    "/delete",
-						Handler: api.WrapCommandAPI(options.taskCommandAPI.Delete),
-					},
-				},
-				Subresource: []api.Resource{
-					{
-						Path: "/:id",
-						Endpoints: []api.Endpoint{
-							{
-								Verb:    "GET",
-								Handler: options.taskQueryAPI.Get,
-							},
-						},
-					},
-				},
-			},
-			{
-				Path: "/list",
-				Endpoints: []api.Endpoint{
-					{
-						Verb:    "GET",
-						Handler: options.listQuestAPI.List,
-					},
-					{
-						Verb:    "POST",
-						Path:    "/moveTasks",
-						Handler: api.WrapCommandAPI(options.listCommandAPI.MoveTasks),
-					},
-				},
-			},
-			{
-				Path: "/project",
-				Endpoints: []api.Endpoint{
-					{
-						Verb:    "GET",
-						Handler: options.projectQueryAPI.List,
-					},
-					{
-						Path:    "/create",
-						Verb:    "POST",
-						Handler: api.WrapCommandAPI(options.projectCommandAPI.Create),
-					},
-					{
-						Path:    "/addTasks",
-						Verb:    "POST",
-						Handler: api.WrapCommandAPI(options.projectCommandAPI.AddTasks),
-					},
-				},
-				Subresource: []api.Resource{
-					{
-						Path: "/:id",
-						Endpoints: []api.Endpoint{
-							{
-								Verb:    "GET",
-								Handler: options.projectQueryAPI.Get,
-							},
-						},
-					},
-				},
-			},
-			{
-				Path:      "/view",
-				Endpoints: []api.Endpoint{},
-				Subresource: []api.Resource{
-					{
-						Endpoints: buildViews(options.views),
-					},
-				},
-			},
-		},
-	}
-}
-
-func buildViews(views map[string]view.View) []api.Endpoint {
-	endpoints := []api.Endpoint{}
-	for name, view := range views {
-		endpoints = append(endpoints, api.Endpoint{
-			Path:    fmt.Sprintf("/%s", name),
-			Verb:    "GET",
-			Handler: view.Get,
-		})
-	}
-	return endpoints
+	// User related commands
+	cb.RegisterHandler("user.register", &userCommands.RegisterCommand{
+		Eventbus: eventbus,
+	})
 }

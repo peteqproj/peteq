@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -25,13 +26,14 @@ type (
 
 // Get build projects view
 func (b *ProjectsViewAPI) Get(c *gin.Context) {
-	projects, err := b.ProjectRepo.List(project.QueryOptions{})
+	u := tenant.UserFromContext(c.Request.Context())
+	projects, err := b.ProjectRepo.List(project.QueryOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return
 	}
 
-	taskSet, err := b.TaskRepo.List(task.ListOptions{})
+	taskSet, err := b.TaskRepo.List(task.ListOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return

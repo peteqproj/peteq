@@ -10,6 +10,8 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -17,6 +19,7 @@ type (
 	CommandAPI struct {
 		Repo       *task.Repo
 		Commandbus commandbus.CommandBus
+		Logger     logger.Logger
 	}
 
 	// CompleteReopenTaskRequestBody for request body of two commands:
@@ -34,6 +37,7 @@ type (
 
 // Create creats tasks
 func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
+	u := tenant.UserFromContext(ctx)
 	t := &task.Task{}
 	err := api.UnmarshalInto(body, t)
 	if err != nil {
@@ -44,6 +48,10 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	t.Metadata.ID = u2.String()
+	t.Tenant = tenant.Tenant{
+		ID:   u.Metadata.ID,
+		Type: "User",
+	}
 
 	if err := validator.New().Struct(t); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
@@ -73,9 +81,10 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 
 // Delete store new task
 func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
+	u := tenant.UserFromContext(ctx)
 	req := &DeleteTaskRequestBody{}
 	err := api.UnmarshalInto(body, req)
-	t, err := c.Repo.Get(req.ID)
+	t, err := c.Repo.Get(u.Metadata.ID, req.ID)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -42,18 +43,19 @@ type (
 
 // Get build backlog view
 func (b *BacklogViewAPI) Get(c *gin.Context) {
-	listSet, err := b.ListRepo.List(list.QueryOptions{})
+	u := tenant.UserFromContext(c.Request.Context())
+	listSet, err := b.ListRepo.List(list.QueryOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return
 	}
-	projectSet, err := b.ProjectRepo.List(project.QueryOptions{})
+	projectSet, err := b.ProjectRepo.List(project.QueryOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return
 	}
 
-	taskSet, err := b.TaskRepo.List(task.ListOptions{})
+	taskSet, err := b.TaskRepo.List(task.ListOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return

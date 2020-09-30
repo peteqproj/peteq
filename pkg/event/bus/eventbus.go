@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	localbus "github.com/peteqproj/peteq/pkg/event/bus/local"
 	"github.com/peteqproj/peteq/pkg/event/handler"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -22,6 +23,7 @@ type (
 		Type            string
 		LocalEventStore *local.DB
 		WS              *socketio.Server
+		Logger          logger.Logger
 	}
 )
 
@@ -33,6 +35,7 @@ func New(options Options) Eventbus {
 			Subscribers: map[string]chan<- localbus.EventChan{},
 			Lock:        &sync.Mutex{},
 			WS:          options.WS,
+			Logger:      options.Logger,
 		}
 	}
 

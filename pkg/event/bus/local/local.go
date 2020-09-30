@@ -9,6 +9,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/db/local"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
+	"github.com/peteqproj/peteq/pkg/logger"
 	"gopkg.in/yaml.v2"
 )
 
@@ -19,6 +20,7 @@ type (
 		Subscribers map[string]chan<- EventChan
 		Lock        *sync.Mutex
 		WS          *socketio.Server
+		Logger      logger.Logger
 	}
 
 	// EventChan is pair between event and a channel to report done
@@ -62,6 +64,7 @@ func (e *Eventbus) Publish(ev event.Event, done chan<- error) string {
 	defer e.Lock.Unlock()
 	for name, subscriber := range e.Subscribers {
 		if name == ev.Metadata.Name {
+			e.Logger.Info("Publishing event", "name", ev.Metadata.Name, "tenantId", ev.Tenant.ID)
 			subscriber <- EventChan{
 				event: ev,
 				done:  done,

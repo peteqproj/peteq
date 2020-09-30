@@ -5,6 +5,7 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -19,6 +20,7 @@ type (
 		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *project.Repo
+		Logger      logger.Logger
 	}
 )
 

@@ -1,4 +1,4 @@
-import axios from "axios";
+import http from './http'
 import { CommnadResponse } from './commandResponse';
 
 
@@ -26,21 +26,21 @@ export interface TaskAPI {
 
 
 async function get(id: string): Promise<Task> {
-    const res = await axios.get(`http://localhost:8080/api/task/${id}`)
+    const res = await http.get(`/api/task/${id}`)
     return res.data as Task
 }
 
 async function list(): Promise<Task[]> {
-    const res = await axios.get('http://localhost:8080/api/task')
+    const res = await http.get('/api/task')
     return res.data as Task[]
 }
 
 async function remove(id: string): Promise<void> {
-    await axios.post(`http://localhost:8080/api/task/delete`, { id })
+    await http.post(`/api/task/delete`, { id })
 }
 
 async function create(task: Task): Promise<Task> {
-    const res = await axios.post('http://localhost:8080/api/task/create', task);
+    const res = await http.post('/api/task/create', task);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to create task: ${cmdResponse.reason}`)
@@ -49,7 +49,7 @@ async function create(task: Task): Promise<Task> {
 }
 
 async function update(task: Task): Promise<Task> {
-    const res = await axios.post(`http://localhost:8080/api/task/update`, task);
+    const res = await http.post(`/api/task/update`, task);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to update task: ${cmdResponse.reason}`)
@@ -58,10 +58,10 @@ async function update(task: Task): Promise<Task> {
 }
 
 async function complete(task: string): Promise<void> {
-    await axios.post(`http://localhost:8080/api/task/complete`, {task});
+    await http.post(`/api/task/complete`, {task});
 }
 async function reopen(task: string): Promise<void> {
-    await axios.post(`http://localhost:8080/api/task/reopen`, {task});
+    await http.post(`/api/task/reopen`, {task});
 }
 
 export const API = {

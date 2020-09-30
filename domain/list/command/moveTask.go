@@ -7,6 +7,7 @@ import (
 
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -31,7 +32,12 @@ func (m *MoveTaskCommand) Handle(ctx context.Context, done chan<- error, argumen
 		return
 	}
 
+	u := tenant.UserFromContext(ctx)
 	m.Eventbus.Publish(event.Event{
+		Tenant: tenant.Tenant{
+			ID:   u.Metadata.ID,
+			Type: tenant.User.String(),
+		},
 		Metadata: event.Metadata{
 			Name:           "list.task-moved",
 			CreatedAt:      time.Now(),

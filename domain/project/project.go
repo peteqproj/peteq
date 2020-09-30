@@ -1,10 +1,13 @@
 package project
 
+import "github.com/peteqproj/peteq/pkg/tenant"
+
 type (
 	// Project holds set of tasks related to common goal
 	Project struct {
-		Metadata Metadata `json:"metadata" yaml:"metadata"`
-		Tasks    []string `json:"tasks" yaml:"tasks"`
+		tenant.Tenant `json:"tenant" yaml:"tenant"`
+		Metadata      Metadata `json:"metadata" yaml:"metadata"`
+		Tasks         []string `json:"tasks" yaml:"tasks"`
 	}
 
 	// Metadata of project

@@ -6,6 +6,7 @@ import (
 
 	"github.com/peteqproj/peteq/pkg/command/bus/local"
 	"github.com/peteqproj/peteq/pkg/command/handler"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -18,7 +19,8 @@ type (
 
 	// Options to build commandbus
 	Options struct {
-		Type string
+		Type   string
+		Logger logger.Logger
 	}
 )
 
@@ -28,6 +30,7 @@ func New(options Options) CommandBus {
 		return &local.CommandBus{
 			Handlers: map[string]handler.CommandHandler{},
 			Lock:     &sync.Mutex{},
+			Logger:   options.Logger,
 		}
 	}
 	return nil

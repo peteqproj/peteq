@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -25,7 +26,12 @@ func (m *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 		return
 	}
 
+	u := tenant.UserFromContext(ctx)
 	m.Eventbus.Publish(event.Event{
+		Tenant: tenant.Tenant{
+			ID:   u.Metadata.ID,
+			Type: tenant.User.String(),
+		},
 		Metadata: event.Metadata{
 			Name:           "project.created",
 			CreatedAt:      time.Now(),

@@ -5,6 +5,7 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -32,19 +33,20 @@ type (
 
 // Get builds home view
 func (h *HomeViewAPI) Get(c *gin.Context) {
-	lists, err := h.ListRepo.List(list.QueryOptions{})
+	u := tenant.UserFromContext(c.Request.Context())
+	lists, err := h.ListRepo.List(list.QueryOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return
 	}
 
-	tasks, err := h.TaskRepo.List(task.ListOptions{})
+	tasks, err := h.TaskRepo.List(task.ListOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return
 	}
 
-	projects, err := h.ProjectRepo.List(project.QueryOptions{})
+	projects, err := h.ProjectRepo.List(project.QueryOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(400, err, c)
 		return

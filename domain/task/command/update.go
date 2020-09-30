@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -18,12 +19,17 @@ type (
 )
 
 // Handle runs UpdateCommand to create task
-func (c *UpdateCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (u *UpdateCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
 	t, ok := arguments.(task.Task)
 	if !ok {
 		done <- fmt.Errorf("Failed to convert arguments to Task object")
 	}
-	c.Eventbus.Publish(event.Event{
+	user := tenant.UserFromContext(ctx)
+	u.Eventbus.Publish(event.Event{
+		Tenant: tenant.Tenant{
+			ID:   user.Metadata.ID,
+			Type: tenant.User.String(),
+		},
 		Metadata: event.Metadata{
 			Name:           "task.updated",
 			CreatedAt:      time.Now(),

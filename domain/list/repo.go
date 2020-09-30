@@ -5,6 +5,7 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/peteqproj/peteq/pkg/db/local"
+	"github.com/peteqproj/peteq/pkg/logger"
 	"gopkg.in/yaml.v2"
 )
 
@@ -12,11 +13,15 @@ type (
 	// Repo is list repository
 	// it works on the view db to read/write from it
 	Repo struct {
-		DB *local.DB
+		DB     *local.DB
+		Logger logger.Logger
 	}
 
 	// QueryOptions to get task list
-	QueryOptions struct{}
+	QueryOptions struct {
+		UserID string
+		noUser bool
+	}
 )
 
 // List returns set of list
@@ -25,16 +30,22 @@ func (r *Repo) List(options QueryOptions) ([]List, error) {
 	if err != nil {
 		return nil, err
 	}
-	res := []List{}
-	if err := yaml.Unmarshal(context, &res); err != nil {
+	all := []List{}
+	if err := yaml.Unmarshal(context, &all); err != nil {
 		return nil, err
+	}
+	res := []List{}
+	for _, l := range all {
+		if l.Tenant.ID == options.UserID {
+			res = append(res, l)
+		}
 	}
 	return res, nil
 }
 
 // Get returns list given list id
-func (r *Repo) Get(id string) (List, error) {
-	lists, err := r.List(QueryOptions{})
+func (r *Repo) Get(userID string, id string) (List, error) {
+	lists, err := r.List(QueryOptions{UserID: userID})
 	if err != nil {
 		return List{}, err
 	}
@@ -48,7 +59,7 @@ func (r *Repo) Get(id string) (List, error) {
 
 // Create will save new task into db
 func (r *Repo) Create(l List) error {
-	allLists, err := r.List(QueryOptions{})
+	allLists, err := r.List(QueryOptions{noUser: true})
 	if err != nil {
 		return fmt.Errorf("Failed to load tasks: %w", err)
 	}
@@ -64,21 +75,21 @@ func (r *Repo) Create(l List) error {
 }
 
 // Delete will remove task from db
-func (r *Repo) Delete(id string) error {
-	allLists, err := r.List(QueryOptions{})
+func (r *Repo) Delete(userID string, id string) error {
+	allLists, err := r.List(QueryOptions{UserID: userID})
 	if err != nil {
 		return fmt.Errorf("Failed to load tasks: %w", err)
 	}
-	var index *int
+	index := -1
 	for i, t := range allLists {
 		if t.Metadata.ID == id {
-			index = &i
+			index = i
 		}
 	}
-	if index == nil {
+	if index == -1 {
 		return fmt.Errorf("Task not found")
 	}
-	set := append(allLists[:*index], allLists[*index+1:]...)
+	set := append(allLists[:index], allLists[index+1:]...)
 	bytes, err := yaml.Marshal(set)
 	if err != nil {
 		return fmt.Errorf("Failed to marshal task: %w", err)
@@ -91,35 +102,35 @@ func (r *Repo) Delete(id string) error {
 
 // Update will update given task
 func (r *Repo) Update(l List) error {
-	curr, err := r.Get(l.Metadata.ID)
+	curr, err := r.Get(l.Tenant.ID, l.Metadata.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to read previous task: %w", err)
 	}
 	if err := mergo.Merge(&curr, l, mergo.WithOverwriteWithEmptyValue); err != nil {
 		return fmt.Errorf("Failed to update task: %w", err)
 	}
-	lists, err := r.List(QueryOptions{})
+	lists, err := r.List(QueryOptions{noUser: true})
 	if err != nil {
 		return fmt.Errorf("Failed to read lists: %w", err)
 	}
-	var index *int
+	index := -1
 	for i, list := range lists {
 		if list.Metadata.ID == l.Metadata.ID {
-			index = &i
+			index = &
 			break
 		}
 	}
-	if index == nil {
+	if index == -1 {
 		return fmt.Errorf("Task not found")
 	}
-	lists[*index] = curr
+	lists[index] = curr
 	return r.updateLists(lists)
 }
 
 // MoveTask will move tasks from one list to another one
 // TODO: Validation source and destination are exists
-func (r *Repo) MoveTask(source string, destination string, task string) error {
-	listSet, err := r.List(QueryOptions{})
+func (r *Repo) MoveTask(userID string, source string, destination string, task string) error {
+	listSet, err := r.List(QueryOptions{UserID: userID})
 	if err != nil {
 		return fmt.Errorf("Failed to load lists: %w", err)
 	}

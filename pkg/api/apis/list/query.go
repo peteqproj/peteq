@@ -3,6 +3,7 @@ package list
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -14,7 +15,8 @@ type (
 
 // List lists
 func (q *QueryAPI) List(c *gin.Context) {
-	res, err := q.Repo.List(list.QueryOptions{})
+	u := tenant.UserFromContext(c.Request.Context())
+	res, err := q.Repo.List(list.QueryOptions{UserID: u.Metadata.ID})
 	if err != nil {
 		handleError(500, err, c)
 		return

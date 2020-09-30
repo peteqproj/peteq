@@ -7,6 +7,7 @@ import (
 
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
@@ -23,7 +24,12 @@ func (c *CompleteCommand) Handle(ctx context.Context, done chan<- error, argumen
 		done <- fmt.Errorf("Failed to convert arguments to string")
 		return
 	}
+	u := tenant.UserFromContext(ctx)
 	c.Eventbus.Publish(event.Event{
+		Tenant: tenant.Tenant{
+			ID:   u.Metadata.ID,
+			Type: tenant.User.String(),
+		},
 		Metadata: event.Metadata{
 			Name:           "task.completed",
 			CreatedAt:      time.Now(),
