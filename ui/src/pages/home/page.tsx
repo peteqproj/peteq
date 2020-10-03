@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { get, cloneDeep } from 'lodash';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Container from '@material-ui/core/Container';
@@ -12,13 +12,13 @@ import AddIcon from '@material-ui/icons/Add';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import Dialog from '@material-ui/core/Dialog';
-import Fade from '@material-ui/core/Fade';
 import Backdrop from '@material-ui/core/Backdrop';
-import { HomeViewAPI, HomeViewModel } from '../../services/views/home';
+import { HomeViewAPI, HomeViewModel, HomeViewTask } from '../../services/views/home';
 import { TaskAPI, Task } from "./../../services/tasks";
-import { ListAPI } from "./../../services/list";
-import { ProjectAPI } from "./../../services/project";
+import { ListAPI, List } from "./../../services/list";
+import { ProjectAPI, Project } from "./../../services/project";
 import { Task as TaskComponent } from './../../components/task/task';
+import { FullScreenDialog } from './../../components/fullscreen-dialog';
 
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -79,11 +79,16 @@ export function HomePage(props: IProps) {
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [taskModal, setTaskModal] = useState<Task>({} as Task);
     const [state, setState] = useState<HomeViewModel>({ lists: [] });
+    const [ selectedTaskListIndex, setSelectedTaskListIndex ] = useState(-1);
+    const [ selectedTaskProjectIndex, setSelectedTaskProjectIndex ] = useState(-1);
+    const [ projects, updateProjects ] = useState<Project[]>([]);
 
     useEffect(() => {
         (async () => {
             const view = await props.HomeViewAPI.get();
-            setState(view)
+            setState(view);
+            const projects = await props.ProjectAPI.list();
+            updateProjects(projects);
         })()
     }, [])
 
@@ -149,17 +154,29 @@ export function HomePage(props: IProps) {
         }
     };
 
-    const onTaskClick = (task: Task) => {
+    const onTaskClick = (task: HomeViewTask, listIndex: number) => {
         setShowTaskModal(true);
         setTaskModal(task);
+        setSelectedTaskListIndex(listIndex)
+        const id = task.project?.metadata.id;
+        if (!id) {
+            return
+        }
+        projects.map((p, i) => {
+            if (p.metadata.id !== id) {
+                return p
+            }
+            setSelectedTaskProjectIndex(i);
+            return p
+        })
     }
     return (
         <Grid container className={classes.root}>
             <Grid item xs={12}>
                 <Grid container justify="center" spacing={10}>
                     <DragDropContext onDragEnd={onDragEnd}>
-                        {state.lists.map((list, index) => (
-                            <Droppable key={index} droppableId={list.metadata.id}>
+                        {state.lists.map((list, listIndex) => (
+                            <Droppable key={listIndex} droppableId={list.metadata.id}>
                                 {(provided, snapshot) => (
                                     <Grid key={list.metadata.id} item ref={provided.innerRef}>
                                         <Paper className={classes.paper} elevation={3}>
@@ -172,7 +189,7 @@ export function HomePage(props: IProps) {
                                                         draggableId={task.metadata.id}>
                                                         {(provided, snapshot) => (
                                                             <Card
-                                                                onClick={() => onTaskClick(task)}
+                                                                onClick={() => onTaskClick(task, listIndex)}
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
                                                                 ref={provided.innerRef}
@@ -190,20 +207,20 @@ export function HomePage(props: IProps) {
                                                         )}
                                                     </Draggable>
                                                 ))}
-                                                {showNewTask && newTaskListIndex === index && <Card className={classes.card}>
+                                                {showNewTask && newTaskListIndex === listIndex && <Card className={classes.card}>
                                                     <CardContent>
                                                         <TextField onBlur={(e: any) => {
                                                             if (e.currentTarget.contains(e.relatedTarget)) {
                                                                 return
                                                             }
                                                             setShowNewTask(false)
-                                                        }} autoFocus onKeyDown={onAddTask(list.metadata.id, index)} onChange={(ev: any) => setNewTaskName(ev.target.value)} value={newTaskName} />
+                                                        }} autoFocus onKeyDown={onAddTask(list.metadata.id, listIndex)} onChange={(ev: any) => setNewTaskName(ev.target.value)} value={newTaskName} />
                                                     </CardContent>
                                                 </Card>}
                                             </Container>
                                         </Paper>
                                         {provided.placeholder}
-                                        <IconButton onClick={() => onShowNewTask(index)} aria-label="add" color="primary" className={classes.addCard}>
+                                        <IconButton onClick={() => onShowNewTask(listIndex)} aria-label="add" color="primary" className={classes.addCard}>
                                             <AddIcon />
                                         </IconButton>
                                     </Grid>
@@ -224,17 +241,38 @@ export function HomePage(props: IProps) {
                         timeout: 500,
                     }}
                 >
-                    <Fade in={showTaskModal}>
-                        <TaskComponent
-                            onChange={() => { }}
-                            ProjectAPI={props.ProjectAPI}
-                            ListAPI={props.ListAPI}
-                            projects={[]}
-                            lists={[]}
-                            TaskAPI={props.TaskAPI}
-                            task={taskModal}
-                        />
-                    </Fade>
+                        <FullScreenDialog
+                            onClose={
+                                () => console.log('closed')
+                            }
+                            component={
+                            <TaskComponent
+                                onChange={async () => {
+                                    const view = await props.HomeViewAPI.get()
+                                    setState(view)
+                                }}
+                                projects={projects.map(p => ({ id: p.metadata.id, name: p.metadata.name }))}
+                                defaultProject={
+                                    {
+                                        id: get(projects, `[${selectedTaskProjectIndex}].metadata.id`),
+                                        name: get(projects, `[${selectedTaskProjectIndex}].metadata.name`),
+                                    }
+                                }
+                                defaultList={
+                                    {
+                                        id: get(state, `lists[${selectedTaskListIndex}].metadata.id`),
+                                        name: get(state, `lists[${selectedTaskListIndex}].metadata.name`),
+                                    }
+                                }
+                                lists={state.lists.map(l => ({ id: l.metadata.id, name: l.metadata.name }))}
+                                new={false}
+                                task={taskModal}
+                                TaskAPI={props.TaskAPI}
+                                ListAPI={props.ListAPI}
+                                ProjectAPI={props.ProjectAPI}
+                            />
+                        }
+                    />
                 </Dialog>
             </Grid>
         </Grid>

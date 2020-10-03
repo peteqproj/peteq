@@ -3,6 +3,9 @@ import { get, cloneDeep } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
+import Divider from '@material-ui/core/Divider';
 import { Task as TaskModal, TaskAPI } from './../../services/tasks';
 import { List as ListModal, ListAPI } from './../../services/list';
 import { Project as ProjectModal, ProjectAPI } from './../../services/project';
@@ -12,11 +15,24 @@ import { Select, SelectionChangedEvent } from './../select';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        minWidth: '400px'
+        minWidth: '400px',
+        minHeight: '100%',
+        flexGrow: 1,
+        paddingTop: '20px',
+        backgroundColor: theme.palette.grey[100],
+        margin: theme.spacing(2),
     },
     content: {
         display: 'flex'
-    }
+    },
+    selection: {
+        width: '300px'
+    },
+    paper: {
+        padding: '20px',
+        textAlign: 'center',
+        color: theme.palette.text.secondary,
+    },
 }));
 
 interface IProps {
@@ -38,91 +54,138 @@ interface IProps {
     onChange(): void;
 }
 
+
 export function Task(props: IProps) {
     const classes = useStyles()
     const [task, updateTask] = useState(props.task);
     const [projectHasSet, updateProjectHasSet] = useState(false);
     const [project, updateProject] = useState(props.defaultProject?.id || "");
     const [listHasSet, updateListHasSet] = useState(false);
-    const [list, updateList] = useState(props.defaultList?.id || "");
+    const [selectedProject, updateSelectedProject] = useState({
+        id: props.defaultProject?.id || "",
+        name: props.defaultProject?.name || ""
+    })
+    const [selectedList, updateSelectedList] = useState({
+        id: props.defaultList?.id || "",
+        name: props.defaultList?.name || "",
+    })
+    console.log(selectedList)
 
     const updateTaskList = async (task: string, list: string) => {
         if (listHasSet) {
             return; // was set previously, no changes
         }
-        await props.ListAPI.moveTasks('', list, [task])
+        await props.ListAPI.moveTasks(selectedList.id, list, [task])
         updateListHasSet(true);
 
     }
     return (
         <Card className={classes.root}>
-            <TaskTitle
-                new={props.new}
-                title={task.metadata.name}
-                onUpdate={async (title: string) => {
-                    const clone = cloneDeep(task)
-                    clone.metadata.name = title;
-                    const t = await upsert(clone, props.TaskAPI)
-                    await updateTask(t)
-                    if (!projectHasSet && project !== "") {
-                        await props.ProjectAPI.addTasks(project, [t.metadata.id])
-                        updateProjectHasSet(true);
-                    }
+            <Paper  elevation={3} className={classes.paper}>
 
-                    props.onChange();
-                }}
-            />
-            <Grid className={classes.content}>
-                <TaskDescription
-                    new={props.new}
-                    disableAutoFocus={props.new}
-                    description={task.metadata.description}
-                    onUpdate={async (description: string) => {
-                        const clone = cloneDeep(task)
-                        clone.metadata.description = description;
-                        const t = await upsert(clone, props.TaskAPI)
-                        await updateTask(t)
-                        if (!projectHasSet && project !== "") {
-                            await props.ProjectAPI.addTasks(project, [t.metadata.id])
-                            updateProjectHasSet(true);
-                        }
-                        props.onChange();
-                    }}
-                />
-                <Select
-                    onSelectionChanged={async (ev: SelectionChangedEvent) => {
-                        if (task.metadata.id === "") {
-                            return
-                        }
-                        const destination = get(ev, 'destination.value');
-                        updateProject(destination);
-                        updateProjectHasSet(false);
-                        props.onChange();
-                    }}
-                    key={props.defaultProject?.name}
-                    value={props.defaultProject?.id}
-                    title={"Projects"}
-                    items={props.projects.map(l => ({ title: l.name, value: l.id }))}
-                />
-                <Select
-                    onSelectionChanged={async (ev: SelectionChangedEvent) => {
-                        if (task.metadata.id === "") {
-                            return
-                        }
-                        console.log(`changed triggers: ${ev.destination?.value}`)
-                        const destination = get(ev, 'destination.value');
-                        console.log(`Setting destination=${destination}`)
-                        await updateList(destination);
-                        await updateListHasSet(false);
-                        await updateTaskList(task.metadata.id, destination)
-                        props.onChange();
-                    }}
-                    key={props.defaultList?.name}
-                    value={props.defaultList?.id}
-                    title={"Lists"}
-                    items={props.lists.map(l => ({ title: l.name, value: l.id }))}
-                />
-            </Grid>
+                <Grid container spacing={3}>
+                    <Grid item xs={1}>
+                        Name:
+                    </Grid>
+                    <Grid item xs={11}>
+                        <TaskTitle
+                            new={props.new}
+                            title={task.metadata.name}
+                            onUpdate={async (title: string) => {
+                                const clone = cloneDeep(task)
+                                if (!title || title === "") {
+                                    return
+                                }
+                                clone.metadata.name = title;
+                                const t = await upsert(clone, props.TaskAPI)
+                                await updateTask(t)
+                                if (!projectHasSet && project !== "") {
+                                    await props.ProjectAPI.addTasks(project, [t.metadata.id])
+                                    updateProjectHasSet(true);
+                                }
+
+                                props.onChange();
+                            }}
+                        />
+                        <Divider />
+                    </Grid>
+
+                    <Grid item xs={1}>
+                        Project:
+                    </Grid>
+                    <Grid item xs={5}>
+                        <Select
+                            disabled={!!selectedProject.id}
+                            className={classes.selection}
+                            onSelectionChanged={async (ev: SelectionChangedEvent) => {
+                                if (task.metadata.id === "") {
+                                    return
+                                }
+                                const id = get(ev, 'destination.value');
+                                const name = get(ev, 'destination.title');
+                                updateSelectedProject({ id, name });
+                                updateProjectHasSet(false);
+                                await props.ProjectAPI.addTasks(id, [task.metadata.id])
+                                props.onChange();
+                            }}
+                            key={selectedProject.name}
+                            value={selectedProject.id}
+                            items={props.projects.map(l => ({ title: l.name, value: l.id }))}
+                        />
+                    </Grid>
+
+                    <Grid item xs={1}>
+                        List:
+                    </Grid>
+                    <Grid item xs={5}>
+                        <Select
+                            className={classes.selection}
+                            onSelectionChanged={async (ev: SelectionChangedEvent) => {
+                                if (task.metadata.id === "") {
+                                    return
+                                }
+                                const id = get(ev, 'destination.value');
+                                const name = get(ev, 'destination.title');
+                                updateListHasSet(false);
+                                updateSelectedList({ id, name })
+                                await updateTaskList(task.metadata.id, id)
+                                props.onChange();
+                            }}
+                            key={selectedList.name}
+                            value={selectedList.id}
+                            items={props.lists.map(l => ({ title: l.name, value: l.id }))}
+                        />
+
+                    </Grid>
+
+
+                    <Grid item xs={2}>
+                        Description
+                    </Grid>
+                    <Grid item xs={10}>
+                        <TaskDescription
+                            new={props.new}
+                            disableAutoFocus={props.new}
+                            description={task.metadata.description}
+                            onUpdate={async (description: string) => {
+                                const clone = cloneDeep(task)
+                                const title = clone.metadata.name;
+                                if (!title || title === "") {
+                                    return
+                                }
+                                clone.metadata.description = description;
+                                const t = await upsert(clone, props.TaskAPI)
+                                await updateTask(t)
+                                if (!projectHasSet && project !== "") {
+                                    await props.ProjectAPI.addTasks(project, [t.metadata.id])
+                                    updateProjectHasSet(true);
+                                }
+                                props.onChange();
+                            }}
+                        />
+                    </Grid>                      
+                </Grid>
+            </Paper>
         </Card>
     )
 }

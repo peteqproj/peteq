@@ -12,6 +12,7 @@ import UndoIcon from '@material-ui/icons/Undo';
 import { Table, RowMenuItem } from './../../components/table';
 import { Fab } from './../../components/fab';
 import { Task as TaskComponent } from './../../components/task/task';
+import { FullScreenDialog } from './../../components/fullscreen-dialog';
 import { ProjectAPI } from './../../services/project'
 import { Task, TaskAPI } from './../../services/tasks'
 import { List, ListAPI } from './../../services/list'
@@ -43,7 +44,7 @@ interface IProps extends RouteComponentProps {
 export function ProjectPage(props: IProps) {
   const classes = useStyles();
   const projectId = (props.match.params as any)['id'];
-  const [lists, updateLists] = useState<List[]>([]) 
+  const [lists, updateLists] = useState<List[]>([])
   const [state, setState] = useState({
     metadata: {
       name: '',
@@ -63,6 +64,7 @@ export function ProjectPage(props: IProps) {
     fetch();
 
   }, [props.ProjectAPI, projectId]);
+
   return (
     <Card className={classes.root} >
       <CardContent className={classes.content}>
@@ -108,23 +110,30 @@ export function ProjectPage(props: IProps) {
         title="Contemplative Reptile"
       />}
       <Fab
+        includeFade={false}
         modal={
-          <TaskComponent
-            onChange={async () => {
-              const view = await props.ProjectViewAPI.get(projectId);
-              setState(view);
-            }}
-            defaultProject={ { name: state.metadata.name, id: state.metadata.id } }
-            projects={[
-              { name: state.metadata.name, id: state.metadata.id }
-            ]} 
-            lists={lists.map(l => ({ name: l.metadata.name, id: l.metadata.id }))} 
-            new={true}
-            task={{ metadata: { id: '', name: '', description: '' }, spec: {}, status: {completed: false}}} 
-            TaskAPI={props.TaskAPI}
-            ListAPI={props.ListAPI}
-            ProjectAPI={props.ProjectAPI}
-          />}
+          <FullScreenDialog
+            onClose={() => console.log('closed')}
+            component={
+              <TaskComponent
+                onChange={async () => {
+                  const view = await props.ProjectViewAPI.get(projectId);
+                  setState(view);
+                }}
+                defaultProject={{ name: state.metadata.name, id: state.metadata.id }}
+                projects={[
+                  { name: state.metadata.name, id: state.metadata.id }
+                ]}
+                lists={lists.map(l => ({ name: l.metadata.name, id: l.metadata.id }))}
+                new={true}
+                task={{ metadata: { id: '', name: '', description: '' }, spec: {}, status: { completed: false } }}
+                TaskAPI={props.TaskAPI}
+                ListAPI={props.ListAPI}
+                ProjectAPI={props.ProjectAPI}
+              />
+            }
+          />
+        }
       />
     </Card>
   );

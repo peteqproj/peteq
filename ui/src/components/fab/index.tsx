@@ -16,6 +16,18 @@ const useStyles = makeStyles((theme) => ({
 
 interface IProps {
     modal: React.ReactNode;
+    includeFade?: boolean;
+}
+
+function buildFade(component: React.ReactNode, fadeProps: any, includeFade?: boolean) {
+    if (!includeFade) {
+        return component;
+    }
+
+    return (
+        <Fade {...fadeProps} >{component}</Fade>
+    );
+
 }
 
 export function Fab(props: IProps) {
@@ -50,9 +62,7 @@ export function Fab(props: IProps) {
                     timeout: 500,
                 }}
             >
-                <Fade in={open}>
-                    <div>{Modal}</div>
-                </Fade>
+                {buildFade(Modal, { in: open}, props.includeFade )}
             </Dialog>
         </div>
     )

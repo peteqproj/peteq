@@ -12,9 +12,10 @@ interface IProps {
 }
 
 export function TaskDescription(props: IProps) {
+    console.log(props.description)
     const input = useRef();
     const [editMode, setEditMode] = useState(props.new);
-    const [taskDescription] = useState(props.description);
+    const [taskDescription, setTaskDescription] = useState(props.description);
     if (editMode) {
         return (
             <CardContent
@@ -24,12 +25,16 @@ export function TaskDescription(props: IProps) {
                         {...rprops}
                         onBlur={() => {
                             setEditMode(false)
-                            props.onUpdate(taskDescription)
+                            const value = get(input, 'current.value', taskDescription);
+                            setTaskDescription(value);
+                            props.onUpdate(value);
                         }}
                         onKeyDown={(e: any) => {
                             if((e.ctrlKey || e.metaKey) && e.keyCode === 13){
                                 setEditMode(false)
-                                props.onUpdate(get(input, 'current.value', taskDescription))
+                                const value = get(input, 'current.value', taskDescription);
+                                setTaskDescription(value);
+                                props.onUpdate(value);
                             }
                         }}
                         multiline

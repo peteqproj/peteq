@@ -34,5 +34,5 @@ export function TaskTitle(props: IProps) {
             fullWidth/>
         )} />)
     }
-    return (<CardHeader title={taskTitle} onClick={() => setEditMode(true)}/>)
+    return (<CardHeader title={taskTitle || 'Add task name'} onClick={() => setEditMode(true)}/>)
 }

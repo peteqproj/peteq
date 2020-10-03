@@ -10,15 +10,15 @@ import MenuItem from '@material-ui/core/MenuItem';
 const useStyles = makeStyles((theme) => ({
     formControl: {
         margin: theme.spacing(1),
-        minWidth: 120,
     },
 }));
 
 interface IProps {
-    title: string;
     value?: string;
     items: SelectionItem[];
     onSelectionChanged(ev: SelectionChangedEvent): void;
+    className?: string;
+    disabled?: boolean;
 }
 
 interface SelectionItem {
@@ -43,9 +43,10 @@ export function Select(props: IProps) {
     const [selected, setSelected] = useState(props.value || UnsetSelection.value)
     return (
         <FormControl className={classes.formControl}>
-            <InputLabel >{props.title}</InputLabel>
             <MSelect
+                disabled={props.disabled}
                 value={selected}
+                className={props.className}
                 onChange={(event: React.ChangeEvent<{ name?: string; value: unknown }>, child: React.ReactNode) => {
                     const value = get(child, 'props.value', UnsetSelection.value);
                     const title = get(child, 'props.children', UnsetSelection.title);

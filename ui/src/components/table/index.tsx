@@ -1,4 +1,4 @@
-import React, { useState  } from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { map } from 'lodash';
 import MTable from '@material-ui/core/Table';
@@ -16,11 +16,11 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      width: '100%',
-      height: '100%',
+        width: '100%',
+        height: '100%',
     },
-  }));
-  
+}));
+
 
 interface IProps {
     columns: Column[];
@@ -37,6 +37,7 @@ export interface Cell {
 export interface Row {
     data: Cell[];
     menu: RowMenuItem[];
+    onClick?(row: number): void;
 }
 
 export interface RowMenuItem {
@@ -50,14 +51,14 @@ export function Table(props: IProps) {
     return (
         <TableContainer className={classes.root}>
             <MTable stickyHeader aria-label="sticky table" size={'small'}>
-            <TableHead>
-              <TableRow>
-                {makeColumns(props.columns)}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-                {makeRows(props.data)}
-            </TableBody>
+                <TableHead>
+                    <TableRow>
+                        {makeColumns(props.columns)}
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {makeRows(props.data)}
+                </TableBody>
             </MTable>
         </TableContainer>
     )
@@ -67,28 +68,35 @@ function makeColumns(columns: Column[]) {
     const actions = { title: '', width: '2px' };
     return map(columns.concat(actions), (c, i) => {
         return (
-            <TableCell key={i} style={{width: c.width}}>{c.title}</TableCell>
+            <TableCell key={i} style={{ width: c.width }}>{c.title}</TableCell>
         )
     })
 }
 
 function makeRows(rows: Row[]) {
-    return map(rows, (r, i) => {
+    return map(rows, (r, rowIndex) => {
         return (
-            <TableRow key={i}>
+            <TableRow
+                key={rowIndex}>
                 {map(r.data, (c, i) => {
                     return (
-                        <TableCell key={i}>
+                        <TableCell
+                            onClick={() => {
+                                if (r.onClick) {
+                                    r.onClick(rowIndex);
+                                }
+                            }}
+                            key={i}>
                             {c.content}
                         </TableCell>
                     )
                 })}
-            <RowMenu
-                items={r.menu.map(m => ({
-                    onClick: () => m.onClick(i),
-                    icon: m.icon,
-                    title: m.title,
-                }))}/>
+                <RowMenu
+                    items={r.menu.map(m => ({
+                        onClick: () => m.onClick(rowIndex),
+                        icon: m.icon,
+                        title: m.title,
+                    }))} />
             </TableRow>
         )
     });
@@ -106,15 +114,15 @@ function RowMenu(props: IRowMenuProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleClick = (event: any) => {
-      setAnchorEl(event.currentTarget);
+        setAnchorEl(event.currentTarget);
     };
-  
+
     const handleClose = () => {
-      setAnchorEl(null);
+        setAnchorEl(null);
     };
     return (
         <TableCell>
-            <MoreVertIcon onClick={handleClick}/>
+            <MoreVertIcon onClick={handleClick} />
             <Menu
                 id="simple-menu"
                 anchorEl={anchorEl}
@@ -122,12 +130,12 @@ function RowMenu(props: IRowMenuProps) {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
             >
-                {props.items.map((item, i) => 
-                    <MenuItem key={i} onClick={ () => {
-                            handleClose();
-                            return item.onClick();
-                        }}>
-                        {item.icon && <item.icon/>}
+                {props.items.map((item, i) =>
+                    <MenuItem key={i} onClick={() => {
+                        handleClose();
+                        return item.onClick();
+                    }}>
+                        {item.icon && <item.icon />}
                         {item.title}
                     </MenuItem>
                 )}
