@@ -81,10 +81,7 @@ func (b *BacklogViewAPI) Get(c *gin.Context) {
 		return !t1.Status.Completed
 	})
 	for _, task := range taskSet {
-		backlogList := backlogTaskList{
-			ID:   "-1",
-			Name: "=====",
-		}
+		backlogList := backlogTaskList{}
 		for _, list := range listSet {
 			for _, id := range list.Tasks {
 				if id == task.Metadata.ID {
@@ -94,10 +91,7 @@ func (b *BacklogViewAPI) Get(c *gin.Context) {
 			}
 		}
 
-		backlogProject := backlogTaskProject{
-			ID:   "-1",
-			Name: "=====",
-		}
+		backlogProject := backlogTaskProject{}
 		for _, proj := range projectSet {
 			for _, id := range proj.Tasks {
 				if id == task.Metadata.ID {
