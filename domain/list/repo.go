@@ -116,7 +116,7 @@ func (r *Repo) Update(l List) error {
 	index := -1
 	for i, list := range lists {
 		if list.Metadata.ID == l.Metadata.ID {
-			index = &
+			index = i
 			break
 		}
 	}
