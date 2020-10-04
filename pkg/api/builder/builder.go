@@ -171,6 +171,11 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 						Verb:    "POST",
 						Handler: api.WrapCommandAPI(userCommandAPI.Register, b.Logger),
 					},
+					{
+						Path:    "/login",
+						Verb:    "POST",
+						Handler: api.WrapCommandAPI(userCommandAPI.Login, b.Logger),
+					},
 				},
 			},
 		},

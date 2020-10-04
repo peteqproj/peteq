@@ -6,6 +6,7 @@ import { ProjectPage } from './pages/project/page'
 import { EmptyPage } from './pages/empty/page'
 import { BacklogPage } from './pages/backlog/page'
 import { HomePage } from './pages/home/page'
+import { LoginPage, getAPIToken } from './pages/login'
 import { makeStyles } from '@material-ui/core/styles';
 import AccountTreeIcon from '@material-ui/icons/AccountTree';
 import RotateLeftIcon from '@material-ui/icons/RotateLeft';
@@ -17,6 +18,7 @@ import { Menu } from './components/menu/menu'
 import { API as ProjectAPI } from './services/project'
 import { API as TaskAPI } from './services/tasks'
 import { API as ListAPI } from './services/list'
+import { API as UserAPI } from './services/user'
 import { API as BacklogViewAPI } from './services/views/backlog'
 import { API as ProjectsViewAPI } from './services/views/projects'
 import { API as ProjectViewAPI } from './services/views/project'
@@ -25,6 +27,7 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
+  Redirect
 } from "react-router-dom";
 import './App.css';
 
@@ -98,105 +101,116 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-interface IState {
-  menuOpen: boolean,
-}
 
 
 function App() {
   const classes = useStyles();
-  const [ state ] = useState({
-    menuOpen: true,
-  } as IState);
-  
+  const [menuOpen] = useState(false);
+  const [APIToken, setAPIToken] = useState(getAPIToken());
+
   const handleMenuItemClicked = (name: string) => {
     console.log(`Item: ${name} clicked`);
   }
-
+  if (APIToken === "") {
+    return (
+      <Router>
+        <div className={classes.root}>
+          <Switch>
+            <Route path="/login" >
+              <LoginPage UserAPI={UserAPI} onLogin={() => setAPIToken(getAPIToken())} />
+            </Route>
+          </Switch>
+          <Redirect to="/login" />
+        </div>
+      </Router>
+    )
+  } else {
+    UserAPI.updateDefaultsWithAPIToken(getAPIToken())
+  }
   return (
     <Router>
-    <div className={classes.root}>
-      <Navbar className={clsx(classes.appBar, {
-          [classes.appBarShift]: state.menuOpen,
-        })}/>
-      <Menu 
-        drawerClassName={classes.drawer}
-        drawerHeader={classes.drawerHeader}
-        drawerOpen={true}
-        drawerWidth={classes.drawerPaper}
-        items={[
-          {
-            name: "home",
-            text: 'Home',
-            icon: HomeIcon,
-            onClick: handleMenuItemClicked,
-            link: "/"
-          },
-          {
-            name: "projects",
-            text: 'Projects',
-            icon: AccountTreeIcon,
-            onClick: handleMenuItemClicked,
-            link: "/projects"
-          },
-          {
-            name: "routines",
-            text: 'Routines',
-            icon: RotateLeftIcon,
-            onClick: handleMenuItemClicked,
-            link: "/routines"
-          },
-          {
-            name: "automation",
-            text: 'Automation',
-            icon: FlashAutoIcon,
-            onClick: handleMenuItemClicked,
-            link: "/automation"
-          },
-          {
-            name: "backlog",
-            text: 'Backlog',
-            icon: FormatListBulletedIcon,
-            onClick: handleMenuItemClicked,
-            link: "/backlog"
-          },
-        ]} />
-      <main
-        className={clsx(classes.content, {
-          [classes.contentShift]: true,
-        })}
-      >
-      <div className={classes.drawerHeader} />
-      <div>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
+      <div className={classes.root}>
+        <Navbar className={clsx(classes.appBar, {
+          [classes.appBarShift]: menuOpen,
+        })} />
+        <Menu
+          drawerClassName={classes.drawer}
+          drawerHeader={classes.drawerHeader}
+          drawerOpen={true}
+          drawerWidth={classes.drawerPaper}
+          items={[
+            {
+              name: "home",
+              text: 'Home',
+              icon: HomeIcon,
+              onClick: handleMenuItemClicked,
+              link: "/"
+            },
+            {
+              name: "projects",
+              text: 'Projects',
+              icon: AccountTreeIcon,
+              onClick: handleMenuItemClicked,
+              link: "/projects"
+            },
+            {
+              name: "routines",
+              text: 'Routines',
+              icon: RotateLeftIcon,
+              onClick: handleMenuItemClicked,
+              link: "/routines"
+            },
+            {
+              name: "automation",
+              text: 'Automation',
+              icon: FlashAutoIcon,
+              onClick: handleMenuItemClicked,
+              link: "/automation"
+            },
+            {
+              name: "backlog",
+              text: 'Backlog',
+              icon: FormatListBulletedIcon,
+              onClick: handleMenuItemClicked,
+              link: "/backlog"
+            },
+          ]} />
+        <main
+          className={clsx(classes.content, {
+            [classes.contentShift]: true,
+          })}
+        >
+          <div className={classes.drawerHeader} />
+          <div>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
 
-            <Switch>
-              {/* Order important */}
-              <Route path="/automation">
-                <EmptyPage data={'automation'} />
-              </Route>
-              <Route path="/routines">
-                <EmptyPage data={'routines'} />
-              </Route>
-              <Route path="/backlog">
-                <BacklogPage ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} BacklogViewAPI={BacklogViewAPI} />
-              </Route>
-              <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} ListAPI={ListAPI} TaskAPI={TaskAPI} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
-              </Route>
-              <Route path="/projects">
-                  <ProjectsPage ProjectsViewAPI={ProjectsViewAPI} ProjectAPI={ProjectAPI}/>
-              </Route>
-              <Route path="/">
-                <HomePage HomeViewAPI={HomeViewAPI} ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} />
-              </Route>
-            </Switch>
-          </Grid>
-        </Grid>
-      </div>    
-      </main>
-    </div>
-    </Router>  
+                <Switch>
+                  {/* Order important */}
+                  <Route path="/automation" >
+                    <EmptyPage data={'automation'} />
+                  </Route>
+                  <Route path="/routines">
+                    <EmptyPage data={'routines'} />
+                  </Route>
+                  <Route path="/backlog">
+                    <BacklogPage ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} BacklogViewAPI={BacklogViewAPI} />
+                  </Route>
+                  <Route path="/projects/:id" render={(rprops) => (<ProjectPage {...rprops} ListAPI={ListAPI} TaskAPI={TaskAPI} ProjectViewAPI={ProjectViewAPI} ProjectAPI={ProjectAPI}></ProjectPage>)}>
+                  </Route>
+                  <Route path="/projects">
+                    <ProjectsPage ProjectsViewAPI={ProjectsViewAPI} ProjectAPI={ProjectAPI} />
+                  </Route>
+                  <Route path="/">
+                    <HomePage HomeViewAPI={HomeViewAPI} ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} />
+                  </Route>
+                </Switch>
+              </Grid>
+            </Grid>
+          </div>
+        </main>
+      </div>
+    </Router>
   );
 }
 

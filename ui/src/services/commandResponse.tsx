@@ -3,4 +3,5 @@ export interface CommnadResponse {
     reason?: string;
     type: string;
     id: string;
+    data: any;
 }

@@ -202,6 +202,9 @@ func registerUserEventHandlers(eventbus eventbus.Eventbus, repo *userDomain.Repo
 	go eventbus.Subscribe("user.registred", &userEventHandlers.RegistredHandler{
 		Repo: repo,
 	})
+	go eventbus.Subscribe("user.loggedin", &userEventHandlers.LoggedinHandler{
+		Repo: repo,
+	})
 }
 
 func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomain.Repo) {
@@ -248,6 +251,9 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 
 	// User related commands
 	cb.RegisterHandler("user.register", &userCommands.RegisterCommand{
+		Eventbus: eventbus,
+	})
+	cb.RegisterHandler("user.login", &userCommands.LoginCommand{
 		Eventbus: eventbus,
 	})
 }

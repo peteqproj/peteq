@@ -16,27 +16,41 @@ type (
 	RegisterCommand struct {
 		Eventbus bus.Eventbus
 	}
+
+	// RegisterCommandOptions to create new user
+	RegisterCommandOptions struct {
+		UserID       string
+		Email        string
+		PasswordHash string
+	}
 )
 
 // Handle runs RegisterCommand to create new user
 func (r *RegisterCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
-	fmt.Println("user.register command handler")
-	u, ok := arguments.(user.User)
+	opt, ok := arguments.(RegisterCommandOptions)
 	if !ok {
 		done <- fmt.Errorf("Failed to convert arguments to User")
 		return
 	}
 	r.Eventbus.Publish(event.Event{
 		Tenant: tenant.Tenant{
-			ID:   u.Metadata.ID,
+			ID:   opt.UserID,
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
 			Name:           "user.registred",
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "user",
-			AggregatorID:   u.Metadata.ID,
+			AggregatorID:   opt.UserID,
 		},
-		Spec: u,
+		Spec: user.User{
+			Metadata: user.Metadata{
+				Email: opt.Email,
+				ID:    opt.UserID,
+			},
+			Spec: user.Spec{
+				PasswordHash: opt.PasswordHash,
+			},
+		},
 	}, done)
 }

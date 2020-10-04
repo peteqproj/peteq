@@ -15,6 +15,7 @@ type (
 
 	// Spec of user
 	Spec struct {
-		TokenHash string `json:"tokenHash" yaml:"tokenHash"`
+		TokenHash    string `json:"tokenHash" yaml:"tokenHash"`
+		PasswordHash string `json:"passwordHash" yaml:"passwordHash"`
 	}
 )
