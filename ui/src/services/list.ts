@@ -21,7 +21,7 @@ async function list(): Promise<List[]> {
 }
 
 async function moveTasks(source: string, destination: string, tasks: string[]): Promise<void> {
-    await http.post('/api/list/moveTasks', {
+    await http.post('/c/list/moveTasks', {
         source,
         destination,
         tasks,

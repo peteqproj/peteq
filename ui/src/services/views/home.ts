@@ -23,7 +23,7 @@ export interface HomeViewAPI {
 }
 
 async function get(): Promise<HomeViewModel> {
-    const res = await http.get('/view/home')
+    const res = await http.get('/q/home')
     return res.data as HomeViewModel
 }
 

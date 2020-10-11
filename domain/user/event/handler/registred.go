@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"fmt"
-
 	"github.com/peteqproj/peteq/domain/user"
 
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,9 +15,14 @@ type (
 
 // Handle will handle the event the process it
 func (c *RegistredHandler) Handle(ev event.Event) error {
-	u, ok := ev.Spec.(user.User)
-	if !ok {
-		return fmt.Errorf("Failed to convert arguments to User")
+	opt := user.User{}
+	err := ev.UnmarshalSpecInto(&opt)
+	if err != nil {
+		return err
 	}
-	return c.Repo.Create(u)
+	return c.Repo.Create(opt)
+}
+
+func (c *RegistredHandler) Name() string {
+	return "domain_RegistredHandler"
 }

@@ -12,7 +12,7 @@ export interface UserAPI {
 
 
 async function login(email: string, password: string): Promise<LoginResponse> {
-    const res = await http.post(`/api/user/login`, { email, password })
+    const res = await http.post(`/c/user/login`, { email, password })
     const response = res.data as CommnadResponse;
     if (response.status !== "accepted") {
         throw new Error(response.reason || 'Failed to login');

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/sha256"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/user"
@@ -40,5 +41,5 @@ func IsAuthenticated(userRepo *user.Repo) func(c *gin.Context) {
 
 func hash(s string) string {
 	sh := sha256.Sum256([]byte(s))
-	return string(sh[:])
+	return fmt.Sprintf("%x\n", sh)
 }

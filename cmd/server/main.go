@@ -1,12 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"path"
 
-	"github.com/gofrs/uuid"
+	_ "github.com/lib/pq"
+
 	socketio "github.com/googollee/go-socket.io"
+	nats "github.com/nats-io/nats.go"
+	stan "github.com/nats-io/stan.go"
 
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
@@ -20,7 +24,6 @@ import (
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
 	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
-	"github.com/peteqproj/peteq/pkg/api/apis/list"
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/config"
@@ -48,15 +51,13 @@ func main() {
 	err = s.AddWS(wsserver)
 	dieOnError(err, "Failed to attach WS server")
 
-	taskEventStore := &local.DB{
-		Path: path.Join(locatDBLocation, "tasks-events.yaml"),
-	}
-
+	natsConn, err := connectToNats(getEnvOrDie("NATS_SERVER_URL"))
+	dieOnError(err, "Failed to connect to nats server")
+	defer natsConn.Close()
 	inmemoryEventbus := eventbus.New(eventbus.Options{
-		Type:            "local",
-		LocalEventStore: taskEventStore,
-		WS:              wsserver,
-		Logger:          logr.Fork("module", "eventbus"),
+		Type:   "nats",
+		Logger: logr.Fork("module", "eventbus"),
+		Stan:   natsConn,
 	})
 	taskLocalDB := &local.DB{
 		Path: path.Join(locatDBLocation, "tasks.yaml"),
@@ -104,9 +105,9 @@ func main() {
 	registerUserEventHandlers(inmemoryEventbus, userRepo)
 	registerCommandHandlers(cb, inmemoryEventbus)
 
-	listQueryAPI := list.QueryAPI{
-		Repo: listRepo,
-	}
+	db, err := connectToPostgres(getEnvOrDie("POSTGRES_URL"))
+	defer db.Close()
+	dieOnError(err, "Failed to connect to postgres")
 
 	apiBuilder := builder.Builder{
 		UserRepo:    userRepo,
@@ -114,31 +115,17 @@ func main() {
 		ProjectRepo: projectRepo,
 		TaskRepo:    taskRepo,
 		Commandbus:  cb,
+		DB:          db,
+		Eventbus:    inmemoryEventbus,
 		Logger:      logr,
 	}
 
 	s.AddResource(apiBuilder.BuildCommandAPI())
 	s.AddResource(apiBuilder.BuildViewAPI())
+	s.AddResource(apiBuilder.BuildRestfulAPI())
 
-	initiateLists(*listQueryAPI.Repo)
 	err = s.Start()
 	dieOnError(err, "Failed to run server")
-}
-
-func initiateLists(repo listDomain.Repo) {
-	if _, err := os.Stat(repo.DB.Path); err != nil {
-		if os.IsNotExist(err) {
-			os.Create(repo.DB.Path)
-			for _, name := range []string{"This Week", "Today", "Done"} {
-				repo.Create(listDomain.List{
-					Metadata: listDomain.Metadata{
-						ID:   uuid.Must(uuid.NewV4()).String(),
-						Name: name,
-					},
-				})
-			}
-		}
-	}
 }
 
 func handlerWSEvents(server *socketio.Server) {
@@ -173,47 +160,50 @@ func handlerWSEvents(server *socketio.Server) {
 
 func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *taskDomain.Repo) {
 	// Task related event handlers
-	go eventbus.Subscribe("task.created", &taskEventHandlers.CreatedHandler{
+	eventbus.Subscribe("task.created", &taskEventHandlers.CreatedHandler{
 		Repo: repo,
 	})
-	go eventbus.Subscribe("task.deleted", &taskEventHandlers.DeleteHandler{
+	eventbus.Subscribe("task.deleted", &taskEventHandlers.DeleteHandler{
 		Repo: repo,
 	})
-	go eventbus.Subscribe("task.updated", &taskEventHandlers.UpdatedHandler{
+	eventbus.Subscribe("task.updated", &taskEventHandlers.UpdatedHandler{
 		Repo: repo,
 	})
-	go eventbus.Subscribe("task.completed", &taskEventHandlers.CompletedHandler{
+	eventbus.Subscribe("task.completed", &taskEventHandlers.CompletedHandler{
 		Repo: repo,
 	})
-	go eventbus.Subscribe("task.reopened", &taskEventHandlers.ReopenedHandler{
+	eventbus.Subscribe("task.reopened", &taskEventHandlers.ReopenedHandler{
 		Repo: repo,
 	})
 }
 
 func registerListEventHandlers(eventbus eventbus.Eventbus, repo *listDomain.Repo) {
 	// List related event handlers
-	go eventbus.Subscribe("list.task-moved", &listEventHandlers.TaskMovedHandler{
+	eventbus.Subscribe("list.task-moved", &listEventHandlers.TaskMovedHandler{
+		Repo: repo,
+	})
+	eventbus.Subscribe("list.created", &listEventHandlers.CreatedHandler{
 		Repo: repo,
 	})
 }
 
 func registerUserEventHandlers(eventbus eventbus.Eventbus, repo *userDomain.Repo) {
 	// User related event handlers
-	go eventbus.Subscribe("user.registred", &userEventHandlers.RegistredHandler{
+	eventbus.Subscribe("user.registred", &userEventHandlers.RegistredHandler{
 		Repo: repo,
 	})
-	go eventbus.Subscribe("user.loggedin", &userEventHandlers.LoggedinHandler{
+	eventbus.Subscribe("user.loggedin", &userEventHandlers.LoggedinHandler{
 		Repo: repo,
 	})
 }
 
 func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomain.Repo) {
 	// List related event handlers
-	go eventbus.Subscribe("project.created", &projectEventHandlers.CreatedHandler{
+	eventbus.Subscribe("project.created", &projectEventHandlers.CreatedHandler{
 		Repo: repo,
 	})
 
-	go eventbus.Subscribe("project.task-added", &projectEventHandlers.TaskAddedHandler{
+	eventbus.Subscribe("project.task-added", &projectEventHandlers.TaskAddedHandler{
 		Repo: repo,
 	})
 }
@@ -240,6 +230,9 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 	cb.RegisterHandler("list.move-task", &listCommands.MoveTaskCommand{
 		Eventbus: eventbus,
 	})
+	cb.RegisterHandler("list.create", &listCommands.Create{
+		Eventbus: eventbus,
+	})
 
 	// Project related commands
 	cb.RegisterHandler("project.create", &projectCommands.CreateCommand{
@@ -256,4 +249,20 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 	cb.RegisterHandler("user.login", &userCommands.LoginCommand{
 		Eventbus: eventbus,
 	})
+}
+
+func connectToNats(url string) (stan.Conn, error) {
+	conn, err := nats.Connect(url)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := stan.Connect("stan", "me", stan.NatsConn(conn))
+	return sc, err
+
+}
+
+func connectToPostgres(url string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", url)
+	return db, err
 }

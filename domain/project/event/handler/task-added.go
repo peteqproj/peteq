@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"fmt"
-
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,10 +15,14 @@ type (
 
 // Handle will process it the event
 func (t *TaskAddedHandler) Handle(ev event.Event) error {
-	fmt.Println("Handling event")
-	opt, ok := ev.Spec.(command.AddTasksCommandOptions)
-	if !ok {
-		return fmt.Errorf("Failed to cast to Project object")
+	opt := command.AddTasksCommandOptions{}
+	err := ev.UnmarshalSpecInto(&opt)
+	if err != nil {
+		return err
 	}
 	return t.Repo.AddTask(ev.Tenant.ID, opt.Project, opt.TaskID)
+}
+
+func (t *TaskAddedHandler) Name() string {
+	return "domain_TaskAddedHandler"
 }

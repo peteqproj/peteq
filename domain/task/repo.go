@@ -49,7 +49,6 @@ func (r *Repo) List(options ListOptions) ([]Task, error) {
 
 // Get returns task given task id
 func (r *Repo) Get(userID string, id string) (Task, error) {
-	r.Logger.Info("Request task from db", "id", id, "userId", userID)
 	tasks, err := r.List(ListOptions{UserID: userID})
 	if err != nil {
 		return Task{}, err

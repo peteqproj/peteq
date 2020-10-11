@@ -27,7 +27,7 @@ export interface BacklogViewAPI {
 }
 
 async function get(): Promise<BacklogViewModel> {
-    const res = await http.get('/view/backlog')
+    const res = await http.get('/q/backlog')
     return res.data as BacklogViewModel
 }
 

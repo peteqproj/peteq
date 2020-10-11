@@ -31,7 +31,7 @@ async function get(id: string): Promise<Project> {
 }
 
 async function create(project: Project): Promise<Project> {
-    const res = await http.post('/api/project/create', project);
+    const res = await http.post('/c/project/create', project);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to create project: ${cmdResponse.reason}`)
@@ -40,7 +40,7 @@ async function create(project: Project): Promise<Project> {
 }
 
 async function addTasks(project: string, tasks: string[]): Promise<void> {
-    const res = await http.post('/api/project/addTasks', { project, tasks });
+    const res = await http.post('/c/project/addTasks', { project, tasks });
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to add tasks to project: ${cmdResponse.reason}`)

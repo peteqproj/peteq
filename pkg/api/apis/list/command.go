@@ -2,6 +2,7 @@ package list
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/peteqproj/peteq/domain/list"
@@ -46,18 +47,19 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 	if opt.Source != "" {
 		src, err := ca.Repo.Get(u.Metadata.ID, opt.Source)
 		if err != nil {
-			return api.NewRejectedCommandResponse(err.Error())
+			return api.NewRejectedCommandResponse(fmt.Sprintf("Source list: %v", err))
 		}
 		source = &src
 	}
 	if opt.Destination != "" {
 		dst, err := ca.Repo.Get(u.Metadata.ID, opt.Destination)
 		if err != nil {
-			return api.NewRejectedCommandResponse(err.Error())
+			return api.NewRejectedCommandResponse(fmt.Sprintf("Destination list: %v", err))
 		}
 		destination = &dst
 	}
 	for _, t := range opt.TaskIDs {
+		ca.Logger.Info("Moving task", "source", opt.Source, "destination", opt.Destination, "task", t)
 		err := ca.Commandbus.ExecuteAndWait(ctx, "list.move-task", command.MoveTaskArguments{
 			Source:      opt.Source,
 			Destination: opt.Destination,

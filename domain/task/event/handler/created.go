@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"fmt"
-
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 )
@@ -16,9 +14,14 @@ type (
 
 // Handle will handle the event the process it
 func (c *CreatedHandler) Handle(ev event.Event) error {
-	t, ok := ev.Spec.(task.Task)
-	if !ok {
-		return fmt.Errorf("Failed to cast to task object")
+	opt := task.Task{}
+	err := ev.UnmarshalSpecInto(&opt)
+	if err != nil {
+		return err
 	}
-	return c.Repo.Create(t)
+	return c.Repo.Create(opt)
+}
+
+func (c *CreatedHandler) Name() string {
+	return "domain_CreatedHandler"
 }

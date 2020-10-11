@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +14,10 @@ import (
 	projectAPI "github.com/peteqproj/peteq/pkg/api/apis/project"
 	taskAPI "github.com/peteqproj/peteq/pkg/api/apis/task"
 	userAPI "github.com/peteqproj/peteq/pkg/api/apis/user"
-	"github.com/peteqproj/peteq/pkg/api/apis/view"
 	"github.com/peteqproj/peteq/pkg/api/auth"
+	"github.com/peteqproj/peteq/pkg/api/view"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
 
@@ -27,35 +29,28 @@ type (
 		ProjectRepo *project.Repo
 		TaskRepo    *task.Repo
 		Commandbus  commandbus.CommandBus
+		Eventbus    bus.Eventbus
 		Logger      logger.Logger
+		DB          *sql.DB
 	}
 )
 
-// BuildCommandAPI builds restful apis
+// BuildCommandAPI builds command api
 func (b *Builder) BuildCommandAPI() api.Resource {
 	taskCommandAPI := taskAPI.CommandAPI{
 		Repo:       b.TaskRepo,
 		Commandbus: b.Commandbus,
 		Logger:     b.Logger.Fork("api", "task"),
 	}
-	taskQueryAPI := taskAPI.QueryAPI{
-		Repo: b.TaskRepo,
-	}
 	listCommandAPI := listAPI.CommandAPI{
 		Repo:       b.ListRpeo,
 		Commandbus: b.Commandbus,
 		Logger:     b.Logger.Fork("api", "list"),
 	}
-	listQueryAPI := listAPI.QueryAPI{
-		Repo: b.ListRpeo,
-	}
 	projectCommandAPI := projectAPI.CommandAPI{
 		Repo:       b.ProjectRepo,
 		Commandbus: b.Commandbus,
 		Logger:     b.Logger.Fork("api", "project"),
-	}
-	projectQueryAPI := projectAPI.QueryAPI{
-		Repo: b.ProjectRepo,
 	}
 	userCommandAPI := userAPI.CommandAPI{
 		Repo:       b.UserRepo,
@@ -63,7 +58,7 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 		Logger:     b.Logger.Fork("api", "user"),
 	}
 	return api.Resource{
-		Path: "/api",
+		Path: "/c",
 		Subresource: []api.Resource{
 			{
 				Path: "/task",
@@ -71,10 +66,6 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 					auth.IsAuthenticated(b.UserRepo),
 				},
 				Endpoints: []api.Endpoint{
-					{
-						Verb:    "GET",
-						Handler: taskQueryAPI.List,
-					},
 					{
 						Verb:    "POST",
 						Path:    "/complete",
@@ -101,17 +92,6 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 						Handler: api.WrapCommandAPI(taskCommandAPI.Delete, b.Logger),
 					},
 				},
-				Subresource: []api.Resource{
-					{
-						Path: "/:id",
-						Endpoints: []api.Endpoint{
-							{
-								Verb:    "GET",
-								Handler: taskQueryAPI.Get,
-							},
-						},
-					},
-				},
 			},
 			{
 				Path: "/list",
@@ -119,10 +99,6 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 					auth.IsAuthenticated(b.UserRepo),
 				},
 				Endpoints: []api.Endpoint{
-					{
-						Verb:    "GET",
-						Handler: listQueryAPI.List,
-					},
 					{
 						Verb:    "POST",
 						Path:    "/moveTasks",
@@ -137,10 +113,6 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 				},
 				Endpoints: []api.Endpoint{
 					{
-						Verb:    "GET",
-						Handler: projectQueryAPI.List,
-					},
-					{
 						Path:    "/create",
 						Verb:    "POST",
 						Handler: api.WrapCommandAPI(projectCommandAPI.Create, b.Logger),
@@ -149,17 +121,6 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 						Path:    "/addTasks",
 						Verb:    "POST",
 						Handler: api.WrapCommandAPI(projectCommandAPI.AddTasks, b.Logger),
-					},
-				},
-				Subresource: []api.Resource{
-					{
-						Path: "/:id",
-						Endpoints: []api.Endpoint{
-							{
-								Verb:    "GET",
-								Handler: projectQueryAPI.Get,
-							},
-						},
 					},
 				},
 			},
@@ -190,32 +151,42 @@ func (b *Builder) BuildViewAPI() api.Resource {
 			TaskRepo:    b.TaskRepo,
 			ListRepo:    b.ListRpeo,
 			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger,
+			Logger:      b.Logger.Fork("module", "view", "view", "backlog"),
+			DB:          b.DB,
 		}),
 		"projects": view.NewView(view.Options{
 			Type:        "projects",
 			TaskRepo:    b.TaskRepo,
 			ListRepo:    b.ListRpeo,
 			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger,
+			Logger:      b.Logger.Fork("module", "view", "view", "projects"),
+			DB:          b.DB,
 		}),
 		"projects/:id": view.NewView(view.Options{
 			Type:        "project",
 			TaskRepo:    b.TaskRepo,
 			ListRepo:    b.ListRpeo,
 			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger,
+			Logger:      b.Logger.Fork("module", "view", "view", "single-projects"),
+			DB:          b.DB,
 		}),
 		"home": view.NewView(view.Options{
 			Type:        "home",
 			TaskRepo:    b.TaskRepo,
 			ListRepo:    b.ListRpeo,
 			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger,
+			Logger:      b.Logger.Fork("module", "view", "view", "home"),
+			DB:          b.DB,
 		}),
 	}
+	for vname, view := range views {
+		for name, handler := range view.EventHandlers() {
+			b.Logger.Info("Subscribing view to event", "event", name, "view", vname, "subscriber", handler.Name())
+			b.Eventbus.Subscribe(name, handler)
+		}
+	}
 	resource := api.Resource{
-		Path: "/view",
+		Path: "/q",
 		Midderwares: []gin.HandlerFunc{
 			auth.IsAuthenticated(b.UserRepo),
 		},
@@ -226,6 +197,65 @@ func (b *Builder) BuildViewAPI() api.Resource {
 		},
 	}
 	return resource
+}
+
+// BuildRestfulAPI builds restful apis
+func (b *Builder) BuildRestfulAPI() api.Resource {
+	taskQueryAPI := taskAPI.QueryAPI{
+		Repo: b.TaskRepo,
+	}
+	listQueryAPI := listAPI.QueryAPI{
+		Repo: b.ListRpeo,
+	}
+	projectQueryAPI := projectAPI.QueryAPI{
+		Repo: b.ProjectRepo,
+	}
+	return api.Resource{
+		Path: "/api",
+		Midderwares: []gin.HandlerFunc{
+			auth.IsAuthenticated(b.UserRepo),
+		},
+		Subresource: []api.Resource{
+			{
+				Path: "/task",
+				Endpoints: []api.Endpoint{
+					{
+						Verb:    "GET",
+						Path:    "/",
+						Handler: taskQueryAPI.List,
+					},
+					{
+						Verb:    "GET",
+						Path:    "/:id",
+						Handler: taskQueryAPI.Get,
+					},
+				},
+			},
+			{
+				Path: "/project",
+				Endpoints: []api.Endpoint{
+					{
+						Verb:    "GET",
+						Handler: projectQueryAPI.List,
+					},
+					{
+						Path:    "/:id",
+						Verb:    "GET",
+						Handler: projectQueryAPI.Get,
+					},
+				},
+			},
+			{
+				Path: "/list",
+				Endpoints: []api.Endpoint{
+					{
+						Verb:    "GET",
+						Handler: listQueryAPI.List,
+					},
+				},
+			},
+		},
+	}
 }
 
 func buildViews(views map[string]view.View) []api.Endpoint {

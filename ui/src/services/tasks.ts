@@ -36,11 +36,11 @@ async function list(): Promise<Task[]> {
 }
 
 async function remove(id: string): Promise<void> {
-    await http.post(`/api/task/delete`, { id })
+    await http.post(`/c/task/delete`, { id })
 }
 
 async function create(task: Task): Promise<Task> {
-    const res = await http.post('/api/task/create', task);
+    const res = await http.post('/c/task/create', task);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to create task: ${cmdResponse.reason}`)
@@ -49,7 +49,7 @@ async function create(task: Task): Promise<Task> {
 }
 
 async function update(task: Task): Promise<Task> {
-    const res = await http.post(`/api/task/update`, task);
+    const res = await http.post(`/c/task/update`, task);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to update task: ${cmdResponse.reason}`)
@@ -58,10 +58,10 @@ async function update(task: Task): Promise<Task> {
 }
 
 async function complete(task: string): Promise<void> {
-    await http.post(`/api/task/complete`, {task});
+    await http.post(`/c/task/complete`, {task});
 }
 async function reopen(task: string): Promise<void> {
-    await http.post(`/api/task/reopen`, {task});
+    await http.post(`/c/task/reopen`, {task});
 }
 
 export const API = {

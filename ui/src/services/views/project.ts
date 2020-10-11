@@ -17,7 +17,7 @@ export interface ProjectViewAPI {
 }
 
 async function get(id: string): Promise<ProjectView> {
-    const res = await http.get(`/view/projects/${id}`)
+    const res = await http.get(`/q/projects/${id}`)
     return res.data as ProjectView
 }
 

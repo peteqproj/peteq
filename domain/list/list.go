@@ -12,7 +12,8 @@ type (
 
 	// Metadata of list
 	Metadata struct {
-		ID   string `json:"id" yaml:"id"`
-		Name string `json:"name" yaml:"name"`
+		ID    string `json:"id" yaml:"id"`
+		Name  string `json:"name" yaml:"name"`
+		Index int    `json:"index" yaml:"index"`
 	}
 )

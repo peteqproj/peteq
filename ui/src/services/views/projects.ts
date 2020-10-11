@@ -15,7 +15,7 @@ export interface ProjectsViewAPI {
 }
 
 async function get(): Promise<ProjectsViewModel> {
-    const res = await http.get('/view/projects')
+    const res = await http.get('/q/projects')
     return res.data as ProjectsViewModel
 }
 

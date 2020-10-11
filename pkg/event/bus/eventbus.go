@@ -4,9 +4,11 @@ import (
 	"sync"
 
 	socketio "github.com/googollee/go-socket.io"
+	stanio "github.com/nats-io/stan.go"
 	"github.com/peteqproj/peteq/pkg/db/local"
 	"github.com/peteqproj/peteq/pkg/event"
 	localbus "github.com/peteqproj/peteq/pkg/event/bus/local"
+	"github.com/peteqproj/peteq/pkg/event/bus/nats"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
@@ -24,6 +26,7 @@ type (
 		LocalEventStore *local.DB
 		WS              *socketio.Server
 		Logger          logger.Logger
+		Stan            stanio.Conn
 	}
 )
 
@@ -36,6 +39,14 @@ func New(options Options) Eventbus {
 			Lock:        &sync.Mutex{},
 			WS:          options.WS,
 			Logger:      options.Logger,
+		}
+	}
+
+	if options.Type == "nats" {
+		return &nats.Eventbus{
+			Store:  options.Stan,
+			Logger: options.Logger,
+			Lock:   &sync.Mutex{},
 		}
 	}
 

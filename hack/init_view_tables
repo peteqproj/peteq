@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS view_backlog (userid text not null PRIMARY KEY, info json NOT NULL);
+CREATE TABLE IF NOT EXISTS view_home (userid text not null PRIMARY KEY, info json NOT NULL);
+CREATE TABLE IF NOT EXISTS view_projects (userid text not null PRIMARY KEY, info json NOT NULL);
+CREATE TABLE IF NOT EXISTS view_project (userid text not null PRIMARY KEY, projectid text not null, info json NOT NULL);
+
+
+delete from view_backlog;
+delete from view_home;
+delete from view_project;
+delete from view_projects;

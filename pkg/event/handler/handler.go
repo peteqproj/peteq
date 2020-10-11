@@ -6,5 +6,6 @@ type (
 	// EventHandler to handle events once occoured
 	EventHandler interface {
 		Handle(ev event.Event) error
+		Name() string
 	}
 )

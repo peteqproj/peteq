@@ -67,36 +67,7 @@ interface Selection {
   id: string;
   name: string;
 }
-function makeListSelection(name: string, selected: Selection, row: Row, items: Selection[], className: string, onChange: (source: SelectionChanged, destination: SelectionChanged) => void) {
-  const menuItems = concat([{ name: 'Empty', id: "-1" }], items).map(({ name, id }) => {
-    return (
-      <MenuItem key={id} value={id}>{name}</MenuItem>
-    )
-  })
-  return (
-    <FormControl className={className}>
-      <InputLabel >{name}</InputLabel>
-      <Select
-        value={selected.id || "-1"}
-        onChange={(event: React.ChangeEvent<{ name?: string; value: unknown }>, child: React.ReactNode) => {
-          const id = get(child, 'props.value', "-1");
-          const name = get(child, 'props.children', "Empty");
-          const destination = {
-            id: id === "-1" ? "" : id,
-            name: name === "Empty" ? "" : name,
-          }
-          const source = {
-            id: selected.id,
-            name: selected.name,
-          };
-          onChange(source, destination)
-        }}
-      >
-        {menuItems}
-      </Select>
-    </FormControl>
-  )
-}
+
 
 function makeTaskCompletionButton(row: Row, onClick: (action: string) => void): RowMenuItem {
   const icon = row.status.completed ? UndoIcon : DoneIcon;

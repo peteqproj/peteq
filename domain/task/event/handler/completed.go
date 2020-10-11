@@ -23,3 +23,7 @@ func (c *CompletedHandler) Handle(ev event.Event) error {
 	task.Status.Completed = true
 	return c.Repo.Update(task)
 }
+
+func (c *CompletedHandler) Name() string {
+	return "domain_CompletedHandler"
+}

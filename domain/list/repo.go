@@ -1,10 +1,12 @@
 package list
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/imdario/mergo"
 	"github.com/peteqproj/peteq/pkg/db/local"
+	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"gopkg.in/yaml.v2"
 )
@@ -13,8 +15,9 @@ type (
 	// Repo is list repository
 	// it works on the view db to read/write from it
 	Repo struct {
-		DB     *local.DB
-		Logger logger.Logger
+		DB       *local.DB
+		RemoteDB *postgres.DB
+		Logger   logger.Logger
 	}
 
 	// QueryOptions to get task list
@@ -22,6 +25,10 @@ type (
 		UserID string
 		noUser bool
 	}
+)
+
+var (
+	errNotFound = errors.New("List not found")
 )
 
 // List returns set of list
@@ -33,6 +40,9 @@ func (r *Repo) List(options QueryOptions) ([]List, error) {
 	all := []List{}
 	if err := yaml.Unmarshal(context, &all); err != nil {
 		return nil, err
+	}
+	if options.noUser {
+		return all, nil
 	}
 	res := []List{}
 	for _, l := range all {
@@ -54,17 +64,18 @@ func (r *Repo) Get(userID string, id string) (List, error) {
 			return l, nil
 		}
 	}
-	return List{}, fmt.Errorf("Task not found")
+	return List{}, errNotFound
 }
 
 // Create will save new task into db
 func (r *Repo) Create(l List) error {
+	r.Logger.Info("Creating list")
 	allLists, err := r.List(QueryOptions{noUser: true})
 	if err != nil {
 		return fmt.Errorf("Failed to load tasks: %w", err)
 	}
-	set := append(allLists, l)
-	bytes, err := yaml.Marshal(set)
+	allLists = append(allLists, l)
+	bytes, err := yaml.Marshal(allLists)
 	if err != nil {
 		return fmt.Errorf("Failed to marshal task: %w", err)
 	}
@@ -87,7 +98,7 @@ func (r *Repo) Delete(userID string, id string) error {
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("Task not found")
+		return errNotFound
 	}
 	set := append(allLists[:index], allLists[index+1:]...)
 	bytes, err := yaml.Marshal(set)
@@ -121,7 +132,7 @@ func (r *Repo) Update(l List) error {
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("Task not found")
+		return errNotFound
 	}
 	lists[index] = curr
 	return r.updateLists(lists)

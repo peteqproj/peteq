@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"fmt"
-
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 )
@@ -16,9 +14,14 @@ type (
 
 // Handle will handle the event the process it
 func (c *DeleteHandler) Handle(ev event.Event) error {
-	t, ok := ev.Spec.(task.Task)
-	if !ok {
-		return fmt.Errorf("Failed to cast to task object")
+	opt := task.Task{}
+	err := ev.UnmarshalSpecInto(&opt)
+	if err != nil {
+		return err
 	}
-	return c.Repo.Delete(t.Tenant.ID, t.Metadata.ID)
+	return c.Repo.Delete(opt.Tenant.ID, opt.Metadata.ID)
+}
+
+func (c *DeleteHandler) Name() string {
+	return "domain_DeleteHandler"
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Bluebird from 'bluebird';
 import { get, cloneDeep } from 'lodash';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { makeStyles, Theme } from '@material-ui/core/styles';
@@ -48,7 +49,7 @@ const useStyles = makeStyles((theme: Theme) => ({
         maxHeight: 200,
         marginBottom: 5,
         borderLeftStyle: 'outset',
-        borderLeftWidth: '10px'
+        borderLeftWidth: '10px',
     },
     progress: {
         display: 'flex',
@@ -142,6 +143,7 @@ export function HomePage(props: IProps) {
                     completed: false,
                 }
             });
+            await Bluebird.delay(2000)
             await props.ListAPI.moveTasks('', list, [task.metadata.id]);
             setShowNewTask(true);
             setNewTaskName('')
