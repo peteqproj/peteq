@@ -19,7 +19,7 @@ func (c *UpdatedHandler) Handle(ev event.Event) error {
 	if err != nil {
 		return err
 	}
-	return c.Repo.Update(opt)
+	return c.Repo.Update(ev.Tenant.ID, opt)
 }
 
 func (c *UpdatedHandler) Name() string {

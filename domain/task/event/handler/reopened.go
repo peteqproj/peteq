@@ -21,7 +21,7 @@ func (c *ReopenedHandler) Handle(ev event.Event) error {
 		return fmt.Errorf("Failed to get task %s: %v", ev.Metadata.AggregatorID, err)
 	}
 	task.Status.Completed = false
-	return c.Repo.Update(task)
+	return c.Repo.Update(ev.Tenant.ID, task)
 }
 
 func (c *ReopenedHandler) Name() string {

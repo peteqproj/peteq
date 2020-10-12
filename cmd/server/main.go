@@ -27,7 +27,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/config"
-	"github.com/peteqproj/peteq/pkg/db/local"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
@@ -54,43 +53,33 @@ func main() {
 	natsConn, err := connectToNats(getEnvOrDie("NATS_SERVER_URL"))
 	dieOnError(err, "Failed to connect to nats server")
 	defer natsConn.Close()
+	db, err := connectToPostgres(getEnvOrDie("POSTGRES_URL"))
+	defer db.Close()
+	dieOnError(err, "Failed to connect to postgres")
+
 	inmemoryEventbus := eventbus.New(eventbus.Options{
 		Type:   "nats",
 		Logger: logr.Fork("module", "eventbus"),
 		Stan:   natsConn,
 	})
-	taskLocalDB := &local.DB{
-		Path: path.Join(locatDBLocation, "tasks.yaml"),
-	}
 
-	listLocalDB := &local.DB{
-		Path: path.Join(locatDBLocation, "lists.yaml"),
-	}
-
-	projectLocalDB := &local.DB{
-		Path: path.Join(locatDBLocation, "projects.yaml"),
-	}
-
-	userLocalDB := &local.DB{
-		Path: path.Join(locatDBLocation, "users.yaml"),
-	}
 	taskRepo := &taskDomain.Repo{
-		DB:     taskLocalDB,
+		DB:     db,
 		Logger: logr.Fork("repo", "task"),
 	}
 
 	listRepo := &listDomain.Repo{
-		DB:     listLocalDB,
+		DB:     db,
 		Logger: logr.Fork("repo", "list"),
 	}
 
 	projectRepo := &projectDomain.Repo{
-		DB:     projectLocalDB,
+		DB:     db,
 		Logger: logr.Fork("repo", "project"),
 	}
 
 	userRepo := &userDomain.Repo{
-		DB:     userLocalDB,
+		DB:     db,
 		Logger: logr.Fork("repo", "user"),
 	}
 
@@ -104,10 +93,6 @@ func main() {
 	registerProjectEventHandlers(inmemoryEventbus, projectRepo)
 	registerUserEventHandlers(inmemoryEventbus, userRepo)
 	registerCommandHandlers(cb, inmemoryEventbus)
-
-	db, err := connectToPostgres(getEnvOrDie("POSTGRES_URL"))
-	defer db.Close()
-	dieOnError(err, "Failed to connect to postgres")
 
 	apiBuilder := builder.Builder{
 		UserRepo:    userRepo,

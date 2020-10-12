@@ -1,19 +1,27 @@
 package user
 
 import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/imdario/mergo"
-	"github.com/peteqproj/peteq/pkg/db/local"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"gopkg.in/yaml.v2"
 )
+
+const dbName = "repo_users"
+
+var errNotFound = errors.New("User not found")
 
 type (
 	// Repo is user repository
 	// it works on the view db to read/write from it
 	Repo struct {
-		DB     *local.DB
+		DB     *sql.DB
 		Logger logger.Logger
 	}
 
@@ -23,105 +31,121 @@ type (
 
 // List returns list of users
 func (r *Repo) List(options ListOptions) ([]User, error) {
-	context, err := r.DB.Read()
-	if err != nil {
-		return nil, err
-	}
-	res := []User{}
-	if err := yaml.Unmarshal(context, &res); err != nil {
-		return nil, err
-	}
-	return res, nil
+	return r.find(context.Background())
 }
 
 // Get returns user given user id
 func (r *Repo) Get(id string) (User, error) {
-	users, err := r.List(ListOptions{})
+	users, err := r.find(context.Background(), id)
 	if err != nil {
 		return User{}, err
 	}
-	for _, u := range users {
-		if u.Metadata.ID == id {
-			return u, nil
-		}
+	if len(users) == 0 {
+		return User{}, errNotFound
 	}
-	return User{}, fmt.Errorf("User not found")
+	return users[0], nil
 }
 
 // Create will save new user into db
 func (r *Repo) Create(u User) error {
-	users, err := r.List(ListOptions{})
-	if err != nil {
-		return fmt.Errorf("Failed to load users: %w", err)
-	}
-	set := append(users, u)
-	bytes, err := yaml.Marshal(set)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal user: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to persist user to read db: %w", err)
-	}
-	return nil
+	return r.create(context.Background(), u)
 }
 
 // Delete will remove user from db
 func (r *Repo) Delete(id string) error {
-	users, err := r.List(ListOptions{})
-	if err != nil {
-		return fmt.Errorf("Failed to load users: %w", err)
-	}
-	index := -1
-	for i, t := range users {
-		if t.Metadata.ID == id {
-			index = i
-		}
-	}
-	if index == -1 {
-		return fmt.Errorf("User not found")
-	}
-	set := append(users[:index], users[index+1:]...)
-	bytes, err := yaml.Marshal(set)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal user: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to persist user to read db: %w", err)
-	}
-	return nil
+	return r.delete(context.Background(), id)
 }
 
 // Update will update given user
-func (r *Repo) Update(t User) error {
-	curr, err := r.Get(t.Metadata.ID)
+func (r *Repo) Update(newUser User) error {
+	user, err := r.Get(newUser.Metadata.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to read previous user: %w", err)
 	}
-	if err := mergo.Merge(&curr, t, mergo.WithOverwriteWithEmptyValue); err != nil {
+	if err := mergo.Merge(&user, newUser, mergo.WithOverwriteWithEmptyValue); err != nil {
 		return fmt.Errorf("Failed to update user: %w", err)
 	}
-	users, err := r.List(ListOptions{})
+	return r.update(context.Background(), user)
+}
+
+func (r *Repo) create(ctx context.Context, user User) error {
+	u, err := json.Marshal(user)
 	if err != nil {
-		return fmt.Errorf("Failed to read users: %w", err)
+		return err
 	}
-	index := -1
-	for i, user := range users {
-		if user.Metadata.ID == t.Metadata.ID {
-			index = i
-			break
-		}
-	}
-	if index == -1 {
-		return fmt.Errorf("User not found")
-	}
-	users[index] = curr
-	bytes, err := yaml.Marshal(users)
+	q, _, err := goqu.
+		Insert(dbName).
+		Cols("userid", "info").
+		Vals(goqu.Vals{user.Metadata.ID, string(u)}).
+		ToSQL()
 	if err != nil {
-		return fmt.Errorf("Failed to marshal users: %w", err)
+		return err
 	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to write users: %w", err)
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
 	}
 	return nil
-
+}
+func (r *Repo) find(ctx context.Context, user ...string) ([]User, error) {
+	e := exp.Ex{
+		"userid": user,
+	}
+	if len(user) == 0 {
+		e = exp.Ex{}
+	}
+	q, _, err := goqu.
+		From(dbName).
+		Where(e).
+		ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DB.QueryContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	set := []User{}
+	for rows.Next() {
+		uid := ""
+		u := ""
+		if err := rows.Scan(&uid, &u); err != nil {
+			return nil, err
+		}
+		usr := User{}
+		json.Unmarshal([]byte(u), &usr)
+		set = append(set, usr)
+	}
+	return set, nil
+}
+func (r *Repo) delete(ctx context.Context, user string) error {
+	q, _, err := goqu.
+		Delete(dbName).
+		Where(exp.Ex{
+			"userid": user,
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+func (r *Repo) update(ctx context.Context, user User) error {
+	u, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+	q, _, err := goqu.
+		Update(dbName).
+		Where(exp.Ex{
+			"userid": user.Metadata.ID,
+		}).
+		Set(goqu.Record{"info": string(u)}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
 }

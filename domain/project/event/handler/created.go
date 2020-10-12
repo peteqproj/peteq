@@ -19,9 +19,9 @@ func (t *CreatedHandler) Handle(ev event.Event) error {
 	if err != nil {
 		return err
 	}
-	return t.Repo.Create(opt)
+	return t.Repo.Create(ev.Tenant.ID, opt)
 }
 
 func (t *CreatedHandler) Name() string {
-	return "domain_CreatedHandler"
+	return "project_domain_CreatedHandler"
 }

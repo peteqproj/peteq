@@ -1,23 +1,28 @@
 package list
 
 import (
+	"context"
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/imdario/mergo"
-	"github.com/peteqproj/peteq/pkg/db/local"
-	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"gopkg.in/yaml.v2"
 )
+
+const dbName = "repo_lists"
+
+var errNotFound = errors.New("List not found")
 
 type (
 	// Repo is list repository
 	// it works on the view db to read/write from it
 	Repo struct {
-		DB       *local.DB
-		RemoteDB *postgres.DB
-		Logger   logger.Logger
+		DB     *sql.DB
+		Logger logger.Logger
 	}
 
 	// QueryOptions to get task list
@@ -27,169 +32,176 @@ type (
 	}
 )
 
-var (
-	errNotFound = errors.New("List not found")
-)
-
 // List returns set of list
 func (r *Repo) List(options QueryOptions) ([]List, error) {
-	context, err := r.DB.Read()
-	if err != nil {
-		return nil, err
-	}
-	all := []List{}
-	if err := yaml.Unmarshal(context, &all); err != nil {
-		return nil, err
-	}
-	if options.noUser {
-		return all, nil
-	}
-	res := []List{}
-	for _, l := range all {
-		if l.Tenant.ID == options.UserID {
-			res = append(res, l)
-		}
-	}
-	return res, nil
+	return r.find(context.Background(), options.UserID)
 }
 
 // Get returns list given list id
 func (r *Repo) Get(userID string, id string) (List, error) {
-	lists, err := r.List(QueryOptions{UserID: userID})
+	lists, err := r.find(context.Background(), userID, id)
 	if err != nil {
 		return List{}, err
 	}
-	for _, l := range lists {
-		if l.Metadata.ID == id {
-			return l, nil
-		}
+	if len(lists) == 0 {
+		return List{}, errNotFound
 	}
-	return List{}, errNotFound
+	return lists[0], nil
 }
 
 // Create will save new task into db
-func (r *Repo) Create(l List) error {
-	r.Logger.Info("Creating list")
-	allLists, err := r.List(QueryOptions{noUser: true})
-	if err != nil {
-		return fmt.Errorf("Failed to load tasks: %w", err)
-	}
-	allLists = append(allLists, l)
-	bytes, err := yaml.Marshal(allLists)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal task: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to persist task to read db: %w", err)
-	}
-	return nil
+func (r *Repo) Create(user string, l List) error {
+	return r.create(context.Background(), user, l)
 }
 
 // Delete will remove task from db
 func (r *Repo) Delete(userID string, id string) error {
-	allLists, err := r.List(QueryOptions{UserID: userID})
-	if err != nil {
-		return fmt.Errorf("Failed to load tasks: %w", err)
-	}
-	index := -1
-	for i, t := range allLists {
-		if t.Metadata.ID == id {
-			index = i
-		}
-	}
-	if index == -1 {
-		return errNotFound
-	}
-	set := append(allLists[:index], allLists[index+1:]...)
-	bytes, err := yaml.Marshal(set)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal task: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to persist task to read db: %w", err)
-	}
-	return nil
+	return r.delete(context.Background(), userID, id)
 }
 
 // Update will update given task
-func (r *Repo) Update(l List) error {
-	curr, err := r.Get(l.Tenant.ID, l.Metadata.ID)
+func (r *Repo) Update(user string, l List) error {
+	list, err := r.Get(user, l.Metadata.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to read previous task: %w", err)
 	}
-	if err := mergo.Merge(&curr, l, mergo.WithOverwriteWithEmptyValue); err != nil {
-		return fmt.Errorf("Failed to update task: %w", err)
+	if err := mergo.Merge(&list, l, mergo.WithOverwriteWithEmptyValue); err != nil {
+		return err
 	}
-	lists, err := r.List(QueryOptions{noUser: true})
-	if err != nil {
-		return fmt.Errorf("Failed to read lists: %w", err)
-	}
-	index := -1
-	for i, list := range lists {
-		if list.Metadata.ID == l.Metadata.ID {
-			index = i
-			break
-		}
-	}
-	if index == -1 {
-		return errNotFound
-	}
-	lists[index] = curr
-	return r.updateLists(lists)
+	return r.update(context.Background(), user, list)
 }
 
 // MoveTask will move tasks from one list to another one
 // TODO: Validation source and destination are exists
-func (r *Repo) MoveTask(userID string, source string, destination string, task string) error {
-	listSet, err := r.List(QueryOptions{UserID: userID})
-	if err != nil {
-		return fmt.Errorf("Failed to load lists: %w", err)
+func (r *Repo) MoveTask(userID string, sourceID string, destinationID string, task string) error {
+	var source *List
+	var destination *List
+	if sourceID != "" {
+		s, err := r.Get(userID, sourceID)
+		if err != nil {
+			return err
+		}
+		source = &s
 	}
-	var sourceListIndex int = -1
-	var destinationListIndex int = -1
-	for i, l := range listSet {
-		if l.Metadata.ID == source {
-			sourceListIndex = i
+	if destinationID != "" {
+		d, err := r.Get(userID, destinationID)
+		if err != nil {
+			return err
 		}
-
-		if l.Metadata.ID == destination {
-			destinationListIndex = i
-		}
+		destination = &d
 	}
 
 	// If source found, remove task from source
-	if sourceListIndex != -1 {
-		for i, tid := range listSet[sourceListIndex].Tasks {
+	if source != nil {
+		for i, tid := range source.Tasks {
 			if tid == task {
-				listSet[sourceListIndex].Tasks = remove(listSet[sourceListIndex].Tasks, i)
+				source.Tasks = remove(source.Tasks, i)
 				break
 			}
+		}
+		if err := r.update(context.Background(), userID, *source); err != nil {
+			return err
 		}
 	}
 
 	// If destination found add it to destination
-	if destinationListIndex != -1 {
-		listSet[destinationListIndex].Tasks = append(listSet[destinationListIndex].Tasks, task)
-	}
-
-	err = r.updateLists(listSet)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *Repo) updateLists(set []List) error {
-	bytes, err := yaml.Marshal(set)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal tasks: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to write tasks: %w", err)
+	if destination != nil {
+		destination.Tasks = append(destination.Tasks, task)
+		if err := r.update(context.Background(), userID, *destination); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func remove(slice []string, s int) []string {
 	return append(slice[:s], slice[s+1:]...)
+}
+
+func (r *Repo) create(ctx context.Context, user string, list List) error {
+	l, err := json.Marshal(list)
+	if err != nil {
+		return err
+	}
+	q, _, err := goqu.
+		Insert(dbName).
+		Cols("userid", "listid", "info").
+		Vals(goqu.Vals{user, list.Metadata.ID, string(l)}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]List, error) {
+	e := exp.Ex{
+		"userid": user,
+	}
+	if len(ids) > 0 {
+		e = exp.Ex{
+			"userid": user,
+			"listid": ids,
+		}
+	}
+	q, _, err := goqu.
+		From(dbName).
+		Where(e).
+		ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DB.QueryContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	set := []List{}
+	for rows.Next() {
+		uid := ""
+		lid := ""
+		l := ""
+		if err := rows.Scan(&uid, &lid, &l); err != nil {
+			return nil, err
+		}
+		prj := List{}
+		json.Unmarshal([]byte(l), &prj)
+		set = append(set, prj)
+	}
+	return set, nil
+}
+func (r *Repo) delete(ctx context.Context, user string, ids ...string) error {
+	q, _, err := goqu.
+		Delete(dbName).
+		Where(exp.Ex{
+			"userid": user,
+			"listid": ids,
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+func (r *Repo) update(ctx context.Context, user string, list List) error {
+	l, err := json.Marshal(list)
+	if err != nil {
+		return err
+	}
+	q, _, err := goqu.
+		Update(dbName).
+		Where(exp.Ex{
+			"userid": user,
+			"listid": list.Metadata.ID,
+		}).
+		Set(goqu.Record{"info": string(l)}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
 }

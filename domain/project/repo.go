@@ -1,19 +1,26 @@
 package project
 
 import (
-	"fmt"
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/imdario/mergo"
-	"github.com/peteqproj/peteq/pkg/db/local"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"gopkg.in/yaml.v2"
 )
+
+const dbName = "repo_projects"
+
+var errNotFound = errors.New("Project not foud")
 
 type (
 	// Repo is project repository
 	// it works on the view db to read/write from it
 	Repo struct {
-		DB     *local.DB
+		DB     *sql.DB
 		Logger logger.Logger
 	}
 
@@ -26,110 +33,41 @@ type (
 
 // List returns set of project
 func (r *Repo) List(options QueryOptions) ([]Project, error) {
-	context, err := r.DB.Read()
-	if err != nil {
-		return nil, err
-	}
-	all := []Project{}
-	if err := yaml.Unmarshal(context, &all); err != nil {
-		return nil, err
-	}
-	if options.noUser {
-		return all, nil
-	}
-	res := []Project{}
-	for _, p := range all {
-		if p.Tenant.ID == options.UserID {
-			res = append(res, p)
-		}
-	}
-	return res, nil
+	return r.find(context.Background(), options.UserID)
 }
 
 // Get returns project given project id
 func (r *Repo) Get(userID string, id string) (Project, error) {
-	lists, err := r.List(QueryOptions{
-		UserID: userID,
-	})
+	projects, err := r.find(context.Background(), userID, id)
 	if err != nil {
 		return Project{}, err
 	}
-	for _, l := range lists {
-		if l.Metadata.ID == id {
-			return l, nil
-		}
+	if len(projects) == 0 {
+		return Project{}, errNotFound
 	}
-	return Project{}, fmt.Errorf("Project not found")
+	return projects[0], nil
 }
 
 // Create will save new project into db
-func (r *Repo) Create(l Project) error {
-	allLists, err := r.List(QueryOptions{noUser: true})
-	if err != nil {
-		return fmt.Errorf("Failed to load tasks: %w", err)
-	}
-	set := append(allLists, l)
-	bytes, err := yaml.Marshal(set)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal project: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to persist project to read db: %w", err)
-	}
-	return nil
+func (r *Repo) Create(user string, project Project) error {
+	return r.create(context.Background(), user, project)
 }
 
 // Delete will remove project from db
 func (r *Repo) Delete(userID string, id string) error {
-	allLists, err := r.List(QueryOptions{UserID: userID})
-	if err != nil {
-		return fmt.Errorf("Failed to load tasks: %w", err)
-	}
-	var index *int
-	for i, t := range allLists {
-		if t.Metadata.ID == id {
-			index = &i
-		}
-	}
-	if index == nil {
-		return fmt.Errorf("Project not found")
-	}
-	set := append(allLists[:*index], allLists[*index+1:]...)
-	bytes, err := yaml.Marshal(set)
-	if err != nil {
-		return fmt.Errorf("Failed to marshal project: %w", err)
-	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to persist project to read db: %w", err)
-	}
-	return nil
+	return r.delete(context.Background(), userID, id)
 }
 
 // Update will update given project
-func (r *Repo) Update(p Project) error {
-	curr, err := r.Get(p.Tenant.ID, p.Metadata.ID)
+func (r *Repo) Update(user string, p Project) error {
+	prj, err := r.Get(user, p.Metadata.ID)
 	if err != nil {
-		return fmt.Errorf("Failed to read previous project: %w", err)
+		return err
 	}
-	if err := mergo.Merge(&curr, p, mergo.WithOverwriteWithEmptyValue); err != nil {
-		return fmt.Errorf("Failed to update project: %w", err)
+	if err := mergo.Merge(&prj, p, mergo.WithOverwriteWithEmptyValue); err != nil {
+		return err
 	}
-	lists, err := r.List(QueryOptions{noUser: true})
-	if err != nil {
-		return fmt.Errorf("Failed to read lists: %w", err)
-	}
-	var index *int
-	for i, project := range lists {
-		if project.Metadata.ID == p.Metadata.ID {
-			index = &i
-			break
-		}
-	}
-	if index == nil {
-		return fmt.Errorf("Project not found")
-	}
-	lists[*index] = curr
-	return r.updateProjects(lists)
+	return r.update(context.Background(), user, prj)
 }
 
 // AddTask adds task to project
@@ -139,18 +77,94 @@ func (r *Repo) AddTask(userID string, project string, task string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Updating project")
 	proj.Tasks = append(proj.Tasks, task)
-	return r.Update(proj)
+	return r.Update(userID, proj)
 }
 
-func (r *Repo) updateProjects(set []Project) error {
-	bytes, err := yaml.Marshal(set)
+func (r *Repo) create(ctx context.Context, user string, prj Project) error {
+	t, err := json.Marshal(prj)
 	if err != nil {
-		return fmt.Errorf("Failed to marshal tasks: %w", err)
+		return err
 	}
-	if err := r.DB.Write(bytes); err != nil {
-		return fmt.Errorf("Failed to write tasks: %w", err)
+	q, _, err := goqu.
+		Insert(dbName).
+		Cols("userid", "projectid", "info").
+		Vals(goqu.Vals{user, prj.Metadata.ID, string(t)}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
 	}
 	return nil
+}
+func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]Project, error) {
+	e := exp.Ex{
+		"userid": user,
+	}
+	if len(ids) > 0 {
+		e = exp.Ex{
+			"userid":    user,
+			"projectid": ids,
+		}
+	}
+	q, _, err := goqu.
+		From(dbName).
+		Where(e).
+		ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DB.QueryContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	set := []Project{}
+	for rows.Next() {
+		uid := ""
+		pid := ""
+		t := ""
+		if err := rows.Scan(&uid, &pid, &t); err != nil {
+			return nil, err
+		}
+		prj := Project{}
+		json.Unmarshal([]byte(t), &prj)
+		set = append(set, prj)
+	}
+	return set, nil
+}
+func (r *Repo) delete(ctx context.Context, user string, ids ...string) error {
+	q, _, err := goqu.
+		Delete(dbName).
+		Where(exp.Ex{
+			"userid":    user,
+			"projectid": ids,
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+func (r *Repo) update(ctx context.Context, user string, project Project) error {
+	t, err := json.Marshal(project)
+	if err != nil {
+		return err
+	}
+	q, _, err := goqu.
+		Update(dbName).
+		Where(exp.Ex{
+			"userid":    user,
+			"projectid": project.Metadata.ID,
+		}).
+		Set(goqu.Record{"info": string(t)}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
 }

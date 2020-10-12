@@ -20,7 +20,7 @@ func (t *CreatedHandler) Handle(ev event.Event) error {
 	if err != nil {
 		return err
 	}
-	return t.Repo.Create(list.List{
+	return t.Repo.Create(ev.Tenant.ID, list.List{
 		Tenant: ev.Tenant,
 		Metadata: list.Metadata{
 			ID:    opt.ID,
@@ -32,5 +32,5 @@ func (t *CreatedHandler) Handle(ev event.Event) error {
 }
 
 func (t *CreatedHandler) Name() string {
-	return "domain_CreatedHandler"
+	return "list_domain_CreatedHandler"
 }
