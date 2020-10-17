@@ -48,7 +48,16 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 	if err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
-
+	usr, err := c.Repo.GetByEmail(opt.Email)
+	if err != nil {
+		if err.Error() != "User not found" {
+			return api.NewRejectedCommandResponse(err.Error())
+		}
+	}
+	if usr != nil {
+		fmt.Println(usr)
+		return api.NewRejectedCommandResponse("Email already registred")
+	}
 	// TODO: validate request
 	if err := c.Commandbus.ExecuteAndWait(ctx, "user.register", command.RegisterCommandOptions{
 		Email:        opt.Email,
@@ -66,7 +75,7 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 		},
 	})
 	for i, l := range basicLists {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 5)
 		id, err := uuid.NewV4()
 		if err != nil {
 			return api.NewRejectedCommandResponse(err.Error())

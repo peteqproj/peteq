@@ -179,9 +179,9 @@ func (b *Builder) BuildViewAPI() api.Resource {
 			DB:          b.DB,
 		}),
 	}
-	for vname, view := range views {
+	for _, view := range views {
 		for name, handler := range view.EventHandlers() {
-			b.Logger.Info("Subscribing view to event", "event", name, "view", vname, "subscriber", handler.Name())
+			b.Logger.Info("Subscribing", "name", name, "handler", handler.Name())
 			b.Eventbus.Subscribe(name, handler)
 		}
 	}

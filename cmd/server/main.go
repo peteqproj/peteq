@@ -1,16 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	"os"
-	"path"
 
 	_ "github.com/lib/pq"
 
 	socketio "github.com/googollee/go-socket.io"
-	nats "github.com/nats-io/nats.go"
-	stan "github.com/nats-io/stan.go"
 
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
@@ -27,12 +22,12 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/config"
+	"github.com/peteqproj/peteq/pkg/db/postgres"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
-
-var locatDBLocation = path.Join(os.Getenv("HOME"), ".peteq")
 
 func main() {
 	logr := logger.New(logger.Options{})
@@ -45,23 +40,29 @@ func main() {
 	})
 	wsserver, err := socketio.NewServer(nil)
 	defer wsserver.Close()
-	dieOnError(err, "Failed to create WS server")
+	utils.DieOnError(err, "Failed to create WS server")
 	handlerWSEvents(wsserver)
 	err = s.AddWS(wsserver)
-	dieOnError(err, "Failed to attach WS server")
+	utils.DieOnError(err, "Failed to attach WS server")
 
-	natsConn, err := connectToNats(getEnvOrDie("NATS_SERVER_URL"))
-	dieOnError(err, "Failed to connect to nats server")
-	defer natsConn.Close()
-	db, err := connectToPostgres(getEnvOrDie("POSTGRES_URL"))
+	db, err := postgres.Connect(utils.GetEnvOrDie("POSTGRES_URL"))
 	defer db.Close()
-	dieOnError(err, "Failed to connect to postgres")
+	utils.DieOnError(err, "Failed to connect to postgres")
 
-	inmemoryEventbus := eventbus.New(eventbus.Options{
-		Type:   "nats",
-		Logger: logr.Fork("module", "eventbus"),
-		Stan:   natsConn,
+	ebus, err := eventbus.New(eventbus.Options{
+		Type:       "rabbitmq",
+		Logger:     logr.Fork("module", "eventbus"),
+		EventlogDB: db,
+		RabbitMQ: eventbus.RabbitMQOptions{
+			Host:     utils.GetEnvOrDie("RABBITMQ_HOST"),
+			Port:     utils.GetEnvOrDie("RABBITMQ_PORT"),
+			APIPort:  utils.GetEnvOrDie("RABBITMQ_API_PORT"),
+			Username: utils.GetEnvOrDie("RABBITMQ_USERNAME"),
+			Password: utils.GetEnvOrDie("RABBITMQ_PASSWORD"),
+		},
 	})
+	utils.DieOnError(err, "Failed to connect to eventbus")
+	defer ebus.Stop()
 
 	taskRepo := &taskDomain.Repo{
 		DB:     db,
@@ -88,11 +89,11 @@ func main() {
 		Logger: logr.Fork("module", "commandbus"),
 	})
 
-	registerTaskEventHandlers(inmemoryEventbus, taskRepo)
-	registerListEventHandlers(inmemoryEventbus, listRepo)
-	registerProjectEventHandlers(inmemoryEventbus, projectRepo)
-	registerUserEventHandlers(inmemoryEventbus, userRepo)
-	registerCommandHandlers(cb, inmemoryEventbus)
+	registerUserEventHandlers(ebus, userRepo)
+	registerTaskEventHandlers(ebus, taskRepo)
+	registerListEventHandlers(ebus, listRepo)
+	registerProjectEventHandlers(ebus, projectRepo)
+	registerCommandHandlers(cb, ebus)
 
 	apiBuilder := builder.Builder{
 		UserRepo:    userRepo,
@@ -101,16 +102,17 @@ func main() {
 		TaskRepo:    taskRepo,
 		Commandbus:  cb,
 		DB:          db,
-		Eventbus:    inmemoryEventbus,
+		Eventbus:    ebus,
 		Logger:      logr,
 	}
 
 	s.AddResource(apiBuilder.BuildCommandAPI())
 	s.AddResource(apiBuilder.BuildViewAPI())
 	s.AddResource(apiBuilder.BuildRestfulAPI())
-
+	err = ebus.Start()
+	utils.DieOnError(err, "Failed to start eventbus")
 	err = s.Start()
-	dieOnError(err, "Failed to run server")
+	utils.DieOnError(err, "Failed to run server")
 }
 
 func handlerWSEvents(server *socketio.Server) {
@@ -234,20 +236,4 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 	cb.RegisterHandler("user.login", &userCommands.LoginCommand{
 		Eventbus: eventbus,
 	})
-}
-
-func connectToNats(url string) (stan.Conn, error) {
-	conn, err := nats.Connect(url)
-	if err != nil {
-		return nil, err
-	}
-
-	sc, err := stan.Connect("stan", "me", stan.NatsConn(conn))
-	return sc, err
-
-}
-
-func connectToPostgres(url string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", url)
-	return db, err
 }

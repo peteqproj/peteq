@@ -3,7 +3,6 @@ package api
 import "github.com/gin-gonic/gin"
 
 type (
-	// Resource represents set of endpoints
 	Resource struct {
 		// Path, including /
 		Path        string

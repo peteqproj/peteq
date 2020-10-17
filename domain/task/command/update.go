@@ -25,7 +25,7 @@ func (u *UpdateCommand) Handle(ctx context.Context, done chan<- error, arguments
 		done <- fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	user := tenant.UserFromContext(ctx)
-	u.Eventbus.Publish(event.Event{
+	u.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   user.Metadata.ID,
 			Type: tenant.User.String(),

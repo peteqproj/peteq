@@ -25,7 +25,7 @@ func (c *DeleteCommand) Handle(ctx context.Context, done chan<- error, arguments
 		done <- fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	u := tenant.UserFromContext(ctx)
-	c.Eventbus.Publish(event.Event{
+	c.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

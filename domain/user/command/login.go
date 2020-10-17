@@ -31,7 +31,7 @@ func (r *LoginCommand) Handle(ctx context.Context, done chan<- error, arguments 
 		done <- fmt.Errorf("Failed to convert arguments to LoginCommandOptions")
 		return
 	}
-	r.Eventbus.Publish(event.Event{
+	r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
 			Type: tenant.User.String(),

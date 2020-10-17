@@ -12,6 +12,7 @@ import (
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 const dbTableName = "view_project"
@@ -102,10 +103,10 @@ func (d *DAL) updateTask(ctx context.Context, user string, project string, task 
 		return fmt.Errorf("Task not found")
 	}
 	view.Tasks[taskIndex] = task
-	return d.updateView(context.Background(), user, project, view)
+	return d.updateView(ctx, user, project, view)
 }
 
-func (t taskDeletedHandler) Handle(e event.Event) error {
+func (t taskDeletedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	projects, err := t.projectRepo.List(project.QueryOptions{
 		UserID: e.Tenant.ID,
 	})
@@ -121,7 +122,7 @@ func (t taskDeletedHandler) Handle(e event.Event) error {
 		fmt.Println("Task is not assigned to any project")
 		return nil
 	}
-	view, err := t.dal.loadprojectView(context.Background(), e.Tenant.ID, projectID)
+	view, err := t.dal.loadprojectView(ctx, e.Tenant.ID, projectID)
 	if err != nil {
 		return err
 	}
@@ -141,10 +142,10 @@ func (t taskDeletedHandler) Handle(e event.Event) error {
 		tasks = append(tasks, t.Metadata.ID)
 	}
 	view.Project.Tasks = tasks
-	return t.dal.updateView(context.Background(), e.Tenant.ID, projectID, view)
+	return t.dal.updateView(ctx, e.Tenant.ID, projectID, view)
 }
-func (p projectTaskAddedHandler) Handle(e event.Event) error {
-	curr, err := p.dal.loadprojectView(context.Background(), e.Tenant.ID, e.Metadata.AggregatorID)
+func (p projectTaskAddedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := p.dal.loadprojectView(ctx, e.Tenant.ID, e.Metadata.AggregatorID)
 	if err != nil {
 		return err
 	}
@@ -165,9 +166,9 @@ func (p projectTaskAddedHandler) Handle(e event.Event) error {
 	}
 	curr.Tasks = append(curr.Tasks, task)
 	curr.Project.Tasks = append(curr.Project.Tasks, task.Metadata.ID)
-	return p.dal.updateView(context.Background(), e.Tenant.ID, e.Metadata.AggregatorID, curr)
+	return p.dal.updateView(ctx, e.Tenant.ID, e.Metadata.AggregatorID, curr)
 }
-func (p projectCreatedHandler) Handle(e event.Event) error {
+func (p projectCreatedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	project := project.Project{}
 	err := e.UnmarshalSpecInto(&project)
 	if err != nil {
@@ -188,7 +189,7 @@ func (p projectCreatedHandler) Handle(e event.Event) error {
 	_, err = p.dal.DB.Query(q)
 	return err
 }
-func (t taskStatusChangedHandler) Handle(e event.Event) error {
+func (t taskStatusChangedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	task, err := t.taskRepo.Get(e.Tenant.ID, e.Metadata.AggregatorID)
 	if err != nil {
 		return err
@@ -216,7 +217,7 @@ func (t taskStatusChangedHandler) Handle(e event.Event) error {
 		return nil
 	}
 
-	return t.dal.updateTask(context.Background(), e.Tenant.ID, projectID, task)
+	return t.dal.updateTask(ctx, e.Tenant.ID, projectID, task)
 }
 
 func (t taskDeletedHandler) Name() string {

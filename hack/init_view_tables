@@ -3,10 +3,12 @@ CREATE TABLE IF NOT EXISTS view_home (userid text not null PRIMARY KEY, info jso
 CREATE TABLE IF NOT EXISTS view_projects (userid text not null PRIMARY KEY, info json NOT NULL);
 CREATE TABLE IF NOT EXISTS view_project (userid text not null, projectid text not null PRIMARY KEY, info json NOT NULL);
 
-CREATE TABLE IF NOT EXISTS repo_users (userid text not null PRIMARY KEY, info json NOT NULL);
+CREATE TABLE IF NOT EXISTS repo_users (userid text not null PRIMARY KEY, email text not null, info json NOT NULL);
 CREATE TABLE IF NOT EXISTS repo_lists (userid text not null, listid text not null PRIMARY KEY, info json NOT NULL);
 CREATE TABLE IF NOT EXISTS repo_projects (userid text not null, projectid text not null PRIMARY KEY, info json NOT NULL);
 CREATE TABLE IF NOT EXISTS repo_tasks (userid text not null, taskid text not null PRIMARY KEY, info json NOT NULL);
+
+CREATE TABLE IF NOT EXISTS event_log (eventid text not null PRIMARY KEY, eventname text not null, userid text not null, info json NOT NULL);
 
 
 delete from view_backlog;
@@ -17,12 +19,14 @@ delete from repo_users;
 delete from repo_lists;
 delete from repo_projects;
 delete from repo_tasks;
+delete from event_log;
 
-drop table view_backlog;
-drop table view_home;
-drop table view_project;
-drop table view_projects;
-drop table repo_users;
-drop table repo_lists;
-drop table repo_projects;
-drop table repo_tasks;
+drop table IF EXISTS view_backlog;
+drop table IF EXISTS view_home;
+drop table IF EXISTS view_project;
+drop table IF EXISTS view_projects;
+drop table IF EXISTS repo_users;
+drop table IF EXISTS repo_lists;
+drop table IF EXISTS repo_projects;
+drop table IF EXISTS repo_tasks;
+drop table IF EXISTS event_log;

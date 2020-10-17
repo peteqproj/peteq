@@ -14,6 +14,7 @@ import (
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 const dbTableName = "view_backlog"
@@ -79,7 +80,7 @@ func (d *DAL) loadBacklog(ctx context.Context, user string) (backlogView, error)
 	return v, nil
 }
 func (d *DAL) updateTask(ctx context.Context, user string, task backlogTask) error {
-	curr, err := d.loadBacklog(context.Background(), user)
+	curr, err := d.loadBacklog(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -112,8 +113,8 @@ func (d *DAL) updateView(ctx context.Context, user string, view backlogView) err
 	return nil
 }
 
-func (t taskCreatedHandler) Handle(e event.Event) error {
-	curr, err := t.dal.loadBacklog(context.Background(), e.Tenant.ID)
+func (t taskCreatedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := t.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -146,8 +147,8 @@ func (t taskCreatedHandler) Handle(e event.Event) error {
 	}
 	return nil
 }
-func (t taskUpdateHandler) Handle(e event.Event) error {
-	view, err := t.dal.loadBacklog(context.Background(), e.Tenant.ID)
+func (t taskUpdateHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	view, err := t.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -161,10 +162,10 @@ func (t taskUpdateHandler) Handle(e event.Event) error {
 		return fmt.Errorf("Task not found")
 	}
 	view.Tasks[index].Task = task
-	return t.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return t.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (t taskStatusChangedHandler) Handle(e event.Event) error {
-	view, err := t.dal.loadBacklog(context.Background(), e.Tenant.ID)
+func (t taskStatusChangedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	view, err := t.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -177,10 +178,10 @@ func (t taskStatusChangedHandler) Handle(e event.Event) error {
 		return fmt.Errorf("Task not found")
 	}
 	view.Tasks[index].Task = task
-	return t.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return t.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (t taskDeletedHandler) Handle(e event.Event) error {
-	view, err := t.dal.loadBacklog(context.Background(), e.Tenant.ID)
+func (t taskDeletedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	view, err := t.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -201,9 +202,9 @@ func (t taskDeletedHandler) Handle(e event.Event) error {
 		return fmt.Errorf("Task not found")
 	}
 	view.Tasks = remove(view.Tasks, taskIndex)
-	return t.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return t.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (u userRegistredHandler) Handle(e event.Event) error {
+func (u userRegistredHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	v := backlogView{
 		Tasks:    make([]backlogTask, 0),
 		Lists:    make([]backlogTaskList, 0),
@@ -220,12 +221,12 @@ func (u userRegistredHandler) Handle(e event.Event) error {
 	_, err = u.dal.DB.Query(q)
 	return err
 }
-func (l listTaskMovedHandler) Handle(e event.Event) error {
+func (l listTaskMovedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	opt := listCommand.MoveTaskArguments{}
 	if err := e.UnmarshalSpecInto(&opt); err != nil {
 		return err
 	}
-	view, err := l.dal.loadBacklog(context.Background(), e.Tenant.ID)
+	view, err := l.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -235,11 +236,13 @@ func (l listTaskMovedHandler) Handle(e event.Event) error {
 		if err != nil {
 			return err
 		}
+		logger.Info("Destination is set", "id", opt.Destination, "name", list.Metadata.Name)
 		newList = list
 	}
 	taskIndex := -1
 	for i, t := range view.Tasks {
 		if t.Task.Metadata.ID == opt.TaskID {
+			logger.Info("Task found in view", "id", opt.TaskID, "index", i)
 			taskIndex = i
 		}
 	}
@@ -250,10 +253,10 @@ func (l listTaskMovedHandler) Handle(e event.Event) error {
 		ID:   newList.Metadata.ID,
 		Name: newList.Metadata.Name,
 	}
-	return l.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return l.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (p projectCreatedHandler) Handle(e event.Event) error {
-	curr, err := p.dal.loadBacklog(context.Background(), e.Tenant.ID)
+func (p projectCreatedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := p.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -267,10 +270,10 @@ func (p projectCreatedHandler) Handle(e event.Event) error {
 		ID:   project.Metadata.ID,
 		Name: project.Metadata.Name,
 	})
-	return p.dal.updateView(context.Background(), e.Tenant.ID, curr)
+	return p.dal.updateView(ctx, e.Tenant.ID, curr)
 }
-func (p projectTaskAddedHandler) Handle(e event.Event) error {
-	curr, err := p.dal.loadBacklog(context.Background(), e.Tenant.ID)
+func (p projectTaskAddedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := p.dal.loadBacklog(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -294,7 +297,7 @@ func (p projectTaskAddedHandler) Handle(e event.Event) error {
 	for _, t := range curr.Tasks {
 		if t.Metadata.ID == opt.TaskID {
 			t.Project = newProject
-			return p.dal.updateTask(context.Background(), e.Tenant.ID, t)
+			return p.dal.updateTask(ctx, e.Tenant.ID, t)
 		}
 	}
 	return nil

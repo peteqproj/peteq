@@ -23,3 +23,9 @@ type (
 func (d *DB) Read(ctx context.Context, opt ReadOptions) (*sql.Rows, error) {
 	return d.pg.QueryContext(ctx, opt.Query)
 }
+
+// Connect opens connection to db
+func Connect(url string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", url)
+	return db, err
+}

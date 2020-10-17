@@ -12,6 +12,7 @@ import (
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 const dbTableName = "view_projects"
@@ -82,8 +83,8 @@ func (d *DAL) updateView(ctx context.Context, user string, v projectsView) error
 	return nil
 }
 
-func (t taskDeletedHandler) Handle(e event.Event) error {
-	view, err := t.dal.loadProjectsView(context.Background(), e.Tenant.ID)
+func (t taskDeletedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	view, err := t.dal.loadProjectsView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -97,10 +98,10 @@ func (t taskDeletedHandler) Handle(e event.Event) error {
 		return fmt.Errorf("Task not found")
 	}
 	view.Projects[projectIndex].Tasks = append(view.Projects[projectIndex].Tasks[:taskIndex], view.Projects[projectIndex].Tasks[taskIndex+1:]...)
-	return t.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return t.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (p projectTaskAddedHandler) Handle(e event.Event) error {
-	curr, err := p.dal.loadProjectsView(context.Background(), e.Tenant.ID)
+func (p projectTaskAddedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := p.dal.loadProjectsView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -126,10 +127,10 @@ func (p projectTaskAddedHandler) Handle(e event.Event) error {
 	}
 	curr.Projects[projectIndex].Tasks = append(curr.Projects[projectIndex].Tasks, newTask)
 	curr.Projects[projectIndex].Project.Tasks = append(curr.Projects[projectIndex].Project.Tasks, newTask.Metadata.ID)
-	return p.dal.updateView(context.Background(), e.Tenant.ID, curr)
+	return p.dal.updateView(ctx, e.Tenant.ID, curr)
 }
-func (p projectCreatedHandler) Handle(e event.Event) error {
-	curr, err := p.dal.loadProjectsView(context.Background(), e.Tenant.ID)
+func (p projectCreatedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := p.dal.loadProjectsView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -140,9 +141,9 @@ func (p projectCreatedHandler) Handle(e event.Event) error {
 		return fmt.Errorf("Failed to convert event.spec to Project object: %v", err)
 	}
 	curr.Projects = append(curr.Projects, populatedProject{Project: project, Tasks: make([]task.Task, 0)})
-	return p.dal.updateView(context.Background(), e.Tenant.ID, curr)
+	return p.dal.updateView(ctx, e.Tenant.ID, curr)
 }
-func (u userRegistredHandler) Handle(e event.Event) error {
+func (u userRegistredHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	v := projectsView{
 		Projects: []populatedProject{},
 	}

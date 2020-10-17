@@ -1,6 +1,7 @@
 package local
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -31,7 +32,7 @@ type (
 )
 
 // Publish event
-func (e *Eventbus) Publish(ev event.Event, done chan<- error) string {
+func (e *Eventbus) Publish(ctx context.Context, ev event.Event, done chan<- error) string {
 
 	eID, err := uuid.NewV4()
 	if err != nil {
@@ -86,13 +87,23 @@ func (e *Eventbus) Subscribe(name string, h handler.EventHandler) {
 	cn := make(chan EventChan)
 	e.Subscribers[name] = cn
 	e.Lock.Unlock()
+	log := logger.New(logger.Options{})
 	for {
 		select {
 		case e := <-cn:
-			if err := h.Handle(e.event); err != nil {
+			if err := h.Handle(context.Background(), e.event, log); err != nil {
 				e.done <- err
 			}
 			e.done <- nil
 		}
 	}
+}
+
+func (e *Eventbus) Start() error {
+	return nil
+}
+func (e *Eventbus) Stop() {
+}
+func (e *Eventbus) Replay(ctx context.Context) error {
+	return nil
 }

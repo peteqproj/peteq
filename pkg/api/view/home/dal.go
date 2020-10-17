@@ -15,6 +15,7 @@ import (
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 const dbTableName = "view_home"
@@ -112,8 +113,8 @@ func (d *DAL) updateTask(ctx context.Context, user string, task homeTask) error 
 	}
 	return d.updateView(ctx, user, view)
 }
-func (l listCreatedHandler) Handle(e event.Event) error {
-	curr, err := l.dal.loadHomeView(context.Background(), e.Tenant.ID)
+func (l listCreatedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := l.dal.loadHomeView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -133,14 +134,14 @@ func (l listCreatedHandler) Handle(e event.Event) error {
 		},
 		Tasks: []homeTask{},
 	})
-	return l.dal.updateView(context.Background(), e.Tenant.ID, curr)
+	return l.dal.updateView(ctx, e.Tenant.ID, curr)
 }
-func (l listTaskMovedHandler) Handle(e event.Event) error {
+func (l listTaskMovedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	opt := listCommand.MoveTaskArguments{}
 	if err := e.UnmarshalSpecInto(&opt); err != nil {
 		return err
 	}
-	view, err := l.dal.loadHomeView(context.Background(), e.Tenant.ID)
+	view, err := l.dal.loadHomeView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -206,20 +207,20 @@ func (l listTaskMovedHandler) Handle(e event.Event) error {
 			Project: taskProject,
 		})
 	}
-	return l.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return l.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (t taskUpdateHandler) Handle(e event.Event) error {
+func (t taskUpdateHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	task := task.Task{}
 	err := e.UnmarshalSpecInto(&task)
 	if err != nil {
 		return fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
-	return t.dal.updateTask(context.Background(), e.Tenant.ID, homeTask{
+	return t.dal.updateTask(ctx, e.Tenant.ID, homeTask{
 		Task: task,
 	})
 }
-func (t taskDeletedHandler) Handle(e event.Event) error {
-	view, err := t.dal.loadHomeView(context.Background(), e.Tenant.ID)
+func (t taskDeletedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	view, err := t.dal.loadHomeView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -235,9 +236,9 @@ func (t taskDeletedHandler) Handle(e event.Event) error {
 		return nil
 	}
 	view.Lists[listIndex].Tasks = append(view.Lists[listIndex].Tasks[:taskIndex], view.Lists[listIndex].Tasks[taskIndex+1:]...)
-	return t.dal.updateView(context.Background(), e.Tenant.ID, view)
+	return t.dal.updateView(ctx, e.Tenant.ID, view)
 }
-func (t userRegistredHandler) Handle(e event.Event) error {
+func (t userRegistredHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 
 	v := homeView{
 		Lists: []homeList{},
@@ -253,8 +254,8 @@ func (t userRegistredHandler) Handle(e event.Event) error {
 	_, err = t.dal.DB.Query(q)
 	return err
 }
-func (p projectTaskAddedHandler) Handle(e event.Event) error {
-	curr, err := p.dal.loadHomeView(context.Background(), e.Tenant.ID)
+func (p projectTaskAddedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
+	curr, err := p.dal.loadHomeView(ctx, e.Tenant.ID)
 	if err != nil {
 		return err
 	}
@@ -274,7 +275,7 @@ func (p projectTaskAddedHandler) Handle(e event.Event) error {
 		return nil
 	}
 	curr.Lists[listIndex].Tasks[taskIndex].Project = newProject
-	return p.dal.updateView(context.Background(), e.Tenant.ID, curr)
+	return p.dal.updateView(ctx, e.Tenant.ID, curr)
 }
 
 func (l listCreatedHandler) Name() string {

@@ -25,7 +25,7 @@ func (r *ReopenCommand) Handle(ctx context.Context, done chan<- error, arguments
 		return
 	}
 	u := tenant.UserFromContext(ctx)
-	r.Eventbus.Publish(event.Event{
+	r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

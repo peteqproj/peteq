@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/list/command"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -14,7 +17,7 @@ type (
 )
 
 // Handle will process it the event
-func (t *TaskMovedHandler) Handle(ev event.Event) error {
+func (t *TaskMovedHandler) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
 	opt := command.MoveTaskArguments{}
 	err := ev.UnmarshalSpecInto(&opt)
 	if err != nil {

@@ -31,12 +31,12 @@ type (
 
 // List returns list of users
 func (r *Repo) List(options ListOptions) ([]User, error) {
-	return r.find(context.Background())
+	return r.find(context.Background(), nil, nil)
 }
 
 // Get returns user given user id
 func (r *Repo) Get(id string) (User, error) {
-	users, err := r.find(context.Background(), id)
+	users, err := r.find(context.Background(), []string{id}, nil)
 	if err != nil {
 		return User{}, err
 	}
@@ -44,6 +44,18 @@ func (r *Repo) Get(id string) (User, error) {
 		return User{}, errNotFound
 	}
 	return users[0], nil
+}
+
+// GetByEmail returns user by given email
+func (r *Repo) GetByEmail(email string) (*User, error) {
+	users, err := r.find(context.Background(), nil, []string{email})
+	if err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, errNotFound
+	}
+	return &users[0], nil
 }
 
 // Create will save new user into db
@@ -75,8 +87,8 @@ func (r *Repo) create(ctx context.Context, user User) error {
 	}
 	q, _, err := goqu.
 		Insert(dbName).
-		Cols("userid", "info").
-		Vals(goqu.Vals{user.Metadata.ID, string(u)}).
+		Cols("userid", "email", "info").
+		Vals(goqu.Vals{user.Metadata.ID, user.Metadata.Email, string(u)}).
 		ToSQL()
 	if err != nil {
 		return err
@@ -87,12 +99,23 @@ func (r *Repo) create(ctx context.Context, user User) error {
 	}
 	return nil
 }
-func (r *Repo) find(ctx context.Context, user ...string) ([]User, error) {
-	e := exp.Ex{
-		"userid": user,
+func (r *Repo) find(ctx context.Context, user []string, email []string) ([]User, error) {
+	e := exp.Ex{}
+	if len(user) > 0 && len(email) > 0 {
+		e = exp.Ex{
+			"userid": user,
+			"email":  email,
+		}
 	}
-	if len(user) == 0 {
-		e = exp.Ex{}
+	if len(user) == 0 && len(email) > 0 {
+		e = exp.Ex{
+			"email": email,
+		}
+	}
+	if len(user) > 0 && len(email) == 0 {
+		e = exp.Ex{
+			"userid": user,
+		}
 	}
 	q, _, err := goqu.
 		From(dbName).
@@ -108,8 +131,9 @@ func (r *Repo) find(ctx context.Context, user ...string) ([]User, error) {
 	set := []User{}
 	for rows.Next() {
 		uid := ""
+		email := ""
 		u := ""
-		if err := rows.Scan(&uid, &u); err != nil {
+		if err := rows.Scan(&uid, &email, &u); err != nil {
 			return nil, err
 		}
 		usr := User{}

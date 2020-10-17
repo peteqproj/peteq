@@ -32,7 +32,7 @@ func (r *RegisterCommand) Handle(ctx context.Context, done chan<- error, argumen
 		done <- fmt.Errorf("Failed to convert arguments to User")
 		return
 	}
-	r.Eventbus.Publish(event.Event{
+	r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
 			Type: tenant.User.String(),

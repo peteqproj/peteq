@@ -33,7 +33,7 @@ func (m *Create) Handle(ctx context.Context, done chan<- error, arguments interf
 	}
 
 	u := tenant.UserFromContext(ctx)
-	m.Eventbus.Publish(event.Event{
+	m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

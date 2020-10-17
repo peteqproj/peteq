@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -13,7 +16,7 @@ type (
 )
 
 // Handle will handle the event the process it
-func (c *DeleteHandler) Handle(ev event.Event) error {
+func (c *DeleteHandler) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
 	opt := task.Task{}
 	err := ev.UnmarshalSpecInto(&opt)
 	if err != nil {

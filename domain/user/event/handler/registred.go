@@ -1,9 +1,11 @@
 package handler
 
 import (
-	"github.com/peteqproj/peteq/domain/user"
+	"context"
 
+	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 type (
@@ -14,7 +16,7 @@ type (
 )
 
 // Handle will handle the event the process it
-func (c *RegistredHandler) Handle(ev event.Event) error {
+func (c *RegistredHandler) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
 	opt := user.User{}
 	err := ev.UnmarshalSpecInto(&opt)
 	if err != nil {
