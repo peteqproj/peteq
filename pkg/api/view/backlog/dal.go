@@ -106,11 +106,11 @@ func (d *DAL) updateView(ctx context.Context, user string, view backlogView) err
 	if err != nil {
 		return err
 	}
-	_, err = d.DB.Query(q)
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("Failed to update db: %v", err)
 	}
-	return nil
+	return rows.Close()
 }
 
 func (t taskCreatedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {

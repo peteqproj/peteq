@@ -65,7 +65,6 @@ func (d *DAL) loadHomeView(ctx context.Context, user string) (homeView, error) {
 		return homeView{}, fmt.Errorf("Failed to build SQL query: %w", err)
 	}
 	row := d.DB.QueryRowContext(ctx, q)
-
 	view := ""
 	userid := ""
 	if err := row.Scan(&userid, &view); err != nil {
@@ -92,11 +91,11 @@ func (d *DAL) updateView(ctx context.Context, user string, v homeView) error {
 	if err != nil {
 		return err
 	}
-	_, err = d.DB.QueryContext(ctx, q)
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("Failed to update view_home table: %v", err)
 	}
-	return nil
+	return rows.Close()
 }
 func (d *DAL) updateTask(ctx context.Context, user string, task homeTask) error {
 	view, err := d.loadHomeView(ctx, user)
@@ -251,8 +250,12 @@ func (t userRegistredHandler) Handle(ctx context.Context, e event.Event, logger 
 	if err != nil {
 		return err
 	}
-	_, err = t.dal.DB.Query(q)
-	return err
+	res, err := t.dal.DB.Query(q)
+	if err != nil {
+		return err
+	}
+	defer res.Close()
+	return nil
 }
 func (p projectTaskAddedHandler) Handle(ctx context.Context, e event.Event, logger logger.Logger) error {
 	curr, err := p.dal.loadHomeView(ctx, e.Tenant.ID)

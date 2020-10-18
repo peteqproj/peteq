@@ -87,11 +87,11 @@ func (d *DAL) updateView(ctx context.Context, user string, project string, v pro
 	if err != nil {
 		return err
 	}
-	_, err = d.DB.QueryContext(ctx, q)
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("Failed to update view_project table: %v", err)
 	}
-	return nil
+	return rows.Close()
 }
 func (d *DAL) updateTask(ctx context.Context, user string, project string, task task.Task) error {
 	view, err := d.loadprojectView(ctx, user, project)

@@ -140,7 +140,7 @@ func (r *Repo) find(ctx context.Context, user []string, email []string) ([]User,
 		json.Unmarshal([]byte(u), &usr)
 		set = append(set, usr)
 	}
-	return set, nil
+	return set, rows.Close()
 }
 func (r *Repo) delete(ctx context.Context, user string) error {
 	q, _, err := goqu.

@@ -122,7 +122,7 @@ func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]Task, er
 		json.Unmarshal([]byte(t), &tsk)
 		set = append(set, tsk)
 	}
-	return set, nil
+	return set, rows.Close()
 }
 func (r *Repo) delete(ctx context.Context, user string, ids ...string) error {
 	q, _, err := goqu.
