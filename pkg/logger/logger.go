@@ -26,7 +26,7 @@ type (
 
 // New builds Logger
 func New(options Options) Logger {
-	zapLog, err := zap.NewDevelopment()
+	zapLog, err := zap.NewDevelopment(zap.AddCallerSkip(1))
 	if err != nil {
 		panic(fmt.Sprintf("who watches the watchmen (%v)?", err))
 	}

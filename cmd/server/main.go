@@ -32,7 +32,7 @@ import (
 func main() {
 	logr := logger.New(logger.Options{})
 	cnf := &config.Server{
-		Port:                 "8080",
+		Port:                 utils.GetEnvOrDie("PORT"),
 		EncryptionPassphrase: "local",
 	}
 	s := server.New(server.Options{

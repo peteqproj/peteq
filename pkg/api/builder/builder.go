@@ -16,6 +16,7 @@ import (
 	userAPI "github.com/peteqproj/peteq/pkg/api/apis/user"
 	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/api/view"
+	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -145,40 +146,14 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 
 // BuildViewAPI builds view apis
 func (b *Builder) BuildViewAPI() api.Resource {
-	views := map[string]view.View{
-		"backlog": view.NewView(view.Options{
-			Type:        "backlog",
-			TaskRepo:    b.TaskRepo,
-			ListRepo:    b.ListRpeo,
-			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger.Fork("module", "view", "view", "backlog"),
-			DB:          b.DB,
-		}),
-		"projects": view.NewView(view.Options{
-			Type:        "projects",
-			TaskRepo:    b.TaskRepo,
-			ListRepo:    b.ListRpeo,
-			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger.Fork("module", "view", "view", "projects"),
-			DB:          b.DB,
-		}),
-		"projects/:id": view.NewView(view.Options{
-			Type:        "project",
-			TaskRepo:    b.TaskRepo,
-			ListRepo:    b.ListRpeo,
-			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger.Fork("module", "view", "view", "single-projects"),
-			DB:          b.DB,
-		}),
-		"home": view.NewView(view.Options{
-			Type:        "home",
-			TaskRepo:    b.TaskRepo,
-			ListRepo:    b.ListRpeo,
-			ProjectRepo: b.ProjectRepo,
-			Logger:      b.Logger.Fork("module", "view", "view", "home"),
-			DB:          b.DB,
-		}),
-	}
+	vb := viewBuilder.New(&viewBuilder.Options{
+		TaskRepo:    b.TaskRepo,
+		ListRepo:    b.ListRpeo,
+		ProjectRepo: b.ProjectRepo,
+		Logger:      b.Logger,
+		DB:          b.DB,
+	})
+	views := vb.BuildViews()
 	for _, view := range views {
 		for name, handler := range view.EventHandlers() {
 			b.Logger.Info("Subscribing", "name", name, "handler", handler.Name())
