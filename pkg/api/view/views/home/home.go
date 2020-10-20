@@ -121,6 +121,17 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 	if err := ev.UnmarshalSpecInto(&opt); err != nil {
 		return view, err
 	}
+	found := false
+	for _, l := range view.Lists {
+		if l.Metadata.ID == opt.ID {
+			found = true
+		}
+	}
+	if found {
+		logger.Info("List already added to view", "list", opt.ID)
+		return view, nil
+	}
+
 	view.Lists = append(view.Lists, homeList{
 		List: list.List{
 			Tasks: []string{},

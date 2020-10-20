@@ -48,14 +48,11 @@ func (e *Eventbus) Publish(ctx context.Context, ev event.Event, done chan<- erro
 	ev.Metadata.ID = id.String()
 	bytes, err := json.Marshal(ev)
 	if err := e.persistEvent(context.Background(), ev.Tenant.ID, id.String(), ev.Metadata.Name, string(bytes)); err != nil {
+		e.Logger.Info("Failed to persist event", "error", err.Error())
 		done <- err
 		return ""
 	}
 	q := e.getQueue(ev)
-	if err := e.ensureQueue(q); err != nil {
-		done <- err
-		return ""
-	}
 	if err := e.publish(ev.Metadata.Name, q, bytes); err != nil {
 		e.Logger.Info("Failed to publish event", "event", ev.Metadata.Name, "error", err.Error())
 		done <- err
@@ -172,6 +169,9 @@ func (e *Eventbus) start() error {
 }
 
 func (e *Eventbus) publish(name string, queue string, data []byte) error {
+	if err := e.ensureQueue(queue); err != nil {
+		return fmt.Errorf("Failed to ensure queue: %w", err)
+	}
 	err := e.Channel.Publish("", queue, false, false, amqp.Publishing{
 		ContentType: "text/plain",
 		Body:        data,
@@ -247,10 +247,10 @@ func (e *Eventbus) watchQueue(q string, lgr logger.Logger) {
 		// TODO: use channel to report back error
 		return
 	}
-	_, err := e.Channel.QueueDeclare(q, false, false, false, false, nil)
-	if err != nil {
+	if err := e.ensureQueue(q); err != nil {
+		e.Logger.Info("Failed to ensure channel", "error", err.Error())
 	}
-	msgs, err := e.Channel.Consume(q, "", true, false, false, false, nil)
+	msgs, err := e.Channel.Consume(q, "", false, true, false, false, nil)
 	if err != nil {
 		lgr.Info("Failed to Consume", "error", err.Error())
 	}
@@ -275,11 +275,18 @@ func (e *Eventbus) watchQueue(q string, lgr logger.Logger) {
 				lgr.Info("Failed to handle event", "event", ev.Metadata.Name, "handler", h.Name(), "error", err.Error())
 			}
 		}
+		if err := e.Channel.Ack(msg.DeliveryTag, false); err != nil {
+			e.Logger.Info("Failed to ack evenet", "error", err.Error())
+		}
 	}
 }
 
 func (e *Eventbus) ensureQueue(name string) error {
-	_, err := e.Channel.QueueDeclare(name, false, false, false, false, nil)
+	durable := false
+	autoDelete := true
+	exclusive := false
+	noWait := false
+	_, err := e.Channel.QueueDeclare(name, durable, autoDelete, exclusive, noWait, nil)
 	if err != nil {
 		return fmt.Errorf("Failed to QueueDeclare: %w", err)
 	}
