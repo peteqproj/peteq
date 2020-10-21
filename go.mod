@@ -9,6 +9,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.11.10 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.0 // indirect
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/aws/aws-sdk-go v1.35.7
 	github.com/doug-martin/goqu/v9 v9.10.0
 	github.com/gin-gonic/gin v1.6.3
