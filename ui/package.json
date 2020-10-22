@@ -1,5 +1,5 @@
 {
-  "name": "project",
+  "name": "peteq-ui",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -24,7 +24,8 @@
     "typescript": "~3.7.2"
   },
   "scripts": {
-    "start": "REACT_APP_API=http://localhost:8080 react-scripts start",
+    "start": "react-scripts start",
+    "start-dev": "PORT=3000 REACT_APP_API=http://localhost:8080 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
