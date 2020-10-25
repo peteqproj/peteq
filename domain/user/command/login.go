@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/user/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -42,6 +43,9 @@ func (r *LoginCommand) Handle(ctx context.Context, done chan<- error, arguments 
 			AggregatorRoot: "user",
 			AggregatorID:   opt.UserID,
 		},
-		Spec: opt,
+		Spec: handler.LoggedinSpec{
+			ID:        opt.UserID,
+			TokenHash: opt.HashedToken,
+		},
 	}, done)
 }

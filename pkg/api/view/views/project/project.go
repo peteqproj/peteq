@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/project"
-	projectCommand "github.com/peteqproj/peteq/domain/project/command"
+	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/domain/task"
+	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -134,12 +135,12 @@ func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, lo
 }
 
 func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
-	tsk := task.Task{}
-	err := ev.UnmarshalSpecInto(&tsk)
+	spec := taskEvents.DeletedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to task object: %v", err)
 	}
-	taskIndex := findTaskIndex(view, tsk.Metadata.ID)
+	taskIndex := findTaskIndex(view, spec.ID)
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
@@ -164,12 +165,12 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 	return view, nil
 }
 func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
-	opt := projectCommand.AddTasksCommandOptions{}
-	err := ev.UnmarshalSpecInto(&opt)
+	spec := projectEvent.TaskAddedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	task, err := h.TaskRepo.Get(ev.Tenant.ID, opt.TaskID)
+	task, err := h.TaskRepo.Get(ev.Tenant.ID, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
@@ -183,14 +184,22 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	return view, nil
 }
 func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logger logger.Logger) (projectView, error) {
-	project := project.Project{}
-	err := ev.UnmarshalSpecInto(&project)
+	spec := projectEvent.CreatedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return projectView{}, fmt.Errorf("Failed to convert event.spec to Project object: %v", err)
 	}
 	view := projectView{
-		Project: project,
-		Tasks:   make([]task.Task, 0),
+		Project: project.Project{
+			Metadata: project.Metadata{
+				ID:          spec.ID,
+				Name:        spec.Name,
+				Description: spec.Description,
+				Color:       spec.Color,
+				ImageURL:    spec.ImageURL,
+			},
+		},
+		Tasks: make([]task.Task, 0),
 	}
 	return view, nil
 }

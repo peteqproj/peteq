@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -37,6 +38,9 @@ func (c *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 			AggregatorRoot: "task",
 			AggregatorID:   t.Metadata.ID,
 		},
-		Spec: t,
+		Spec: handler.CreatedSpec{
+			ID:   t.Metadata.ID,
+			Name: t.Metadata.Name,
+		},
 	}, done)
 }

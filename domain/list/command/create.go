@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/list/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -44,6 +45,10 @@ func (m *Create) Handle(ctx context.Context, done chan<- error, arguments interf
 			AggregatorRoot: "list",
 			AggregatorID:   opt.ID,
 		},
-		Spec: opt,
+		Spec: handler.CreatedSpec{
+			ID:    opt.ID,
+			Name:  opt.Name,
+			Index: opt.Index,
+		},
 	}, done)
 }

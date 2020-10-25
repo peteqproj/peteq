@@ -1,0 +1,9 @@
+delete from view_backlog;
+delete from view_home;
+delete from view_project;
+delete from view_projects;
+delete from repo_users;
+delete from repo_lists;
+delete from repo_projects;
+delete from repo_tasks;
+delete from event_log;

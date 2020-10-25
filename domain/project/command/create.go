@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -38,6 +39,12 @@ func (m *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 			AggregatorRoot: "project",
 			AggregatorID:   opt.Metadata.ID,
 		},
-		Spec: opt,
+		Spec: handler.CreatedSpec{
+			ID:          opt.Metadata.ID,
+			Name:        opt.Metadata.Name,
+			Description: opt.Metadata.Description,
+			Color:       opt.Metadata.Color,
+			ImageURL:    opt.Metadata.ImageURL,
+		},
 	}, done)
 }

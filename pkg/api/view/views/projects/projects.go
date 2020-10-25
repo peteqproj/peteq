@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/project"
-	projectCommand "github.com/peteqproj/peteq/domain/project/command"
+	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/domain/task"
+	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -103,12 +104,12 @@ func (h *ViewAPI) handlerUserRegistration(ctx context.Context, ev event.Event, l
 }
 
 func (h *ViewAPI) handlerTaskDeleted(ctx context.Context, ev event.Event, view projectsView, logger logger.Logger) (projectsView, error) {
-	task := task.Task{}
-	err := ev.UnmarshalSpecInto(&task)
+	spec := taskEvents.DeletedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
-	projectIndex, taskIndex := findTaskInView(view, task.Metadata.ID)
+	projectIndex, taskIndex := findTaskInView(view, spec.ID)
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
@@ -116,18 +117,18 @@ func (h *ViewAPI) handlerTaskDeleted(ctx context.Context, ev event.Event, view p
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event, view projectsView, logger logger.Logger) (projectsView, error) {
-	opt := projectCommand.AddTasksCommandOptions{}
-	err := ev.UnmarshalSpecInto(&opt)
+	spec := projectEvent.TaskAddedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	newTask, err := h.TaskRepo.Get(ev.Tenant.ID, opt.TaskID)
+	newTask, err := h.TaskRepo.Get(ev.Tenant.ID, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
 	projectIndex := -1
 	for i, p := range view.Projects {
-		if p.Metadata.ID == opt.Project {
+		if p.Metadata.ID == spec.Project {
 			projectIndex = i
 			break
 		}
@@ -140,12 +141,23 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	return view, nil
 }
 func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, view projectsView, logger logger.Logger) (projectsView, error) {
-	project := project.Project{}
-	err := ev.UnmarshalSpecInto(&project)
+	spec := projectEvent.CreatedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Project object: %v", err)
 	}
-	view.Projects = append(view.Projects, populatedProject{Project: project, Tasks: make([]task.Task, 0)})
+	view.Projects = append(view.Projects, populatedProject{
+		Project: project.Project{
+			Metadata: project.Metadata{
+				ID:          spec.ID,
+				Name:        spec.Name,
+				Description: spec.Description,
+				Color:       spec.Color,
+				ImageURL:    spec.ImageURL,
+			},
+		},
+		Tasks: make([]task.Task, 0),
+	})
 	return view, nil
 }
 

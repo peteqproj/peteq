@@ -1,0 +1,9 @@
+drop table IF EXISTS view_backlog;
+drop table IF EXISTS view_home;
+drop table IF EXISTS view_project;
+drop table IF EXISTS view_projects;
+drop table IF EXISTS repo_users;
+drop table IF EXISTS repo_lists;
+drop table IF EXISTS repo_projects;
+drop table IF EXISTS repo_tasks;
+drop table IF EXISTS event_log;

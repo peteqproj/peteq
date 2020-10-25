@@ -6,10 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
-	listCommand "github.com/peteqproj/peteq/domain/list/command"
+	listEvents "github.com/peteqproj/peteq/domain/list/event/handler"
 	"github.com/peteqproj/peteq/domain/project"
-	projectCommand "github.com/peteqproj/peteq/domain/project/command"
+	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/domain/task"
+	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -117,18 +118,18 @@ func (h *ViewAPI) handlerUserRegistration(ctx context.Context, ev event.Event, l
 	return h.DAL.create(ctx, ev.Tenant.ID, v)
 }
 func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
-	opt := listCommand.CreateCommandOptions{}
-	if err := ev.UnmarshalSpecInto(&opt); err != nil {
+	spec := listEvents.CreatedSpec{}
+	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
 	found := false
 	for _, l := range view.Lists {
-		if l.Metadata.ID == opt.ID {
+		if l.Metadata.ID == spec.ID {
 			found = true
 		}
 	}
 	if found {
-		logger.Info("List already added to view", "list", opt.ID)
+		logger.Info("List already added to view", "list", spec.ID)
 		return view, nil
 	}
 
@@ -136,9 +137,9 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 		List: list.List{
 			Tasks: []string{},
 			Metadata: list.Metadata{
-				ID:    opt.ID,
-				Name:  opt.Name,
-				Index: opt.Index,
+				ID:    spec.ID,
+				Name:  spec.Name,
+				Index: spec.Index,
 			},
 			Tenant: ev.Tenant,
 		},
@@ -147,23 +148,23 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
-	opt := listCommand.MoveTaskArguments{}
-	if err := ev.UnmarshalSpecInto(&opt); err != nil {
+	spec := listEvents.TaskMovedSpec{}
+	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
-	task, err := h.TaskRepo.Get(ev.Tenant.ID, opt.TaskID)
+	task, err := h.TaskRepo.Get(ev.Tenant.ID, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
 	sourceIndex := -1
 	destinationIndex := -1
 	for i, l := range view.Lists {
-		if opt.Source != "" && l.Metadata.ID == opt.Source {
+		if spec.Source != "" && l.Metadata.ID == spec.Source {
 			sourceIndex = i
 			continue
 		}
 
-		if opt.Destination != "" && l.Metadata.ID == opt.Destination {
+		if spec.Destination != "" && l.Metadata.ID == spec.Destination {
 			destinationIndex = i
 			continue
 		}
@@ -184,7 +185,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 			break
 		}
 		for j, t := range p.Tasks {
-			if t == opt.TaskID {
+			if t == spec.TaskID {
 				projectIndex = i
 				taskInProjectIndex = j
 				break
@@ -199,7 +200,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	// If source found, remove task from source
 	if sourceIndex != -1 {
 		for i, tid := range view.Lists[sourceIndex].Tasks {
-			if tid.Task.Metadata.ID == opt.TaskID {
+			if tid.Task.Metadata.ID == spec.TaskID {
 				view.Lists[sourceIndex].Tasks = remove(view.Lists[sourceIndex].Tasks, i)
 				break
 			}
@@ -216,27 +217,28 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskUpdated(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
-	task := task.Task{}
-	err := ev.UnmarshalSpecInto(&task)
+	spec := taskEvents.UpdatedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
-	listIndex, taskIndex := findTaskInView(view, task.Metadata.ID)
+	listIndex, taskIndex := findTaskInView(view, spec.ID)
 	if taskIndex == -1 {
 		// task not in lists, no action to do
 		return view, nil
 	}
-	view.Lists[listIndex].Tasks[taskIndex].Task = task
+	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = spec.Description
+	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Name = spec.Name
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskDeleted(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
-	task := task.Task{}
-	err := ev.UnmarshalSpecInto(&task)
+	spec := taskEvents.DeletedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
 
-	listIndex, taskIndex := findTaskInView(view, task.Metadata.ID)
+	listIndex, taskIndex := findTaskInView(view, spec.ID)
 	if taskIndex == -1 {
 		// task not in lists
 		return view, nil
@@ -245,16 +247,16 @@ func (h *ViewAPI) handlerTaskDeleted(ctx context.Context, ev event.Event, view h
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
-	opt := projectCommand.AddTasksCommandOptions{}
-	err := ev.UnmarshalSpecInto(&opt)
+	spec := projectEvent.TaskAddedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	newProject, err := h.ProjectRepo.Get(ev.Tenant.ID, opt.Project)
+	newProject, err := h.ProjectRepo.Get(ev.Tenant.ID, spec.Project)
 	if err != nil {
 		return view, err
 	}
-	listIndex, taskIndex := findTaskInView(view, opt.TaskID)
+	listIndex, taskIndex := findTaskInView(view, spec.TaskID)
 	if taskIndex == -1 {
 		// task not found in lists, not an error
 		return view, nil

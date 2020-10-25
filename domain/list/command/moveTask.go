@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/list/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -44,6 +45,10 @@ func (m *MoveTaskCommand) Handle(ctx context.Context, done chan<- error, argumen
 			AggregatorRoot: "list",
 			AggregatorID:   opt.Source,
 		},
-		Spec: opt,
+		Spec: handler.TaskMovedSpec{
+			TaskID:      opt.TaskID,
+			Source:      opt.Source,
+			Destination: opt.Destination,
+		},
 	}, done)
 }

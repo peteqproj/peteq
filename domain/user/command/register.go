@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/user"
+	"github.com/peteqproj/peteq/domain/user/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -43,14 +43,10 @@ func (r *RegisterCommand) Handle(ctx context.Context, done chan<- error, argumen
 			AggregatorRoot: "user",
 			AggregatorID:   opt.UserID,
 		},
-		Spec: user.User{
-			Metadata: user.Metadata{
-				Email: opt.Email,
-				ID:    opt.UserID,
-			},
-			Spec: user.Spec{
-				PasswordHash: opt.PasswordHash,
-			},
+		Spec: handler.RegisteredSpec{
+			Email:        opt.Email,
+			ID:           opt.UserID,
+			PasswordHash: opt.PasswordHash,
 		},
 	}, done)
 }

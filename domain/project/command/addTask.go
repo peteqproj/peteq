@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -42,6 +43,9 @@ func (m *AddTaskCommand) Handle(ctx context.Context, done chan<- error, argument
 			AggregatorRoot: "project",
 			AggregatorID:   opt.Project,
 		},
-		Spec: opt,
+		Spec: handler.TaskAddedSpec{
+			Project: opt.Project,
+			TaskID:  opt.TaskID,
+		},
 	}, done)
 }
