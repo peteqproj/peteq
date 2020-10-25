@@ -9,7 +9,6 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/peteqproj/peteq/pkg/db/local"
 	"github.com/peteqproj/peteq/pkg/event"
-	localbus "github.com/peteqproj/peteq/pkg/event/bus/local"
 	"github.com/peteqproj/peteq/pkg/event/bus/rabbitmq"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -35,7 +34,7 @@ type (
 		RabbitMQ        RabbitMQOptions
 	}
 
-	// Options to initiate rabbitmq
+	// RabbitMQOptions to initiate rabbitmq
 	RabbitMQOptions struct {
 		Host     string
 		Port     string
@@ -52,15 +51,6 @@ type (
 
 // New is factory for eventbus
 func New(options Options) (Eventbus, error) {
-	if options.Type == "local" {
-		return &localbus.Eventbus{
-			Store:       options.LocalEventStore,
-			Subscribers: map[string]chan<- localbus.EventChan{},
-			Lock:        &sync.Mutex{},
-			WS:          options.WS,
-			Logger:      options.Logger,
-		}, nil
-	}
 
 	if options.Type == "rabbitmq" {
 		return &rabbitmq.Eventbus{
