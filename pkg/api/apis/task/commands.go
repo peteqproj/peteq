@@ -22,15 +22,15 @@ type (
 		Logger     logger.Logger
 	}
 
-	// CompleteReopenTaskRequestBody for request body of two commands:
+	// completeReopenTaskRequestBody for request body of two commands:
 	// CompleteTask
 	// ReopenTask
-	CompleteReopenTaskRequestBody struct {
+	completeReopenTaskRequestBody struct {
 		Task string `json:"task"`
 	}
 
-	// DeleteTaskRequestBody for delete command
-	DeleteTaskRequestBody struct {
+	// deleteTaskRequestBody for delete command
+	deleteTaskRequestBody struct {
 		ID string `json:"id"`
 	}
 )
@@ -82,7 +82,7 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 // Delete store new task
 func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	u := tenant.UserFromContext(ctx)
-	req := &DeleteTaskRequestBody{}
+	req := &deleteTaskRequestBody{}
 	err := api.UnmarshalInto(body, req)
 	t, err := c.Repo.Get(u.Metadata.ID, req.ID)
 	if err != nil {
@@ -97,7 +97,7 @@ func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.Command
 
 // Complete task
 func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	req := &CompleteReopenTaskRequestBody{}
+	req := &completeReopenTaskRequestBody{}
 	if err := api.UnmarshalInto(body, req); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
@@ -109,7 +109,7 @@ func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.Comma
 
 // Reopen task
 func (c *CommandAPI) Reopen(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	req := &CompleteReopenTaskRequestBody{}
+	req := &completeReopenTaskRequestBody{}
 	if err := api.UnmarshalInto(body, req); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}

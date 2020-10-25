@@ -7,6 +7,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/go-playground/validator"
 	"github.com/gofrs/uuid"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	"github.com/peteqproj/peteq/domain/user"
@@ -27,14 +28,14 @@ type (
 
 	// RegistrationRequestBody user to register new users
 	RegistrationRequestBody struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required"`
 	}
 
 	// LoginRequestBody user to register new users
 	LoginRequestBody struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required"`
 	}
 )
 
@@ -42,6 +43,10 @@ type (
 func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := &RegistrationRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
+		return api.NewRejectedCommandResponse(err.Error())
+	}
+	err := validator.New().Struct(opt)
+	if err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	uID, err := uuid.NewV4()
@@ -95,6 +100,10 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := &LoginRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
+		return api.NewRejectedCommandResponse(err.Error())
+	}
+	err := validator.New().Struct(opt)
+	if err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	users, err := c.Repo.List(user.ListOptions{})
