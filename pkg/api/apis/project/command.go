@@ -45,7 +45,7 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 		ID:   u.Metadata.ID,
 		Type: "User",
 	}
-	err = ca.Commandbus.ExecuteAndWait(ctx, "project.create", proj)
+	err = ca.Commandbus.Execute(ctx, "project.create", proj)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
@@ -60,7 +60,7 @@ func (ca *CommandAPI) AddTasks(ctx context.Context, body io.ReadCloser) api.Comm
 	}
 
 	for _, t := range opt.TaskIDs {
-		err := ca.Commandbus.ExecuteAndWait(ctx, "project.add-task", command.AddTasksCommandOptions{
+		err := ca.Commandbus.Execute(ctx, "project.add-task", command.AddTasksCommandOptions{
 			Project: opt.Project,
 			TaskID:  t,
 		})

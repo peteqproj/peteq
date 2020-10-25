@@ -55,11 +55,10 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 		}
 	}
 	if usr != nil {
-		fmt.Println(usr)
 		return api.NewRejectedCommandResponse("Email already registred")
 	}
 	// TODO: validate request
-	if err := c.Commandbus.ExecuteAndWait(ctx, "user.register", command.RegisterCommandOptions{
+	if err := c.Commandbus.Execute(ctx, "user.register", command.RegisterCommandOptions{
 		Email:        opt.Email,
 		UserID:       uID.String(),
 		PasswordHash: hash(opt.Password),
@@ -80,7 +79,7 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 		if err != nil {
 			return api.NewRejectedCommandResponse(err.Error())
 		}
-		if err := c.Commandbus.ExecuteAndWait(ectx, "list.create", listCommand.CreateCommandOptions{
+		if err := c.Commandbus.Execute(ectx, "list.create", listCommand.CreateCommandOptions{
 			Name:  l,
 			ID:    id.String(),
 			Index: i,
@@ -122,7 +121,7 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	tokenHash := hash(token.String())
-	if err := c.Commandbus.ExecuteAndWait(ctx, "user.login", command.LoginCommandOptions{
+	if err := c.Commandbus.Execute(ctx, "user.login", command.LoginCommandOptions{
 		HashedToken: tokenHash,
 		UserID:      users[validUserIndex].Metadata.ID,
 	}); err != nil {

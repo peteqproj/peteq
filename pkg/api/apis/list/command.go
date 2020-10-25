@@ -60,7 +60,7 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 	}
 	for _, t := range opt.TaskIDs {
 		ca.Logger.Info("Moving task", "source", opt.Source, "destination", opt.Destination, "task", t)
-		err := ca.Commandbus.ExecuteAndWait(ctx, "list.move-task", command.MoveTaskArguments{
+		err := ca.Commandbus.Execute(ctx, "list.move-task", command.MoveTaskArguments{
 			Source:      opt.Source,
 			Destination: opt.Destination,
 			TaskID:      t,
@@ -70,13 +70,13 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 		}
 		if destination != nil && destination.Metadata.Name == "Done" {
 			ca.Logger.Info("Completing task", "name", t)
-			if err := ca.Commandbus.ExecuteAndWait(ctx, "task.complete", t); err != nil {
+			if err := ca.Commandbus.Execute(ctx, "task.complete", t); err != nil {
 				return api.NewRejectedCommandResponse(err.Error())
 			}
 		}
 		if source != nil && source.Metadata.Name == "Done" {
 			ca.Logger.Info("Reopenning task", "name", t)
-			if err := ca.Commandbus.ExecuteAndWait(ctx, "task.reopen", t); err != nil {
+			if err := ca.Commandbus.Execute(ctx, "task.reopen", t); err != nil {
 				return api.NewRejectedCommandResponse(err.Error())
 			}
 		}

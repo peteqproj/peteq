@@ -161,10 +161,10 @@ func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *taskDomain.Repo
 	eventbus.Subscribe(taskEventTypes.TaskUpdatedEvent, &taskEventHandlers.UpdatedHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe(taskEventTypes.TaskCompletedEvent, &taskEventHandlers.CompletedHandler{
+	eventbus.Subscribe(taskEventTypes.TaskStatusChanged, &taskEventHandlers.StatusChangedHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe(taskEventTypes.TaskReopenedEvent, &taskEventHandlers.ReopenedHandler{
+	eventbus.Subscribe(taskEventTypes.TaskStatusChanged, &taskEventHandlers.StatusChangedHandler{
 		Repo: repo,
 	})
 }

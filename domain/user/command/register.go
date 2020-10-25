@@ -27,13 +27,12 @@ type (
 )
 
 // Handle runs RegisterCommand to create new user
-func (r *RegisterCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) error {
 	opt, ok := arguments.(RegisterCommandOptions)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to User")
-		return
+		return fmt.Errorf("Failed to convert arguments to User")
 	}
-	r.Eventbus.Publish(ctx, event.Event{
+	_, err := r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
 			Type: tenant.User.String(),
@@ -49,5 +48,6 @@ func (r *RegisterCommand) Handle(ctx context.Context, done chan<- error, argumen
 			ID:           opt.UserID,
 			PasswordHash: opt.PasswordHash,
 		},
-	}, done)
+	})
+	return err
 }

@@ -38,5 +38,5 @@ func (c *UpdatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 }
 
 func (c *UpdatedHandler) Name() string {
-	return "domain_UpdatedHandler"
+	return "domain_task"
 }

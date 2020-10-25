@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
@@ -19,23 +20,26 @@ type (
 )
 
 // Handle runs ReopenCommand to create task
-func (r *ReopenCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (r *ReopenCommand) Handle(ctx context.Context, arguments interface{}) error {
 	t, ok := arguments.(string)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to string")
-		return
+		return fmt.Errorf("Failed to convert arguments to string")
 	}
 	u := tenant.UserFromContext(ctx)
-	r.Eventbus.Publish(ctx, event.Event{
+	_, err := r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           types.TaskReopenedEvent,
+			Name:           types.TaskStatusChanged,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
 			AggregatorID:   t,
 		},
-	}, done)
+		Spec: handler.StatusChangedSpec{
+			Completed: false,
+		},
+	})
+	return err
 }

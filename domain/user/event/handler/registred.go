@@ -41,5 +41,5 @@ func (c *RegistredHandler) Handle(ctx context.Context, ev event.Event, logger lo
 }
 
 func (c *RegistredHandler) Name() string {
-	return "domain_RegistredHandler"
+	return "domain_user"
 }

@@ -27,15 +27,14 @@ type (
 )
 
 // Handle runs Create to create task
-func (m *Create) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (m *Create) Handle(ctx context.Context, arguments interface{}) error {
 	opt, ok := arguments.(CreateCommandOptions)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
-		return
+		return fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	m.Eventbus.Publish(ctx, event.Event{
+	_, err := m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),
@@ -51,5 +50,7 @@ func (m *Create) Handle(ctx context.Context, done chan<- error, arguments interf
 			Name:  opt.Name,
 			Index: opt.Index,
 		},
-	}, done)
+	})
+	return err
+
 }

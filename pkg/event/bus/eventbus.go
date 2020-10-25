@@ -17,7 +17,7 @@ import (
 type (
 	// Eventbus to publish and subscribe events
 	Eventbus interface {
-		Publish(ctx context.Context, ev event.Event, done chan<- error) string
+		Publish(ctx context.Context, ev event.Event) (string, error)
 		Subscribe(name string, handler handler.EventHandler)
 		Start() error
 		Stop()

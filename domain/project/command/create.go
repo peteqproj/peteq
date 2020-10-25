@@ -21,15 +21,14 @@ type (
 )
 
 // Handle runs CreateCommand to create task
-func (m *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
 	opt, ok := arguments.(project.Project)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to Project object")
-		return
+		return fmt.Errorf("Failed to convert arguments to Project object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	m.Eventbus.Publish(ctx, event.Event{
+	_, err := m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),
@@ -47,5 +46,6 @@ func (m *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 			Color:       opt.Metadata.Color,
 			ImageURL:    opt.Metadata.ImageURL,
 		},
-	}, done)
+	})
+	return err
 }

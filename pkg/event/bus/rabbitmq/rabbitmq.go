@@ -39,33 +39,28 @@ type (
 )
 
 // Publish event
-func (e *Eventbus) Publish(ctx context.Context, ev event.Event, done chan<- error) string {
+func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) {
 	e.Logger.Info("Publishing event", "name", ev.Metadata.Name)
 	if err := e.ensureQueue(e.getKey(ev), false); err != nil {
-		done <- fmt.Errorf("Failed to ensure queue: %w", err)
-		return ""
+		return "", fmt.Errorf("Failed to ensure queue: %w", err)
 	}
 	id, err := uuid.NewV4()
 	if err != nil {
 		e.Logger.Info("Failed to create event id", "error", err.Error())
-		done <- err
-		return ""
+		return "", err
 	}
 	ev.Metadata.ID = id.String()
 	bytes, err := json.Marshal(ev)
 	if err := e.persistEvent(context.Background(), ev.Tenant.ID, id.String(), ev.Metadata.Name, string(bytes)); err != nil {
 		e.Logger.Info("Failed to persist event", "error", err.Error())
-		done <- err
-		return ""
+		return "", err
 	}
 	if err := e.publish(ev.Metadata.Name, e.getKey(ev), bytes); err != nil {
 		e.Logger.Info("Failed to publish event", "event", ev.Metadata.Name, "error", err.Error())
-		done <- err
-		return ""
+		return "", err
 	}
 	e.Logger.Info("Published", "event", ev.Metadata.Name)
-	done <- nil
-	return id.String()
+	return id.String(), nil
 }
 
 // Subscribe to event

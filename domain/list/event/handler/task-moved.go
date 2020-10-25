@@ -32,5 +32,5 @@ func (t *TaskMovedHandler) Handle(ctx context.Context, ev event.Event, logger lo
 }
 
 func (t *TaskMovedHandler) Name() string {
-	return "domain_TaskMovedHandler"
+	return "domain_list"
 }

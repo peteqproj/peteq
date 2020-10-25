@@ -27,15 +27,14 @@ type (
 )
 
 // Handle runs MoveTaskCommand to create task
-func (m *MoveTaskCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (m *MoveTaskCommand) Handle(ctx context.Context, arguments interface{}) error {
 	opt, ok := arguments.(MoveTaskArguments)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to MoveTaskArguments object")
-		return
+		return fmt.Errorf("Failed to convert arguments to MoveTaskArguments object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	m.Eventbus.Publish(ctx, event.Event{
+	_, err := m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),
@@ -51,5 +50,6 @@ func (m *MoveTaskCommand) Handle(ctx context.Context, done chan<- error, argumen
 			Source:      opt.Source,
 			Destination: opt.Destination,
 		},
-	}, done)
+	})
+	return err
 }

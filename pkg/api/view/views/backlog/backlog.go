@@ -70,8 +70,7 @@ func (h *ViewAPI) EventHandlers() map[string]handler.EventHandler {
 		listEventTypes.TaskMovedIntoListEvent:     h,
 		taskEventTypes.TaskCreatedEvent:           h,
 		taskEventTypes.TaskUpdatedEvent:           h,
-		taskEventTypes.TaskCompletedEvent:         h,
-		taskEventTypes.TaskReopenedEvent:          h,
+		taskEventTypes.TaskStatusChanged:          h,
 		taskEventTypes.TaskDeletedEvent:           h,
 		userEventTypes.UserRegistredEvent:         h,
 		projectEventTypes.ProjectCreatedEvent:     h,
@@ -121,35 +120,31 @@ func (h *ViewAPI) handlerUserRegistration(ctx context.Context, ev event.Event, l
 
 func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {
 	switch ev.Metadata.Name {
-	case "list.task-moved":
+	case listEventTypes.TaskMovedIntoListEvent:
 		{
 			return h.handleTaskMovedToList(ctx, ev, view, logger)
 		}
-	case "task.created":
+	case taskEventTypes.TaskCreatedEvent:
 		{
 			return h.handleTaskCreated(ctx, ev, view, logger)
 		}
-	case "task.updated":
+	case taskEventTypes.TaskUpdatedEvent:
 		{
 			return h.handleTaskUpdated(ctx, ev, view, logger)
 		}
-	case "task.completed":
+	case taskEventTypes.TaskStatusChanged:
 		{
 			return h.handleTaskStatusChanged(ctx, ev, view, logger)
 		}
-	case "task.reopened":
-		{
-			return h.handleTaskStatusChanged(ctx, ev, view, logger)
-		}
-	case "task.deleted":
+	case taskEventTypes.TaskDeletedEvent:
 		{
 			return h.handleTaskDeleted(ctx, ev, view, logger)
 		}
-	case "project.created":
+	case projectEventTypes.ProjectCreatedEvent:
 		{
 			return h.handleProjectCreated(ctx, ev, view, logger)
 		}
-	case "project.task-added":
+	case projectEventTypes.TaskAddedToProjectEvent:
 		{
 			return h.handleTaskAddedToProject(ctx, ev, view, logger)
 		}
@@ -219,15 +214,16 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view ba
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {
-	task, err := h.TaskRepo.Get(ev.Tenant.ID, ev.Metadata.AggregatorID)
+	spec := taskEvents.StatusChangedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
-		return view, err
+		return view, fmt.Errorf("Failed to convert event.spec to StatusChangedSpec object: %v", err)
 	}
-	index := findTask(view, task.Metadata.ID)
+	index := findTask(view, ev.Metadata.AggregatorID)
 	if index == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	view.Tasks[index].Task = task
+	view.Tasks[index].Task.Status.Completed = spec.Completed
 	return view, nil
 }
 func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {

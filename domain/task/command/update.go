@@ -21,13 +21,13 @@ type (
 )
 
 // Handle runs UpdateCommand to create task
-func (u *UpdateCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (u *UpdateCommand) Handle(ctx context.Context, arguments interface{}) error {
 	t, ok := arguments.(task.Task)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to Task object")
+		return fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	user := tenant.UserFromContext(ctx)
-	u.Eventbus.Publish(ctx, event.Event{
+	_, err := u.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   user.Metadata.ID,
 			Type: tenant.User.String(),
@@ -43,5 +43,6 @@ func (u *UpdateCommand) Handle(ctx context.Context, done chan<- error, arguments
 			Name:        t.Metadata.Name,
 			Description: t.Metadata.Description,
 		},
-	}, done)
+	})
+	return err
 }

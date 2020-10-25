@@ -11,4 +11,6 @@ const (
 	TaskDeletedEvent = "task.deleted"
 	// TaskUpdatedEvent event
 	TaskUpdatedEvent = "task.updated"
+	// TaskStatusChanged event
+	TaskStatusChanged = "task.statusChanged"
 )

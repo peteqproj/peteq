@@ -12,8 +12,7 @@ import (
 type (
 	// CommandBus used to pass commands on bus
 	CommandBus interface {
-		Execute(ctx context.Context, name string, arguments interface{}, done chan<- error)
-		ExecuteAndWait(ctx context.Context, name string, arguments interface{}) error
+		Execute(ctx context.Context, name string, arguments interface{}) error
 		RegisterHandler(name string, ch handler.CommandHandler) error
 	}
 

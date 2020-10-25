@@ -30,5 +30,5 @@ func (c *DeleteHandler) Handle(ctx context.Context, ev event.Event, logger logge
 }
 
 func (c *DeleteHandler) Name() string {
-	return "domain_DeleteHandler"
+	return "domain_task"
 }

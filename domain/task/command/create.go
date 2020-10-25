@@ -21,14 +21,13 @@ type (
 )
 
 // Handle runs CreateCommand to create task
-func (c *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
 	t, ok := arguments.(task.Task)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to Task object")
-		return
+		return fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	u := tenant.UserFromContext(ctx)
-	c.Eventbus.Publish(ctx, event.Event{
+	_, err := c.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),
@@ -43,5 +42,6 @@ func (c *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 			ID:   t.Metadata.ID,
 			Name: t.Metadata.Name,
 		},
-	}, done)
+	})
+	return err
 }

@@ -56,7 +56,7 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 	if err := validator.New().Struct(t); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
-	if err := c.Commandbus.ExecuteAndWait(ctx, "task.create", *t); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.create", *t); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
@@ -73,7 +73,7 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 	if err := validator.New().Struct(t); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
-	if err := c.Commandbus.ExecuteAndWait(ctx, "task.update", *t); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.update", *t); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
@@ -89,7 +89,7 @@ func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.Command
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 
-	if err := c.Commandbus.ExecuteAndWait(ctx, "task.delete", t); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.delete", t); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
@@ -101,7 +101,7 @@ func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.Comma
 	if err := api.UnmarshalInto(body, req); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
-	if err := c.Commandbus.ExecuteAndWait(ctx, "task.complete", req.Task); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.complete", req.Task); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	return api.NewAcceptedCommandResponse("task", req.Task)
@@ -113,7 +113,7 @@ func (c *CommandAPI) Reopen(ctx context.Context, body io.ReadCloser) api.Command
 	if err := api.UnmarshalInto(body, req); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
-	if err := c.Commandbus.ExecuteAndWait(ctx, "task.reopen", req.Task); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.reopen", req.Task); err != nil {
 		return api.NewRejectedCommandResponse(err.Error())
 	}
 	return api.NewAcceptedCommandResponse("task", req.Task)

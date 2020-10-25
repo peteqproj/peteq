@@ -46,8 +46,7 @@ func (h *ViewAPI) Get(c *gin.Context) {
 func (h *ViewAPI) EventHandlers() map[string]handler.EventHandler {
 	return map[string]handler.EventHandler{
 		taskEventTypes.TaskDeletedEvent:           h,
-		taskEventTypes.TaskCompletedEvent:         h,
-		taskEventTypes.TaskReopenedEvent:          h,
+		taskEventTypes.TaskStatusChanged:          h,
 		projectEventTypes.ProjectCreatedEvent:     h,
 		projectEventTypes.TaskAddedToProjectEvent: h,
 	}
@@ -60,7 +59,7 @@ func handleError(code int, err error, c *gin.Context) {
 }
 
 func (h *ViewAPI) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
-	if ev.Metadata.Name == "project.created" {
+	if ev.Metadata.Name == projectEventTypes.ProjectCreatedEvent {
 		view, err := h.handleProjectCreated(ctx, ev, logger)
 		if err != nil {
 			return err
@@ -91,19 +90,15 @@ func (h *ViewAPI) Name() string {
 
 func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
 	switch ev.Metadata.Name {
-	case "task.deleted":
+	case taskEventTypes.TaskDeletedEvent:
 		{
 			return h.handleTaskDeleted(ctx, ev, view, logger)
 		}
-	case "project.task-added":
+	case projectEventTypes.TaskAddedToProjectEvent:
 		{
 			return h.handleTaskAddedToProject(ctx, ev, view, logger)
 		}
-	case "task.completed":
-		{
-			return h.handleTaskStatusChanged(ctx, ev, view, logger)
-		}
-	case "task.reopened":
+	case taskEventTypes.TaskStatusChanged:
 		{
 			return h.handleTaskStatusChanged(ctx, ev, view, logger)
 		}
@@ -112,7 +107,7 @@ func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view p
 }
 
 func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, logger logger.Logger) (string, error) {
-	if ev.Metadata.Name == "task.deleted" || ev.Metadata.Name == "task.completed" || ev.Metadata.Name == "task.reopened" {
+	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged {
 		projects, err := h.ProjectRepo.List(project.QueryOptions{
 			UserID: ev.Tenant.ID,
 		})
@@ -130,7 +125,7 @@ func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, lo
 		return projectID, nil
 	}
 
-	if ev.Metadata.Name == "project.task-added" || ev.Metadata.Name == "project.created" {
+	if ev.Metadata.Name == projectEventTypes.TaskAddedToProjectEvent || ev.Metadata.Name == projectEventTypes.ProjectCreatedEvent {
 		return ev.Metadata.AggregatorID, nil
 	}
 	return "", nil
@@ -155,15 +150,16 @@ func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view pr
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
-	task, err := h.TaskRepo.Get(ev.Tenant.ID, ev.Metadata.AggregatorID)
+	spec := taskEvents.StatusChangedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
-		return view, err
+		return view, fmt.Errorf("Failed to convert event.spec to StatusChangedSpec object: %v", err)
 	}
-	taskIndex := findTaskIndex(view, task.Metadata.ID)
+	taskIndex := findTaskIndex(view, ev.Metadata.AggregatorID)
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	view.Tasks[taskIndex] = task
+	view.Tasks[taskIndex].Status.Completed = spec.Completed
 	return view, nil
 }
 func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {

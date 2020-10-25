@@ -37,5 +37,5 @@ func (c *LoggedinHandler) Handle(ctx context.Context, ev event.Event, logger log
 }
 
 func (c *LoggedinHandler) Name() string {
-	return "domain_LoggedinHandler"
+	return "domain_user"
 }

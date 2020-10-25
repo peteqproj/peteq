@@ -26,14 +26,13 @@ type (
 )
 
 // Handle runs LoginCommand to create new user
-func (r *LoginCommand) Handle(ctx context.Context, done chan<- error, arguments interface{}) {
+func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error {
 	fmt.Println("user.login command handler")
 	opt, ok := arguments.(LoginCommandOptions)
 	if !ok {
-		done <- fmt.Errorf("Failed to convert arguments to LoginCommandOptions")
-		return
+		return fmt.Errorf("Failed to convert arguments to LoginCommandOptions")
 	}
-	r.Eventbus.Publish(ctx, event.Event{
+	_, err := r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
 			Type: tenant.User.String(),
@@ -48,5 +47,6 @@ func (r *LoginCommand) Handle(ctx context.Context, done chan<- error, arguments 
 			ID:        opt.UserID,
 			TokenHash: opt.HashedToken,
 		},
-	}, done)
+	})
+	return err
 }

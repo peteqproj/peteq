@@ -92,23 +92,23 @@ func (h *ViewAPI) Name() string {
 
 func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
 	switch ev.Metadata.Name {
-	case "list.created":
+	case listEventTypes.ListCreatedEvent:
 		{
 			return h.handlerListCreated(ctx, ev, view, logger)
 		}
-	case "list.task-moved":
+	case listEventTypes.TaskMovedIntoListEvent:
 		{
 			return h.handlerTaskAddedToList(ctx, ev, view, logger)
 		}
-	case "task.updated":
+	case taskEventTypes.TaskUpdatedEvent:
 		{
 			return h.handlerTaskUpdated(ctx, ev, view, logger)
 		}
-	case "task.deleted":
+	case taskEventTypes.TaskDeletedEvent:
 		{
 			return h.handlerTaskDeleted(ctx, ev, view, logger)
 		}
-	case "project.task-added":
+	case projectEventTypes.TaskAddedToProjectEvent:
 		{
 			return h.handlerTaskAddedToProject(ctx, ev, view, logger)
 		}
