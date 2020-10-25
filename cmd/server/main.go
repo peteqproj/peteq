@@ -10,15 +10,18 @@ import (
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
 	listEventHandlers "github.com/peteqproj/peteq/domain/list/event/handler"
+	listEventTypes "github.com/peteqproj/peteq/domain/list/event/types"
 	projectDomain "github.com/peteqproj/peteq/domain/project"
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
 	projectEventHandlers "github.com/peteqproj/peteq/domain/project/event/handler"
+	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
 	taskEventHandlers "github.com/peteqproj/peteq/domain/task/event/handler"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
 	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
+	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/config"
@@ -27,6 +30,8 @@ import (
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
+
+	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 )
 
 func main() {
@@ -147,50 +152,50 @@ func handlerWSEvents(server *socketio.Server) {
 
 func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *taskDomain.Repo) {
 	// Task related event handlers
-	eventbus.Subscribe("task.created", &taskEventHandlers.CreatedHandler{
+	eventbus.Subscribe(taskEventTypes.TaskCreatedEvent, &taskEventHandlers.CreatedHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe("task.deleted", &taskEventHandlers.DeleteHandler{
+	eventbus.Subscribe(taskEventTypes.TaskDeletedEvent, &taskEventHandlers.DeleteHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe("task.updated", &taskEventHandlers.UpdatedHandler{
+	eventbus.Subscribe(taskEventTypes.TaskUpdatedEvent, &taskEventHandlers.UpdatedHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe("task.completed", &taskEventHandlers.CompletedHandler{
+	eventbus.Subscribe(taskEventTypes.TaskCompletedEvent, &taskEventHandlers.CompletedHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe("task.reopened", &taskEventHandlers.ReopenedHandler{
+	eventbus.Subscribe(taskEventTypes.TaskReopenedEvent, &taskEventHandlers.ReopenedHandler{
 		Repo: repo,
 	})
 }
 
 func registerListEventHandlers(eventbus eventbus.Eventbus, repo *listDomain.Repo) {
 	// List related event handlers
-	eventbus.Subscribe("list.task-moved", &listEventHandlers.TaskMovedHandler{
+	eventbus.Subscribe(listEventTypes.TaskMovedIntoListEvent, &listEventHandlers.TaskMovedHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe("list.created", &listEventHandlers.CreatedHandler{
+	eventbus.Subscribe(listEventTypes.ListCreatedEvent, &listEventHandlers.CreatedHandler{
 		Repo: repo,
 	})
 }
 
 func registerUserEventHandlers(eventbus eventbus.Eventbus, repo *userDomain.Repo) {
 	// User related event handlers
-	eventbus.Subscribe("user.registred", &userEventHandlers.RegistredHandler{
+	eventbus.Subscribe(userEventTypes.UserRegistredEvent, &userEventHandlers.RegistredHandler{
 		Repo: repo,
 	})
-	eventbus.Subscribe("user.loggedin", &userEventHandlers.LoggedinHandler{
+	eventbus.Subscribe(userEventTypes.UserLoggedIn, &userEventHandlers.LoggedinHandler{
 		Repo: repo,
 	})
 }
 
 func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomain.Repo) {
 	// List related event handlers
-	eventbus.Subscribe("project.created", &projectEventHandlers.CreatedHandler{
+	eventbus.Subscribe(projectEventTypes.ProjectCreatedEvent, &projectEventHandlers.CreatedHandler{
 		Repo: repo,
 	})
 
-	eventbus.Subscribe("project.task-added", &projectEventHandlers.TaskAddedHandler{
+	eventbus.Subscribe(projectEventTypes.TaskAddedToProjectEvent, &projectEventHandlers.TaskAddedHandler{
 		Repo: repo,
 	})
 }

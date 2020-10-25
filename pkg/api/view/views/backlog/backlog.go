@@ -8,10 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
 	listEvents "github.com/peteqproj/peteq/domain/list/event/handler"
+	listEventTypes "github.com/peteqproj/peteq/domain/list/event/types"
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvents "github.com/peteqproj/peteq/domain/project/event/handler"
+	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
+	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
+	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -63,20 +67,20 @@ func (h *ViewAPI) Get(c *gin.Context) {
 }
 func (h *ViewAPI) EventHandlers() map[string]handler.EventHandler {
 	return map[string]handler.EventHandler{
-		"list.task-moved":    h,
-		"task.created":       h,
-		"task.updated":       h,
-		"task.completed":     h,
-		"task.reopened":      h,
-		"task.deleted":       h,
-		"user.registred":     h,
-		"project.created":    h,
-		"project.task-added": h,
+		listEventTypes.TaskMovedIntoListEvent:     h,
+		taskEventTypes.TaskCreatedEvent:           h,
+		taskEventTypes.TaskUpdatedEvent:           h,
+		taskEventTypes.TaskCompletedEvent:         h,
+		taskEventTypes.TaskReopenedEvent:          h,
+		taskEventTypes.TaskDeletedEvent:           h,
+		userEventTypes.UserRegistredEvent:         h,
+		projectEventTypes.ProjectCreatedEvent:     h,
+		projectEventTypes.TaskAddedToProjectEvent: h,
 	}
 }
 
 func (h *ViewAPI) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
-	if ev.Metadata.Name == "user.registred" {
+	if ev.Metadata.Name == userEventTypes.UserRegistredEvent {
 		return h.handlerUserRegistration(ctx, ev, logger)
 	}
 	current, err := h.DAL.load(ctx, ev.Tenant.ID)

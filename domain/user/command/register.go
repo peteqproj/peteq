@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/user/event/handler"
+	"github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -38,7 +39,7 @@ func (r *RegisterCommand) Handle(ctx context.Context, done chan<- error, argumen
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           "user.registred",
+			Name:           types.UserRegistredEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "user",
 			AggregatorID:   opt.UserID,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
+	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -33,7 +34,7 @@ func (c *CreateCommand) Handle(ctx context.Context, done chan<- error, arguments
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           "task.created",
+			Name:           types.TaskCreatedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
 			AggregatorID:   t.Metadata.ID,

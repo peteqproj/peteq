@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/list/event/handler"
+	"github.com/peteqproj/peteq/domain/list/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -40,7 +41,7 @@ func (m *Create) Handle(ctx context.Context, done chan<- error, arguments interf
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           "list.created",
+			Name:           types.ListCreatedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "list",
 			AggregatorID:   opt.ID,

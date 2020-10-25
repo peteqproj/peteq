@@ -7,8 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
+	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
+	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -43,11 +45,11 @@ func (h *ViewAPI) Get(c *gin.Context) {
 
 func (h *ViewAPI) EventHandlers() map[string]handler.EventHandler {
 	return map[string]handler.EventHandler{
-		"task.deleted":       h,
-		"task.completed":     h,
-		"task.reopened":      h,
-		"project.task-added": h,
-		"project.created":    h,
+		taskEventTypes.TaskDeletedEvent:           h,
+		taskEventTypes.TaskCompletedEvent:         h,
+		taskEventTypes.TaskReopenedEvent:          h,
+		projectEventTypes.ProjectCreatedEvent:     h,
+		projectEventTypes.TaskAddedToProjectEvent: h,
 	}
 }
 

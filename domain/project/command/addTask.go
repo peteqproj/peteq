@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/project/event/handler"
+	"github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -38,7 +39,7 @@ func (m *AddTaskCommand) Handle(ctx context.Context, done chan<- error, argument
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           "project.task-added",
+			Name:           types.TaskAddedToProjectEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "project",
 			AggregatorID:   opt.Project,

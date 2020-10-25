@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -31,7 +32,7 @@ func (r *ReopenCommand) Handle(ctx context.Context, done chan<- error, arguments
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           "task.reopened",
+			Name:           types.TaskReopenedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
 			AggregatorID:   t,

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/list/event/handler"
+	"github.com/peteqproj/peteq/domain/list/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -40,7 +41,7 @@ func (m *MoveTaskCommand) Handle(ctx context.Context, done chan<- error, argumen
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           "list.task-moved",
+			Name:           types.TaskMovedIntoListEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "list",
 			AggregatorID:   opt.Source,

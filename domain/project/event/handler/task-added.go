@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	// TaskAddedHandler to handle task.created event
+	// TaskAddedHandler to handle project.task-added event
 	TaskAddedHandler struct {
 		Repo *project.Repo
 	}
