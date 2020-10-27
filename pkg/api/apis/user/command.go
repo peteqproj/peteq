@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-playground/validator"
-	"github.com/gofrs/uuid"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/domain/user/command"
@@ -16,14 +15,16 @@ import (
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for users
 	CommandAPI struct {
-		Repo       *user.Repo
-		Commandbus commandbus.CommandBus
-		Logger     logger.Logger
+		Repo        *user.Repo
+		Commandbus  commandbus.CommandBus
+		Logger      logger.Logger
+		IDGenerator utils.IDGenerator
 	}
 
 	// RegistrationRequestBody user to register new users
@@ -49,7 +50,7 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	uID, err := uuid.NewV4()
+	uID, err := c.IDGenerator.GenerateV4()
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
@@ -65,7 +66,7 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 	// TODO: validate request
 	if err := c.Commandbus.Execute(ctx, "user.register", command.RegisterCommandOptions{
 		Email:        opt.Email,
-		UserID:       uID.String(),
+		UserID:       uID,
 		PasswordHash: hash(opt.Password),
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
@@ -75,25 +76,25 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 	ectx := tenant.ContextWithUser(ctx, user.User{
 		Metadata: user.Metadata{
 			Email: opt.Email,
-			ID:    uID.String(),
+			ID:    uID,
 		},
 	})
 	for i, l := range basicLists {
 		time.Sleep(time.Second * 5)
-		id, err := uuid.NewV4()
+		id, err := c.IDGenerator.GenerateV4()
 		if err != nil {
 			return api.NewRejectedCommandResponse(err)
 		}
 		if err := c.Commandbus.Execute(ectx, "list.create", listCommand.CreateCommandOptions{
 			Name:  l,
-			ID:    id.String(),
+			ID:    id,
 			Index: i,
 		}); err != nil {
 			return api.NewRejectedCommandResponse(err)
 		}
 	}
 
-	return api.NewAcceptedCommandResponse("user", uID.String())
+	return api.NewAcceptedCommandResponse("user", uID)
 }
 
 // Login validates user exists and returns api token
@@ -125,11 +126,11 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 		return api.NewRejectedCommandResponse(fmt.Errorf("Invalid credentials"))
 	}
 
-	token, err := uuid.NewV4()
+	token, err := c.IDGenerator.GenerateV4()
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	tokenHash := hash(token.String())
+	tokenHash := hash(token)
 	if err := c.Commandbus.Execute(ctx, "user.login", command.LoginCommandOptions{
 		HashedToken: tokenHash,
 		UserID:      users[validUserIndex].Metadata.ID,
@@ -138,7 +139,7 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 	}
 
 	return api.NewAcceptedCommandResponseWithData("user", users[validUserIndex].Metadata.ID, map[string]string{
-		"token": token.String(),
+		"token": token,
 	})
 }
 

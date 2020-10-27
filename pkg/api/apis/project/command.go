@@ -2,52 +2,72 @@ package project
 
 import (
 	"context"
+	"fmt"
 	"io"
 
-	"github.com/gofrs/uuid"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for lists
 	CommandAPI struct {
-		Repo       *project.Repo
-		Commandbus commandbus.CommandBus
-		Logger     logger.Logger
+		Repo        *project.Repo
+		Commandbus  commandbus.CommandBus
+		Logger      logger.Logger
+		IDGenerator utils.IDGenerator
 	}
 
 	// AddTasksRequestBody body spec of the request command AddTasks
 	AddTasksRequestBody struct {
-		TaskIDs []string `json:"tasks"`
-		Project string   `json:"project"`
+		Project string   `json:"project" validate:"required"`
+		TaskIDs []string `json:"tasks" validate:"required"`
+	}
+
+	// CreateProjectRequestBody body spec of the request command Create
+	CreateProjectRequestBody struct {
+		Name        string `json:"name" validate:"required"`
+		Description string `json:"description"`
+		Color       string `json:"color"`
+		ImageURL    string `json:"imageUrl"`
 	}
 )
 
 // Create creates new project
 func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	u := tenant.UserFromContext(ctx)
-	proj := project.Project{}
-	if err := api.UnmarshalInto(body, &proj); err != nil {
+	spec := CreateProjectRequestBody{}
+	if err := api.UnmarshalInto(body, &spec); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	u2, err := uuid.NewV4()
+	uid, err := ca.IDGenerator.GenerateV4()
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
 
-	proj.Metadata.ID = u2.String()
-	proj.Tenant = tenant.Tenant{
-		ID:   u.Metadata.ID,
-		Type: "User",
+	proj := project.Project{
+		Tenant: tenant.Tenant{
+			ID:   u.Metadata.ID,
+			Type: "User",
+		},
+		Metadata: project.Metadata{
+			ID:          uid,
+			Name:        spec.Name,
+			Description: spec.Description,
+			Color:       spec.Color,
+			ImageURL:    spec.ImageURL,
+		},
+		Tasks: []string{},
 	}
 	err = ca.Commandbus.Execute(ctx, "project.create", proj)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err)
+		ca.Logger.Info("Failed to execute project.create command", "error", err.Error())
+		return api.NewRejectedCommandResponse(fmt.Errorf("Failed to create project"))
 	}
 	return api.NewAcceptedCommandResponse("project", proj.Metadata.ID)
 }
@@ -65,7 +85,8 @@ func (ca *CommandAPI) AddTasks(ctx context.Context, body io.ReadCloser) api.Comm
 			TaskID:  t,
 		})
 		if err != nil {
-			return api.NewRejectedCommandResponse(err)
+			ca.Logger.Info("Failed to execute command project.add-task", "error", err.Error())
+			return api.NewRejectedCommandResponse(fmt.Errorf("Failed to add task %s to project %s", t, opt.Project))
 		}
 	}
 	return api.NewAcceptedCommandResponse("project", opt.Project)

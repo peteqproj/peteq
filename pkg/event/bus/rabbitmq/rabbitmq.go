@@ -12,11 +12,11 @@ import (
 	retry "github.com/avast/retry-go"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/gofrs/uuid"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/streadway/amqp"
 )
 
@@ -35,6 +35,7 @@ type (
 		RabbitMQAPIPort  string
 		RabbitMQUsername string
 		RabbitMQPassword string
+		IDGenerator      utils.IDGenerator
 	}
 )
 
@@ -44,14 +45,14 @@ func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) 
 	if err := e.ensureQueue(e.getKey(ev), false); err != nil {
 		return "", fmt.Errorf("Failed to ensure queue: %w", err)
 	}
-	id, err := uuid.NewV4()
+	id, err := e.IDGenerator.GenerateV4()
 	if err != nil {
 		e.Logger.Info("Failed to create event id", "error", err.Error())
 		return "", err
 	}
-	ev.Metadata.ID = id.String()
+	ev.Metadata.ID = id
 	bytes, err := json.Marshal(ev)
-	if err := e.persistEvent(context.Background(), ev.Tenant.ID, id.String(), ev.Metadata.Name, string(bytes)); err != nil {
+	if err := e.persistEvent(context.Background(), ev.Tenant.ID, id, ev.Metadata.Name, string(bytes)); err != nil {
 		e.Logger.Info("Failed to persist event", "error", err.Error())
 		return "", err
 	}
@@ -60,7 +61,7 @@ func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) 
 		return "", err
 	}
 	e.Logger.Info("Published", "event", ev.Metadata.Name)
-	return id.String(), nil
+	return id, nil
 }
 
 // Subscribe to event

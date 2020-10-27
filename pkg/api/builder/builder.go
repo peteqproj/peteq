@@ -20,6 +20,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -38,25 +39,30 @@ type (
 
 // BuildCommandAPI builds command api
 func (b *Builder) BuildCommandAPI() api.Resource {
+	idGen := utils.NewGenerator()
 	taskCommandAPI := taskAPI.CommandAPI{
-		Repo:       b.TaskRepo,
-		Commandbus: b.Commandbus,
-		Logger:     b.Logger.Fork("api", "task"),
+		Repo:        b.TaskRepo,
+		Commandbus:  b.Commandbus,
+		Logger:      b.Logger.Fork("api", "task"),
+		IDGenerator: idGen,
 	}
 	listCommandAPI := listAPI.CommandAPI{
-		Repo:       b.ListRpeo,
-		Commandbus: b.Commandbus,
-		Logger:     b.Logger.Fork("api", "list"),
+		Repo:        b.ListRpeo,
+		Commandbus:  b.Commandbus,
+		Logger:      b.Logger.Fork("api", "list"),
+		IDGenerator: idGen,
 	}
 	projectCommandAPI := projectAPI.CommandAPI{
-		Repo:       b.ProjectRepo,
-		Commandbus: b.Commandbus,
-		Logger:     b.Logger.Fork("api", "project"),
+		Repo:        b.ProjectRepo,
+		Commandbus:  b.Commandbus,
+		Logger:      b.Logger.Fork("api", "project"),
+		IDGenerator: idGen,
 	}
 	userCommandAPI := userAPI.CommandAPI{
-		Repo:       b.UserRepo,
-		Commandbus: b.Commandbus,
-		Logger:     b.Logger.Fork("api", "user"),
+		Repo:        b.UserRepo,
+		Commandbus:  b.Commandbus,
+		Logger:      b.Logger.Fork("api", "user"),
+		IDGenerator: idGen,
 	}
 	return api.Resource{
 		Path: "/c",

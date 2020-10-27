@@ -11,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event/bus/rabbitmq"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -61,6 +62,7 @@ func New(options Options) (Eventbus, error) {
 			RabbitMQUsername: options.RabbitMQ.Username,
 			RabbitMQPort:     options.RabbitMQ.Port,
 			RabbitMQAPIPort:  options.RabbitMQ.APIPort,
+			IDGenerator:      utils.NewGenerator(),
 		}, nil
 	}
 

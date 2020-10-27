@@ -8,30 +8,13 @@ import (
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/peteqproj/peteq/domain/list"
-	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/tenant"
-	"github.com/peteqproj/peteq/pkg/utils"
+	"github.com/peteqproj/peteq/pkg/utils/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-func buildLogger() logger.Logger {
-	l := &logger.MockLogger{}
-	return l
-}
-
-func contextWithUser() context.Context {
-	ctx := context.Background()
-	return context.WithValue(ctx, tenant.User, user.User{
-		Metadata: user.Metadata{
-			Email: "some@email.com",
-			ID:    "user-id",
-		},
-	})
-}
 
 func TestCommandAPI_MoveTasks(t *testing.T) {
 	type fields struct {
@@ -52,8 +35,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Reject when validation rejected",
 			args: args{
-				ctx:  contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{}),
+				ctx:  tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{}),
 			},
 			want: api.NewRejectedCommandResponse(
 				fmt.Errorf("Error: Source required | Error: Destination required | Error: TaskIDs required"),
@@ -62,8 +45,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Reject when source list not found",
 			args: args{
-				ctx: contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{
+				ctx: tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{
 					"source":      "not-found",
 					"destination": "not-found",
 					"tasks":       []string{"1"},
@@ -92,8 +75,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Reject when destination list not found",
 			args: args{
-				ctx: contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{
+				ctx: tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{
 					"source":      "found",
 					"destination": "not-found",
 					"tasks":       []string{"1"},
@@ -101,7 +84,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
-					l := string(utils.MustMarshal(list.List{
+					l := string(tests.MustMarshal(list.List{
 						Metadata: list.Metadata{
 							ID:   "found",
 							Name: "list",
@@ -136,8 +119,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Reject when call the commandbus failed on command list.move-task",
 			args: args{
-				ctx: contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{
+				ctx: tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{
 					"source":      "source",
 					"destination": "destination",
 					"tasks":       []string{"1"},
@@ -153,7 +136,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "source",
 								Name: "source",
@@ -165,7 +148,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "destination",
 								Name: "destination",
@@ -193,8 +176,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Reject when call the commandbus failed on command task.complete",
 			args: args{
-				ctx: contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{
+				ctx: tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{
 					"source":      "Upcoming",
 					"destination": "Done",
 					"tasks":       []string{"1"},
@@ -210,7 +193,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Upcoming",
 								Name: "Upcoming",
@@ -222,7 +205,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Done",
 								Name: "Done",
@@ -252,8 +235,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Reject when call the commandbus failed on command task.reopen",
 			args: args{
-				ctx: contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{
+				ctx: tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{
 					"source":      "Done",
 					"destination": "Upcoming",
 					"tasks":       []string{"1"},
@@ -269,7 +252,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Done",
 								Name: "Done",
@@ -281,7 +264,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Upcoming",
 								Name: "Upcoming",
@@ -311,8 +294,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 		{
 			name: "Accepct and move multiple tasks to destination list",
 			args: args{
-				ctx: contextWithUser(),
-				body: utils.JSONStringToReadCloser(map[string]interface{}{
+				ctx: tests.AuthenticatedContext(),
+				body: tests.JSONStringToReadCloser(map[string]interface{}{
 					"source":      "Upcoming",
 					"destination": "Today",
 					"tasks":       []string{"1", "2"},
@@ -328,7 +311,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Upcoming",
 								Name: "Upcoming",
@@ -340,7 +323,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 							"userid",
 							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(utils.MustMarshal(list.List{
+						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Today",
 								Name: "Today",

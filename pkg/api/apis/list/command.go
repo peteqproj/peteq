@@ -11,14 +11,16 @@ import (
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for lists
 	CommandAPI struct {
-		Repo       *list.Repo
-		Commandbus commandbus.CommandBus
-		Logger     logger.Logger
+		Repo        *list.Repo
+		Commandbus  commandbus.CommandBus
+		Logger      logger.Logger
+		IDGenerator utils.IDGenerator
 	}
 
 	// MoveTasksRequestBody passed from http client

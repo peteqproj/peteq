@@ -6,20 +6,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
-	"github.com/gofrs/uuid"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for tasks
 	CommandAPI struct {
-		Repo       *task.Repo
-		Commandbus commandbus.CommandBus
-		Logger     logger.Logger
+		Repo        *task.Repo
+		Commandbus  commandbus.CommandBus
+		Logger      logger.Logger
+		IDGenerator utils.IDGenerator
 	}
 
 	// completeReopenTaskRequestBody for request body of two commands:
@@ -43,11 +44,11 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	u2, err := uuid.NewV4()
+	u2, err := c.IDGenerator.GenerateV4()
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	t.Metadata.ID = u2.String()
+	t.Metadata.ID = u2
 	t.Tenant = tenant.Tenant{
 		ID:   u.Metadata.ID,
 		Type: "User",
