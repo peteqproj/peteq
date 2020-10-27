@@ -2,13 +2,13 @@ package task
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/imdario/mergo"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
 
@@ -20,7 +20,7 @@ type (
 	// Repo is task repository
 	// it works on the view db to read/write from it
 	Repo struct {
-		DB     *sql.DB
+		DB     db.Database
 		Logger logger.Logger
 	}
 

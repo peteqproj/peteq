@@ -10,8 +10,11 @@ dependency-update:
 run:
 	./dist/peteq
 
-.PHONY: run-docker
-run-docker:
-	env > .env
-	docker run -p 8080:8080 -d --env-file ./.env peteqproj/peteq 
-	rm .env
+.PHONY: mock-all
+mock-all:
+	go get github.com/vektra/mockery/v2/.../
+	mockery --all --inpackage
+
+.PHONY: test
+test:
+	./hack/test.sh

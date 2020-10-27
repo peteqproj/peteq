@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +17,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/view"
 	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
@@ -32,7 +32,7 @@ type (
 		Commandbus  commandbus.CommandBus
 		Eventbus    bus.Eventbus
 		Logger      logger.Logger
-		DB          *sql.DB
+		DB          db.Database
 	}
 )
 

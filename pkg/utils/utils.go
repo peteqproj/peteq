@@ -1,7 +1,11 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -24,4 +28,21 @@ func GetEnvOrDie(name string) string {
 	}
 	DieOnError(fmt.Errorf("Variable %s was not set", name), "Missing required environment varialbe")
 	return ""
+}
+
+// JSONStringToReadCloser converts json string into io.ReadCloser
+// should be used only in test as this method will exit on error
+func JSONStringToReadCloser(j map[string]interface{}) io.ReadCloser {
+	b, err := json.Marshal(j)
+	DieOnError(err, "Failed to convert json to io.ReadCloser")
+	return ioutil.NopCloser(bytes.NewReader(b))
+}
+
+// MustMarshal marshals or dies
+func MustMarshal(v interface{}) []byte {
+	r, err := json.Marshal(v)
+	if err != nil {
+		DieOnError(err, "Failed to marshal")
+	}
+	return r
 }

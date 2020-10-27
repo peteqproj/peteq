@@ -2,7 +2,6 @@ package rabbitmq
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/gofrs/uuid"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -29,7 +29,7 @@ type (
 		Lock             *sync.Mutex
 		Handlers         map[string][]handler.EventHandler
 		Channel          *amqp.Channel
-		EventlogDB       *sql.DB
+		EventlogDB       db.Database
 		RabbitMQHost     string
 		RabbitMQPort     string
 		RabbitMQAPIPort  string
@@ -92,11 +92,6 @@ func (e *Eventbus) Stop() {
 	if e.Channel != nil {
 		if err := e.Channel.Close(); err != nil {
 			e.Logger.Info("Failed to close rabbitmq channel", "error", err.Error())
-		}
-	}
-	if e.EventlogDB != nil {
-		if err := e.EventlogDB.Close(); err != nil {
-			e.Logger.Info("Failed to close conneciton to event log database", "error", err.Error())
 		}
 	}
 }

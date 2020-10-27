@@ -2,19 +2,19 @@ package projects
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/peteqproj/peteq/pkg/db"
 )
 
 const dbTableName = "view_projects"
 
 type (
 	DAL struct {
-		DB *sql.DB
+		DB db.Database
 	}
 )
 

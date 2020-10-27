@@ -25,6 +25,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/config"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -50,8 +51,11 @@ func main() {
 	err = s.AddWS(wsserver)
 	utils.DieOnError(err, "Failed to attach WS server")
 
-	db, err := postgres.Connect(utils.GetEnvOrDie("POSTGRES_URL"))
-	defer db.Close()
+	pg, err := postgres.Connect(utils.GetEnvOrDie("POSTGRES_URL"))
+	defer pg.Close()
+	db := db.New(db.Options{
+		DB: pg,
+	})
 	utils.DieOnError(err, "Failed to connect to postgres")
 
 	ebus, err := eventbus.New(eventbus.Options{

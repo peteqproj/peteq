@@ -43,24 +43,24 @@ type (
 func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := &RegistrationRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	err := validator.New().Struct(opt)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	uID, err := uuid.NewV4()
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	usr, err := c.Repo.GetByEmail(opt.Email)
 	if err != nil {
 		if err.Error() != "User not found" {
-			return api.NewRejectedCommandResponse(err.Error())
+			return api.NewRejectedCommandResponse(err)
 		}
 	}
 	if usr != nil {
-		return api.NewRejectedCommandResponse("Email already registred")
+		return api.NewRejectedCommandResponse(fmt.Errorf("Email already registred"))
 	}
 	// TODO: validate request
 	if err := c.Commandbus.Execute(ctx, "user.register", command.RegisterCommandOptions{
@@ -68,7 +68,7 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 		UserID:       uID.String(),
 		PasswordHash: hash(opt.Password),
 	}); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 
 	basicLists := []string{"Upcoming", "Today", "Done"}
@@ -82,14 +82,14 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 		time.Sleep(time.Second * 5)
 		id, err := uuid.NewV4()
 		if err != nil {
-			return api.NewRejectedCommandResponse(err.Error())
+			return api.NewRejectedCommandResponse(err)
 		}
 		if err := c.Commandbus.Execute(ectx, "list.create", listCommand.CreateCommandOptions{
 			Name:  l,
 			ID:    id.String(),
 			Index: i,
 		}); err != nil {
-			return api.NewRejectedCommandResponse(err.Error())
+			return api.NewRejectedCommandResponse(err)
 		}
 	}
 
@@ -100,15 +100,15 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := &LoginRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	err := validator.New().Struct(opt)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	users, err := c.Repo.List(user.ListOptions{})
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	validUserIndex := -1
 	for i, u := range users {
@@ -122,19 +122,19 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 	}
 
 	if validUserIndex == -1 {
-		return api.NewRejectedCommandResponse("Invalid credentials")
+		return api.NewRejectedCommandResponse(fmt.Errorf("Invalid credentials"))
 	}
 
 	token, err := uuid.NewV4()
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	tokenHash := hash(token.String())
 	if err := c.Commandbus.Execute(ctx, "user.login", command.LoginCommandOptions{
 		HashedToken: tokenHash,
 		UserID:      users[validUserIndex].Metadata.ID,
 	}); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 
 	return api.NewAcceptedCommandResponseWithData("user", users[validUserIndex].Metadata.ID, map[string]string{

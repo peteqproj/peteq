@@ -2,12 +2,11 @@ package bus
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"sync"
 
 	socketio "github.com/googollee/go-socket.io"
-	"github.com/peteqproj/peteq/pkg/db/local"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus/rabbitmq"
 	"github.com/peteqproj/peteq/pkg/event/handler"
@@ -26,12 +25,11 @@ type (
 
 	// Options to create eventbus
 	Options struct {
-		Type            string
-		LocalEventStore *local.DB
-		WS              *socketio.Server
-		Logger          logger.Logger
-		EventlogDB      *sql.DB
-		RabbitMQ        RabbitMQOptions
+		Type       string
+		WS         *socketio.Server
+		Logger     logger.Logger
+		EventlogDB db.Database
+		RabbitMQ   RabbitMQOptions
 	}
 
 	// RabbitMQOptions to initiate rabbitmq

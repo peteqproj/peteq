@@ -33,11 +33,11 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 	u := tenant.UserFromContext(ctx)
 	proj := project.Project{}
 	if err := api.UnmarshalInto(body, &proj); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	u2, err := uuid.NewV4()
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 
 	proj.Metadata.ID = u2.String()
@@ -47,7 +47,7 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 	}
 	err = ca.Commandbus.Execute(ctx, "project.create", proj)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("project", proj.Metadata.ID)
 }
@@ -56,7 +56,7 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 func (ca *CommandAPI) AddTasks(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := AddTasksRequestBody{}
 	if err := api.UnmarshalInto(body, &opt); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 
 	for _, t := range opt.TaskIDs {
@@ -65,7 +65,7 @@ func (ca *CommandAPI) AddTasks(ctx context.Context, body io.ReadCloser) api.Comm
 			TaskID:  t,
 		})
 		if err != nil {
-			return api.NewRejectedCommandResponse(err.Error())
+			return api.NewRejectedCommandResponse(err)
 		}
 	}
 	return api.NewAcceptedCommandResponse("project", opt.Project)

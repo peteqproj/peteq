@@ -41,11 +41,11 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 	t := &task.Task{}
 	err := api.UnmarshalInto(body, t)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	u2, err := uuid.NewV4()
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	t.Metadata.ID = u2.String()
 	t.Tenant = tenant.Tenant{
@@ -54,10 +54,10 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 	}
 
 	if err := validator.New().Struct(t); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "task.create", *t); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
 }
@@ -67,14 +67,14 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 	t := &task.Task{}
 	err := api.UnmarshalInto(body, t)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 
 	if err := validator.New().Struct(t); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "task.update", *t); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
 }
@@ -86,11 +86,11 @@ func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.Command
 	err := api.UnmarshalInto(body, req)
 	t, err := c.Repo.Get(u.Metadata.ID, req.ID)
 	if err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 
 	if err := c.Commandbus.Execute(ctx, "task.delete", t); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
 }
@@ -99,10 +99,10 @@ func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.Command
 func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	req := &completeReopenTaskRequestBody{}
 	if err := api.UnmarshalInto(body, req); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "task.complete", req.Task); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("task", req.Task)
 }
@@ -111,10 +111,10 @@ func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.Comma
 func (c *CommandAPI) Reopen(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	req := &completeReopenTaskRequestBody{}
 	if err := api.UnmarshalInto(body, req); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "task.reopen", req.Task); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("task", req.Task)
 }

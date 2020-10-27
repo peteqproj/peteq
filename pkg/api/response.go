@@ -3,10 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
 
@@ -27,10 +30,21 @@ type (
 )
 
 // NewRejectedCommandResponse build CommandResponse that is rejected with reason
-func NewRejectedCommandResponse(reason string) CommandResponse {
+func NewRejectedCommandResponse(err error) CommandResponse {
+	errs, ok := err.(validator.ValidationErrors)
+	if ok {
+		msg := []string{}
+		for _, e := range errs {
+			msg = append(msg, fmt.Sprintf("Error: %s %s", e.Field(), e.ActualTag()))
+		}
+		return CommandResponse{
+			Status: "rejected",
+			Reason: stringPtr(strings.Join(msg, " | ")),
+		}
+	}
 	return CommandResponse{
 		Status: "rejected",
-		Reason: stringPtr(reason),
+		Reason: stringPtr(err.Error()),
 	}
 }
 
@@ -75,7 +89,8 @@ func UnmarshalInto(body io.ReadCloser, into interface{}) error {
 	if err := json.Unmarshal([]byte(bytes), into); err != nil {
 		return err
 	}
-	return nil
+	err = validator.New().Struct(into)
+	return err
 }
 
 // stringPtr return point to string

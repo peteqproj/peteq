@@ -2,7 +2,6 @@ package home
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -10,13 +9,14 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/pkg/db"
 )
 
 const dbTableName = "view_home"
 
 type (
 	DAL struct {
-		DB *sql.DB
+		DB db.Database
 	}
 
 	listCreatedHandler struct {

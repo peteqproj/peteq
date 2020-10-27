@@ -23,9 +23,9 @@ type (
 
 	// MoveTasksRequestBody passed from http client
 	MoveTasksRequestBody struct {
-		Source      string   `json:"source"`
-		Destination string   `json:"destination"`
-		TaskIDs     []string `json:"tasks"`
+		Source      string   `json:"source" validate:"required"`
+		Destination string   `json:"destination" validate:"required"`
+		TaskIDs     []string `json:"tasks" validate:"required"`
 	}
 
 	// AddTaskRequestBody passed from http client
@@ -40,21 +40,21 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 	u := tenant.UserFromContext(ctx)
 	opt := &MoveTasksRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
-		return api.NewRejectedCommandResponse(err.Error())
+		return api.NewRejectedCommandResponse(err)
 	}
 	var source *list.List
 	var destination *list.List
 	if opt.Source != "" {
 		src, err := ca.Repo.Get(u.Metadata.ID, opt.Source)
 		if err != nil {
-			return api.NewRejectedCommandResponse(fmt.Sprintf("Source list: %v", err))
+			return api.NewRejectedCommandResponse(fmt.Errorf("Source list: %v", err))
 		}
 		source = &src
 	}
 	if opt.Destination != "" {
 		dst, err := ca.Repo.Get(u.Metadata.ID, opt.Destination)
 		if err != nil {
-			return api.NewRejectedCommandResponse(fmt.Sprintf("Destination list: %v", err))
+			return api.NewRejectedCommandResponse(fmt.Errorf("Destination list: %v", err))
 		}
 		destination = &dst
 	}
@@ -66,18 +66,21 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 			TaskID:      t,
 		})
 		if err != nil {
-			return api.NewRejectedCommandResponse(err.Error())
+			ca.Logger.Info("Failed to execute command list.move-task", "error", err.Error())
+			return api.NewRejectedCommandResponse(fmt.Errorf("Failed to move task %s", t))
 		}
 		if destination != nil && destination.Metadata.Name == "Done" {
 			ca.Logger.Info("Completing task", "name", t)
 			if err := ca.Commandbus.Execute(ctx, "task.complete", t); err != nil {
-				return api.NewRejectedCommandResponse(err.Error())
+				ca.Logger.Info("Failed to execute command task.complete", "error", err.Error())
+				return api.NewRejectedCommandResponse(fmt.Errorf("Failed to complete task %s", t))
 			}
 		}
 		if source != nil && source.Metadata.Name == "Done" {
 			ca.Logger.Info("Reopenning task", "name", t)
 			if err := ca.Commandbus.Execute(ctx, "task.reopen", t); err != nil {
-				return api.NewRejectedCommandResponse(err.Error())
+				ca.Logger.Info("Failed to execute command task.reopen", "error", err.Error())
+				return api.NewRejectedCommandResponse(fmt.Errorf("Failed to reopen task %s", t))
 			}
 		}
 	}

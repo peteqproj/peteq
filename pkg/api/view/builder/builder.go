@@ -1,9 +1,8 @@
 package builder
 
 import (
-	"database/sql"
-
 	"github.com/peteqproj/peteq/pkg/api/view"
+	"github.com/peteqproj/peteq/pkg/db"
 
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
@@ -21,7 +20,7 @@ type (
 		ListRepo    *list.Repo
 		ProjectRepo *project.Repo
 		Logger      logger.Logger
-		DB          *sql.DB
+		DB          db.Database
 	}
 
 	Options struct {
@@ -29,7 +28,7 @@ type (
 		ListRepo    *list.Repo
 		ProjectRepo *project.Repo
 		Logger      logger.Logger
-		DB          *sql.DB
+		DB          db.Database
 	}
 )
 
