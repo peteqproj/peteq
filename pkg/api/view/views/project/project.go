@@ -47,6 +47,7 @@ func (h *ViewAPI) EventHandlers() map[string]handler.EventHandler {
 	return map[string]handler.EventHandler{
 		taskEventTypes.TaskDeletedEvent:           h,
 		taskEventTypes.TaskStatusChanged:          h,
+		taskEventTypes.TaskUpdatedEvent:           h,
 		projectEventTypes.ProjectCreatedEvent:     h,
 		projectEventTypes.TaskAddedToProjectEvent: h,
 	}
@@ -102,12 +103,16 @@ func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view p
 		{
 			return h.handleTaskStatusChanged(ctx, ev, view, logger)
 		}
+	case taskEventTypes.TaskUpdatedEvent:
+		{
+			return h.handleTaskUpdated(ctx, ev, view, logger)
+		}
 	}
 	return view, fmt.Errorf("Event handler not found")
 }
 
 func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, logger logger.Logger) (string, error) {
-	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged {
+	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged || ev.Metadata.Name == taskEventTypes.TaskUpdatedEvent {
 		projects, err := h.ProjectRepo.List(project.QueryOptions{
 			UserID: ev.Tenant.ID,
 		})
@@ -160,6 +165,24 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 		return view, fmt.Errorf("Task not found")
 	}
 	view.Tasks[taskIndex].Status.Completed = spec.Completed
+	return view, nil
+}
+func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
+	spec := taskEvents.UpdatedSpec{}
+	err := ev.UnmarshalSpecInto(&spec)
+	if err != nil {
+		return view, fmt.Errorf("Failed to convert event.spec to StatusChangedSpec object: %v", err)
+	}
+	taskIndex := findTaskIndex(view, ev.Metadata.AggregatorID)
+	if taskIndex == -1 {
+		return view, fmt.Errorf("Task not found")
+	}
+	if spec.Description != "" {
+		view.Tasks[taskIndex].Metadata.Description = spec.Description
+	}
+	if spec.Name != "" {
+		view.Tasks[taskIndex].Metadata.Name = spec.Name
+	}
 	return view, nil
 }
 func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
