@@ -21,8 +21,6 @@ type (
 // Execute runs command handler
 // error will be reported to the channel
 func (c *CommandBus) Execute(ctx context.Context, name string, arguments interface{}) error {
-	c.Lock.Lock()
-	defer c.Lock.Unlock()
 	h, ok := c.Handlers[name]
 	if !ok {
 		return fmt.Errorf("Handler not found")
