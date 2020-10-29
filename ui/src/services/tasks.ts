@@ -15,13 +15,17 @@ export interface Task {
 }
 
 export interface TaskAPI {
-    create(task: Task): Promise<Task>
+    create(spec: CreateTaskRequestBody): Promise<Task>
     list(): Promise<Task[]>
     get(id: string): Promise<Task>
     remove(id: string): Promise<void>
     update(task: Task): Promise<Task>
     complete(task: string): Promise<void>
     reopen(task: string): Promise<void>
+}
+
+export interface CreateTaskRequestBody {
+    name: string;
 }
 
 
@@ -39,8 +43,8 @@ async function remove(id: string): Promise<void> {
     await http.post(`/c/task/delete`, { id })
 }
 
-async function create(task: Task): Promise<Task> {
-    const res = await http.post('/c/task/create', task);
+async function create(spec: CreateTaskRequestBody): Promise<Task> {
+    const res = await http.post('/c/task/create', spec);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to create task: ${cmdResponse.reason}`)

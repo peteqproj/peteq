@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -18,29 +17,36 @@ type (
 	CreateCommand struct {
 		Eventbus bus.Eventbus
 	}
+
+	// CreateCommandOptions add new token to allow api calls
+	CreateCommandOptions struct {
+		ID   string
+		Name string
+	}
 )
 
 // Handle runs CreateCommand to create task
 func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	t, ok := arguments.(task.Task)
+	t, ok := arguments.(CreateCommandOptions)
 	if !ok {
-		return fmt.Errorf("Failed to convert arguments to Task object")
+		return fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
 	}
 	u := tenant.UserFromContext(ctx)
+	tenant := tenant.Tenant{
+		ID:   u.Metadata.ID,
+		Type: tenant.User.String(),
+	}
 	_, err := c.Eventbus.Publish(ctx, event.Event{
-		Tenant: tenant.Tenant{
-			ID:   u.Metadata.ID,
-			Type: tenant.User.String(),
-		},
+		Tenant: tenant,
 		Metadata: event.Metadata{
 			Name:           types.TaskCreatedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
-			AggregatorID:   t.Metadata.ID,
+			AggregatorID:   t.ID,
 		},
 		Spec: handler.CreatedSpec{
-			ID:   t.Metadata.ID,
-			Name: t.Metadata.Name,
+			ID:   t.ID,
+			Name: t.Name,
 		},
 	})
 	return err

@@ -132,17 +132,7 @@ export function HomePage(props: IProps) {
             if (e.keyCode !== 13) {
                 return;
             }
-            const task = await props.TaskAPI.create({
-                metadata: {
-                    name: newTaskName,
-                    description: '',
-                    id: ''
-                },
-                spec: {},
-                status: {
-                    completed: false,
-                }
-            });
+            const task = await props.TaskAPI.create({ name: newTaskName });
             await Bluebird.delay(2000)
             await props.ListAPI.moveTasks('', list, [task.metadata.id]);
             setShowNewTask(true);

@@ -192,7 +192,7 @@ export function Task(props: IProps) {
 
 async function upsert(task: TaskModal, api: TaskAPI): Promise<TaskModal> {
     if (task.metadata.id === "") {
-        return api.create(task);
+        return api.create({ name: task.metadata.name });
     }
     await api.update(task);
     return task

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/domain/task/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -34,33 +35,30 @@ type (
 	deleteTaskRequestBody struct {
 		ID string `json:"id"`
 	}
+
+	createTaskRequestBody struct {
+		Name string `json:"name" validate:"required"`
+	}
 )
 
 // Create creats tasks
 func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	u := tenant.UserFromContext(ctx)
-	t := &task.Task{}
-	err := api.UnmarshalInto(body, t)
+	spec := createTaskRequestBody{}
+	err := api.UnmarshalInto(body, &spec)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	u2, err := c.IDGenerator.GenerateV4()
+	tid, err := c.IDGenerator.GenerateV4()
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	t.Metadata.ID = u2
-	t.Tenant = tenant.Tenant{
-		ID:   u.Metadata.ID,
-		Type: "User",
-	}
-
-	if err := validator.New().Struct(t); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.create", command.CreateCommandOptions{
+		ID:   tid,
+		Name: spec.Name,
+	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	if err := c.Commandbus.Execute(ctx, "task.create", *t); err != nil {
-		return api.NewRejectedCommandResponse(err)
-	}
-	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)
+	return api.NewAcceptedCommandResponse("task", tid)
 }
 
 // Update task
