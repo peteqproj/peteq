@@ -17,17 +17,17 @@ type (
 
 // QueryContext runs query on the db
 func (d *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	return d.PG.QueryContext(ctx, query, args)
+	return d.PG.QueryContext(ctx, query, args...)
 }
 
 // ExecContext executes query on the db
 func (d *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	return d.PG.ExecContext(ctx, query, args)
+	return d.PG.ExecContext(ctx, query, args...)
 }
 
 // QueryRowContext run row query on the db
 func (d *DB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	return d.PG.QueryRowContext(ctx, query, args)
+	return d.PG.QueryRowContext(ctx, query, args...)
 }
 
 // Connect opens connection to db
