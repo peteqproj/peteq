@@ -58,17 +58,12 @@ export function ProjectModal(props: IProps) {
     }
 
     const onSave = async () => {
-        const proj = {
-            metadata: {
-                name,
-                description,
-                id: '',
-                color: projectColor,
-                imageUrl: ''
-            },
-            tasks: [],
-        }
-        const project = await props.ProjectAPI.create(proj)
+        const project = await props.ProjectAPI.create({
+            name,
+            description,
+            color: projectColor,
+            imageUrl: ''
+        })
         setShowProgress(true)
         setTimeout(() => {
             props.Callback(project)

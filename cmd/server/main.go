@@ -102,7 +102,7 @@ func main() {
 	registerTaskEventHandlers(ebus, taskRepo)
 	registerListEventHandlers(ebus, listRepo)
 	registerProjectEventHandlers(ebus, projectRepo)
-	registerCommandHandlers(cb, ebus)
+	registerCommandHandlers(cb, ebus, userRepo)
 
 	apiBuilder := builder.Builder{
 		UserRepo:    userRepo,
@@ -204,7 +204,7 @@ func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomai
 	})
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbus) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbus, userRepo *userDomain.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
@@ -240,9 +240,13 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 
 	// User related commands
 	cb.RegisterHandler("user.register", &userCommands.RegisterCommand{
-		Eventbus: eventbus,
+		Eventbus:    eventbus,
+		Commandbus:  cb,
+		IDGenerator: utils.NewGenerator(),
+		Repo:        userRepo,
 	})
 	cb.RegisterHandler("user.login", &userCommands.LoginCommand{
 		Eventbus: eventbus,
+		Repo:     userRepo,
 	})
 }

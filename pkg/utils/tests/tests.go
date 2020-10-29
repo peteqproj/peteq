@@ -12,6 +12,11 @@ import (
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
+const (
+	// GeneratedV4ID generated id to be used as test id
+	GeneratedV4ID = "776a866c-80c3-476e-b1d1-680c2296c43c"
+)
+
 // AuthenticatedContext creates authenticated context with user
 func AuthenticatedContext() context.Context {
 	ctx := context.Background()
@@ -38,4 +43,11 @@ func MustMarshal(v interface{}) []byte {
 		utils.DieOnError(err, "Failed to marshal")
 	}
 	return r
+}
+
+// NewIDBasicGenerator common id generator
+func NewIDBasicGenerator() utils.IDGenerator {
+	i := &utils.MockIDGenerator{}
+	i.On("GenerateV4").Return(GeneratedV4ID, nil)
+	return i
 }

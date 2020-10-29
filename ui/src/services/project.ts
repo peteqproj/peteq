@@ -12,10 +12,17 @@ export interface Project {
     tasks: string[];
 }
 
+export interface CreateProjectRequestBody {
+    name:        string;
+    description: string;
+    color:       string;
+    imageUrl:    string;
+}
+
 export interface ProjectAPI {
     list(): Promise<Project[]>
     get(id: string): Promise<Project>
-    create(project: Project): Promise<Project>
+    create(req: CreateProjectRequestBody): Promise<Project>
     addTasks(project: string, tasks: string[]): Promise<void>
 }
 
@@ -30,8 +37,8 @@ async function get(id: string): Promise<Project> {
     return res.data as Project
 }
 
-async function create(project: Project): Promise<Project> {
-    const res = await http.post('/c/project/create', project);
+async function create(req: CreateProjectRequestBody): Promise<Project> {
+    const res = await http.post('/c/project/create', req);
     const cmdResponse = res.data as CommnadResponse
     if (cmdResponse.reason) {
         throw new Error(`Failed to create project: ${cmdResponse.reason}`)

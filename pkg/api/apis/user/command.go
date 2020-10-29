@@ -5,16 +5,12 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"time"
 
-	"github.com/go-playground/validator"
-	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/domain/user/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -42,58 +38,22 @@ type (
 
 // Register new user
 func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	opt := &RegistrationRequestBody{}
-	if err := api.UnmarshalInto(body, opt); err != nil {
-		return api.NewRejectedCommandResponse(err)
-	}
-	err := validator.New().Struct(opt)
-	if err != nil {
+	opt := RegistrationRequestBody{}
+	if err := api.UnmarshalInto(body, &opt); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
 	uID, err := c.IDGenerator.GenerateV4()
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	usr, err := c.Repo.GetByEmail(opt.Email)
-	if err != nil {
-		if err.Error() != "User not found" {
-			return api.NewRejectedCommandResponse(err)
-		}
-	}
-	if usr != nil {
-		return api.NewRejectedCommandResponse(fmt.Errorf("Email already registred"))
-	}
-	// TODO: validate request
 	if err := c.Commandbus.Execute(ctx, "user.register", command.RegisterCommandOptions{
 		Email:        opt.Email,
 		UserID:       uID,
 		PasswordHash: hash(opt.Password),
 	}); err != nil {
-		return api.NewRejectedCommandResponse(err)
+		c.Logger.Info("Failed to run user.register command", "error", err.Error())
+		return api.NewRejectedCommandResponse(fmt.Errorf("Registration failed: %v", err))
 	}
-
-	basicLists := []string{"Upcoming", "Today", "Done"}
-	ectx := tenant.ContextWithUser(ctx, user.User{
-		Metadata: user.Metadata{
-			Email: opt.Email,
-			ID:    uID,
-		},
-	})
-	for i, l := range basicLists {
-		time.Sleep(time.Second * 5)
-		id, err := c.IDGenerator.GenerateV4()
-		if err != nil {
-			return api.NewRejectedCommandResponse(err)
-		}
-		if err := c.Commandbus.Execute(ectx, "list.create", listCommand.CreateCommandOptions{
-			Name:  l,
-			ID:    id,
-			Index: i,
-		}); err != nil {
-			return api.NewRejectedCommandResponse(err)
-		}
-	}
-
 	return api.NewAcceptedCommandResponse("user", uID)
 }
 
@@ -103,28 +63,6 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 	if err := api.UnmarshalInto(body, opt); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-	err := validator.New().Struct(opt)
-	if err != nil {
-		return api.NewRejectedCommandResponse(err)
-	}
-	users, err := c.Repo.List(user.ListOptions{})
-	if err != nil {
-		return api.NewRejectedCommandResponse(err)
-	}
-	validUserIndex := -1
-	for i, u := range users {
-		if u.Metadata.Email != opt.Email {
-			continue
-		}
-		if hash(opt.Password) != u.Spec.PasswordHash {
-			continue
-		}
-		validUserIndex = i
-	}
-
-	if validUserIndex == -1 {
-		return api.NewRejectedCommandResponse(fmt.Errorf("Invalid credentials"))
-	}
 
 	token, err := c.IDGenerator.GenerateV4()
 	if err != nil {
@@ -132,13 +70,14 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 	}
 	tokenHash := hash(token)
 	if err := c.Commandbus.Execute(ctx, "user.login", command.LoginCommandOptions{
-		HashedToken: tokenHash,
-		UserID:      users[validUserIndex].Metadata.ID,
+		HashedToken:    tokenHash,
+		Email:          opt.Email,
+		HashedPassword: hash(opt.Password),
 	}); err != nil {
-		return api.NewRejectedCommandResponse(err)
+		return api.NewRejectedCommandResponse(fmt.Errorf("Login failed: %v", err))
 	}
 
-	return api.NewAcceptedCommandResponseWithData("user", users[validUserIndex].Metadata.ID, map[string]string{
+	return api.NewAcceptedCommandResponseWithData("user", "", map[string]string{
 		"token": token,
 	})
 }

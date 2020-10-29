@@ -5,17 +5,24 @@ import (
 	"fmt"
 	"time"
 
+	listCommand "github.com/peteqproj/peteq/domain/list/command"
+	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/domain/user/event/handler"
 	"github.com/peteqproj/peteq/domain/user/event/types"
+	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// RegisterCommand to create task
 	RegisterCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus    bus.Eventbus
+		Repo        *user.Repo
+		Commandbus  commandbus.CommandBus
+		IDGenerator utils.IDGenerator
 	}
 
 	// RegisterCommandOptions to create new user
@@ -32,7 +39,16 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 	if !ok {
 		return fmt.Errorf("Failed to convert arguments to User")
 	}
-	_, err := r.Eventbus.Publish(ctx, event.Event{
+	usr, err := r.Repo.GetByEmail(opt.Email)
+	if err != nil {
+		if err.Error() != "User not found" {
+			return err
+		}
+	}
+	if usr != nil {
+		return fmt.Errorf("Email already registred")
+	}
+	_, err = r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
 			Type: tenant.User.String(),
@@ -49,5 +65,27 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 			PasswordHash: opt.PasswordHash,
 		},
 	})
+
+	basicLists := []string{"Upcoming", "Today", "Done"}
+	ectx := tenant.ContextWithUser(ctx, user.User{
+		Metadata: user.Metadata{
+			Email: opt.Email,
+			ID:    opt.UserID,
+		},
+	})
+	for i, l := range basicLists {
+		id, err := r.IDGenerator.GenerateV4()
+		if err != nil {
+			return err
+		}
+		if err := r.Commandbus.Execute(ectx, "list.create", listCommand.CreateCommandOptions{
+			Name:  l,
+			ID:    id,
+			Index: i,
+		}); err != nil {
+			return err
+		}
+	}
+
 	return err
 }

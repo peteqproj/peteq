@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/domain/user/event/handler"
 	"github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -16,35 +17,48 @@ type (
 	// LoginCommand to create task
 	LoginCommand struct {
 		Eventbus bus.Eventbus
+		Repo     *user.Repo
 	}
 
 	// LoginCommandOptions add new token to allow api calls
 	LoginCommandOptions struct {
-		UserID      string
-		HashedToken string
+		HashedToken    string
+		Email          string
+		HashedPassword string
 	}
 )
 
 // Handle runs LoginCommand to create new user
 func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error {
-	fmt.Println("user.login command handler")
 	opt, ok := arguments.(LoginCommandOptions)
 	if !ok {
 		return fmt.Errorf("Failed to convert arguments to LoginCommandOptions")
 	}
-	_, err := r.Eventbus.Publish(ctx, event.Event{
+	user, err := r.Repo.GetByEmail(opt.Email)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return fmt.Errorf("user not found")
+	}
+
+	if opt.HashedPassword != user.Spec.PasswordHash {
+		return fmt.Errorf("Invalid credentials")
+	}
+
+	_, err = r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
-			ID:   opt.UserID,
+			ID:   user.Metadata.ID,
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
 			Name:           types.UserLoggedIn,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "user",
-			AggregatorID:   opt.UserID,
+			AggregatorID:   user.Metadata.ID,
 		},
 		Spec: handler.LoggedinSpec{
-			ID:        opt.UserID,
+			ID:        user.Metadata.ID,
 			TokenHash: opt.HashedToken,
 		},
 	})
