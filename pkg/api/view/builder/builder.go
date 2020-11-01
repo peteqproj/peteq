@@ -11,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/view/views/home"
 	proj "github.com/peteqproj/peteq/pkg/api/view/views/project"
 	"github.com/peteqproj/peteq/pkg/api/view/views/projects"
+	"github.com/peteqproj/peteq/pkg/api/view/views/triggers"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
 
@@ -75,6 +76,12 @@ func (b *Builder) BuildViews() map[string]view.View {
 		TaskRepo:    b.TaskRepo,
 		ProjectRepo: b.ProjectRepo,
 		DAL: &proj.DAL{
+			DB: b.DB,
+		},
+	}
+
+	views["triggers"] = &triggers.ViewAPI{
+		DAL: &triggers.DAL{
 			DB: b.DB,
 		},
 	}

@@ -6,6 +6,7 @@ import { ProjectPage } from './pages/project/page'
 import { EmptyPage } from './pages/empty/page'
 import { BacklogPage } from './pages/backlog/page'
 import { HomePage } from './pages/home/page'
+import { TriggersPage } from './pages/triggers/page'
 import { LoginPage, getAPIToken } from './pages/login'
 import { makeStyles } from '@material-ui/core/styles';
 import AccountTreeIcon from '@material-ui/icons/AccountTree';
@@ -23,6 +24,7 @@ import { API as BacklogViewAPI } from './services/views/backlog'
 import { API as ProjectsViewAPI } from './services/views/projects'
 import { API as ProjectViewAPI } from './services/views/project'
 import { API as HomeViewAPI } from './services/views/home'
+import { API as TriggersViewAPI } from './services/views/triggers'
 import {
   BrowserRouter as Router,
   Switch,
@@ -154,11 +156,11 @@ function App() {
               link: "/projects"
             },
             {
-              name: "routines",
-              text: 'Routines',
+              name: "triggers",
+              text: 'Triggers',
               icon: RotateLeftIcon,
               onClick: handleMenuItemClicked,
-              link: "/routines"
+              link: "/triggers"
             },
             {
               name: "automation",
@@ -190,8 +192,8 @@ function App() {
                   <Route path="/automation" >
                     <EmptyPage data={'automation'} />
                   </Route>
-                  <Route path="/routines">
-                    <EmptyPage data={'routines'} />
+                  <Route path="/triggers">
+                    <TriggersPage TriggersViewAPI={TriggersViewAPI} data={'triggers'} />
                   </Route>
                   <Route path="/backlog">
                     <BacklogPage ProjectAPI={ProjectAPI} TaskAPI={TaskAPI} ListAPI={ListAPI} BacklogViewAPI={BacklogViewAPI} />

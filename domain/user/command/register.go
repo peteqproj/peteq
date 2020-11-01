@@ -6,6 +6,7 @@ import (
 	"time"
 
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
+	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/domain/user/event/handler"
 	"github.com/peteqproj/peteq/domain/user/event/types"
@@ -14,6 +15,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
+	"github.com/peteqproj/peteq/pkg/utils/p"
 )
 
 type (
@@ -85,6 +87,19 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 		}); err != nil {
 			return err
 		}
+	}
+
+	tid, err := r.IDGenerator.GenerateV4()
+	if err != nil {
+		return err
+	}
+	if err := r.Commandbus.Execute(ectx, "trigger.create", triggerCommand.TriggerCreateCommandOptions{
+		ID:          tid,
+		Name:        "Task Archiver",
+		Description: "Runs at 00:00 every day",
+		Cron:        p.String("0 00 * * 0-4"), // “At 00:00 on every day-of-week from Sunday through Thursday.”
+	}); err != nil {
+		return err
 	}
 
 	return err

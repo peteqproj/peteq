@@ -18,6 +18,10 @@ import (
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
 	taskEventHandlers "github.com/peteqproj/peteq/domain/task/event/handler"
+	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
+	triggerCommands "github.com/peteqproj/peteq/domain/trigger/command"
+	triggerEventHandlers "github.com/peteqproj/peteq/domain/trigger/event/handler"
+	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
 	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
@@ -93,6 +97,11 @@ func main() {
 		Logger: logr.Fork("repo", "user"),
 	}
 
+	triggerRepo := &triggerDomain.Repo{
+		DB:     db,
+		Logger: logr.Fork("repo", "trigger"),
+	}
+
 	cb := commandbus.New(commandbus.Options{
 		Type:   "local",
 		Logger: logr.Fork("module", "commandbus"),
@@ -102,6 +111,7 @@ func main() {
 	registerTaskEventHandlers(ebus, taskRepo)
 	registerListEventHandlers(ebus, listRepo)
 	registerProjectEventHandlers(ebus, projectRepo)
+	registerTriggerEventHandlers(ebus, triggerRepo)
 	registerCommandHandlers(cb, ebus, userRepo)
 
 	apiBuilder := builder.Builder{
@@ -204,6 +214,13 @@ func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomai
 	})
 }
 
+func registerTriggerEventHandlers(eventbus eventbus.Eventbus, repo *triggerDomain.Repo) {
+	// Trigger related event handlers
+	eventbus.Subscribe(triggerEventTypes.TriggerCreatedEvent, &triggerEventHandlers.CreatedHandler{
+		Repo: repo,
+	})
+}
+
 func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbus, userRepo *userDomain.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
@@ -248,5 +265,10 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 	cb.RegisterHandler("user.login", &userCommands.LoginCommand{
 		Eventbus: eventbus,
 		Repo:     userRepo,
+	})
+
+	// Trigger related commands
+	cb.RegisterHandler("trigger.create", &triggerCommands.CreateCommand{
+		Eventbus: eventbus,
 	})
 }
