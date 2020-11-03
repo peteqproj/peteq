@@ -27,7 +27,6 @@ type (
 	// ListOptions to get task list
 	ListOptions struct {
 		UserID string
-		noUser bool
 	}
 )
 

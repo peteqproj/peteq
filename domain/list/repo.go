@@ -28,7 +28,6 @@ type (
 	// QueryOptions to get task list
 	QueryOptions struct {
 		UserID string
-		noUser bool
 	}
 )
 

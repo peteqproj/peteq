@@ -27,7 +27,6 @@ type (
 	// QueryOptions to get project project
 	QueryOptions struct {
 		UserID string
-		noUser bool
 	}
 )
 

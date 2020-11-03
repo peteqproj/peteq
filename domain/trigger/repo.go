@@ -27,7 +27,6 @@ type (
 	// QueryOptions to get trigger trigger
 	QueryOptions struct {
 		UserID string
-		noUser bool
 	}
 )
 
