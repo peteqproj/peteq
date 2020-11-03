@@ -63,9 +63,10 @@ func main() {
 	utils.DieOnError(err, "Failed to connect to postgres")
 
 	ebus, err := eventbus.New(eventbus.Options{
-		Type:       "rabbitmq",
-		Logger:     logr.Fork("module", "eventbus"),
-		EventlogDB: db,
+		Type:        "rabbitmq",
+		Logger:      logr.Fork("module", "eventbus"),
+		EventlogDB:  db,
+		WatchQueues: true,
 		RabbitMQ: eventbus.RabbitMQOptions{
 			Host:     utils.GetEnvOrDie("RABBITMQ_HOST"),
 			Port:     utils.GetEnvOrDie("RABBITMQ_PORT"),
