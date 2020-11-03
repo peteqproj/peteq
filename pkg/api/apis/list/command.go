@@ -25,8 +25,8 @@ type (
 
 	// MoveTasksRequestBody passed from http client
 	MoveTasksRequestBody struct {
-		Source      string   `json:"source" validate:"required"`
-		Destination string   `json:"destination" validate:"required"`
+		Source      string   `json:"source"`
+		Destination string   `json:"destination"`
 		TaskIDs     []string `json:"tasks" validate:"required"`
 	}
 

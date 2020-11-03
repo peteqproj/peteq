@@ -39,7 +39,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 				body: tests.JSONStringToReadCloser(map[string]interface{}{}),
 			},
 			want: api.NewRejectedCommandResponse(
-				fmt.Errorf("Error: Source required | Error: Destination required | Error: TaskIDs required"),
+				fmt.Errorf("Error: Source required"),
 			),
 		},
 		{
