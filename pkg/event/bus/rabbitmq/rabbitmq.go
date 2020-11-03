@@ -36,6 +36,7 @@ type (
 		RabbitMQUsername string
 		RabbitMQPassword string
 		IDGenerator      utils.IDGenerator
+		WatchQueues      bool
 	}
 )
 
@@ -84,7 +85,9 @@ func (e *Eventbus) Start() error {
 	if err != nil {
 		return err
 	}
-	go e.watchQueues()
+	if e.WatchQueues {
+		go e.watchQueues()
+	}
 	return nil
 }
 

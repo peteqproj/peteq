@@ -17,20 +17,29 @@ import (
 type (
 	// Eventbus to publish and subscribe events
 	Eventbus interface {
-		Publish(ctx context.Context, ev event.Event) (string, error)
-		Subscribe(name string, handler handler.EventHandler)
+		EventPublisher
+		EventWatcher
 		Start() error
 		Stop()
 		Replay(ctx context.Context) error
 	}
 
+	EventPublisher interface {
+		Publish(ctx context.Context, ev event.Event) (string, error)
+	}
+
+	EventWatcher interface {
+		Subscribe(name string, handler handler.EventHandler)
+	}
+
 	// Options to create eventbus
 	Options struct {
-		Type       string
-		WS         *socketio.Server
-		Logger     logger.Logger
-		EventlogDB db.Database
-		RabbitMQ   RabbitMQOptions
+		Type        string
+		WS          *socketio.Server
+		Logger      logger.Logger
+		EventlogDB  db.Database
+		RabbitMQ    RabbitMQOptions
+		WatchQueues bool
 	}
 
 	// RabbitMQOptions to initiate rabbitmq
@@ -63,6 +72,7 @@ func New(options Options) (Eventbus, error) {
 			RabbitMQPort:     options.RabbitMQ.Port,
 			RabbitMQAPIPort:  options.RabbitMQ.APIPort,
 			IDGenerator:      utils.NewGenerator(),
+			WatchQueues:      options.WatchQueues,
 		}, nil
 	}
 
