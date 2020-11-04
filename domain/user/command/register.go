@@ -102,5 +102,18 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 		return err
 	}
 
+	tid2, err := r.IDGenerator.GenerateV4()
+	if err != nil {
+		return err
+	}
+	if err := r.Commandbus.Execute(ectx, "trigger.create", triggerCommand.TriggerCreateCommandOptions{
+		ID:          tid2,
+		Name:        "Task Archiver",
+		Description: "Runs every minute",
+		Cron:        p.String("* * * * *"), // TODO: delete
+	}); err != nil {
+		return err
+	}
+
 	return err
 }

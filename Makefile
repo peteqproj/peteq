@@ -2,6 +2,10 @@
 build:
 	go build -o ./dist/peteq ./cmd/server
 
+.PHONY: build-cron-watcher
+build-cron-watcher:
+	go build -o ./dist/peteq-cron-wacher ./cmd/cron
+
 .PHONY: dependency-update
 dependency-update:
 	go mod download
@@ -9,6 +13,10 @@ dependency-update:
 .PHONY: run
 run:
 	./dist/peteq
+
+.PHONY: run-cron-watcher
+run-cron-watcher:
+	PORT=8082 ./dist/peteq-cron-wacher
 
 .PHONY: mock-all
 mock-all:

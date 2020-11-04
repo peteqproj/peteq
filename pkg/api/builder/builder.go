@@ -7,11 +7,13 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/domain/trigger"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/api"
 	listAPI "github.com/peteqproj/peteq/pkg/api/apis/list"
 	projectAPI "github.com/peteqproj/peteq/pkg/api/apis/project"
 	taskAPI "github.com/peteqproj/peteq/pkg/api/apis/task"
+	triggerAPI "github.com/peteqproj/peteq/pkg/api/apis/trigger"
 	userAPI "github.com/peteqproj/peteq/pkg/api/apis/user"
 	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/api/view"
@@ -64,6 +66,12 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 		Logger:      b.Logger.Fork("api", "user"),
 		IDGenerator: idGen,
 	}
+
+	triggerCommandAPI := triggerAPI.CommandAPI{
+		Repo:       &trigger.Repo{},
+		Commandbus: b.Commandbus,
+		Logger:     b.Logger.Fork("api", "trigger"),
+	}
 	return api.Resource{
 		Path: "/c",
 		Subresource: []api.Resource{
@@ -110,6 +118,19 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 						Verb:    "POST",
 						Path:    "/moveTasks",
 						Handler: api.WrapCommandAPI(listCommandAPI.MoveTasks, b.Logger),
+					},
+				},
+			},
+			{
+				Path: "/trigger",
+				Midderwares: []gin.HandlerFunc{
+					auth.IsAuthenticated(b.UserRepo),
+				},
+				Endpoints: []api.Endpoint{
+					{
+						Path:    "/run",
+						Verb:    "POST",
+						Handler: api.WrapCommandAPI(triggerCommandAPI.Run, b.Logger),
 					},
 				},
 			},

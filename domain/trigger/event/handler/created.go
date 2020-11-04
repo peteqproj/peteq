@@ -32,12 +32,24 @@ func (t *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 	if err != nil {
 		return err
 	}
+	spec := trigger.Spec{}
+	if opt.Cron != nil {
+		spec.Cron = opt.Cron
+	}
+
+	if opt.URL != nil {
+		spec.Webhook = &trigger.Webhook{
+			URL:             *opt.URL,
+			RequiredHeaders: opt.RequiredHeaders,
+		}
+	}
 	return t.Repo.Create(ev.Tenant.ID, trigger.Trigger{
 		Metadata: trigger.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,
 			Description: opt.Description,
 		},
+		Spec: spec,
 	})
 }
 
