@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
@@ -37,7 +38,9 @@ func (c *DeleteCommand) Handle(ctx context.Context, arguments interface{}) error
 			AggregatorRoot: "task",
 			AggregatorID:   t.Metadata.ID,
 		},
-		Spec: t,
+		Spec: handler.DeletedSpec{
+			ID: t.Metadata.ID,
+		},
 	})
 	return err
 }
