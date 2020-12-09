@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	_ "github.com/lib/pq"
@@ -35,12 +36,24 @@ import (
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
+	"github.com/peteqproj/peteq/pkg/event"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
+	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
+	"github.com/peteqproj/peteq/saga"
 
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
+)
+
+type (
+	sagaEventHandler struct {
+		cb       commandbus.CommandBus
+		taskRepo *taskDomain.Repo
+		listRepo *listDomain.Repo
+		lgr      logger.Logger
+	}
 )
 
 func main() {
@@ -65,22 +78,6 @@ func main() {
 		DB: pg,
 	})
 	utils.DieOnError(err, "Failed to connect to postgres")
-
-	ebus, err := eventbus.New(eventbus.Options{
-		Type:        "rabbitmq",
-		Logger:      logr.Fork("module", "eventbus"),
-		EventlogDB:  db,
-		WatchQueues: true,
-		RabbitMQ: eventbus.RabbitMQOptions{
-			Host:     utils.GetEnvOrDie("RABBITMQ_HOST"),
-			Port:     utils.GetEnvOrDie("RABBITMQ_PORT"),
-			APIPort:  utils.GetEnvOrDie("RABBITMQ_API_PORT"),
-			Username: utils.GetEnvOrDie("RABBITMQ_USERNAME"),
-			Password: utils.GetEnvOrDie("RABBITMQ_PASSWORD"),
-		},
-	})
-	utils.DieOnError(err, "Failed to connect to eventbus")
-	defer ebus.Stop()
 
 	taskRepo := &taskDomain.Repo{
 		DB:     db,
@@ -148,7 +145,19 @@ func main() {
 	registerListEventHandlers(ebus, listRepo)
 	registerProjectEventHandlers(ebus, projectRepo)
 	registerTriggerEventHandlers(ebus, triggerRepo)
+	registerAutomationEventHandlers(ebus, automationRepo)
 	registerCommandHandlers(cb, ebus, userRepo)
+
+	sagaEventHandler := &saga.EventHandler{
+		CommandBus:     cb,
+		TaskRepo:       taskRepo,
+		ListRepo:       listRepo,
+		AutomationRepo: automationRepo,
+		ProjectRepo:    projectRepo,
+		TriggerRepo:    triggerRepo,
+		UserRepo:       userRepo,
+	}
+	registerSagas(ebus, sagaEventHandler)
 
 	apiBuilder := builder.Builder{
 		UserRepo:    userRepo,
@@ -317,4 +326,16 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 	cb.RegisterHandler("trigger.create", &triggerCommands.CreateCommand{
 		Eventbus: eventbus,
 	})
+
+	// Automation related commands
+	cb.RegisterHandler("automation.create", &automationCommands.CreateCommand{
+		Eventbus: eventbus,
+	})
+	cb.RegisterHandler("automation.bindTrigger", &automationCommands.CreateTriggerBindingCommand{
+		Eventbus: eventbus,
+	})
+}
+
+func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
+	eventbus.Subscribe(triggerEventTypes.TriggerTriggeredEvent, eh)
 }
