@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	automationCommand "github.com/peteqproj/peteq/domain/automation/command"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
 	"github.com/peteqproj/peteq/domain/user"
@@ -15,7 +16,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
-	"github.com/peteqproj/peteq/pkg/utils/p"
 )
 
 type (
@@ -97,7 +97,7 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 		ID:          tid,
 		Name:        "Task Archiver",
 		Description: "Runs at 00:00 every day",
-		Cron:        p.String("0 00 * * 0-4"), // “At 00:00 on every day-of-week from Sunday through Thursday.”
+		Cron:        utils.PtrString("0 00 * * 0-4"), // “At 00:00 on every day-of-week from Sunday through Thursday.”
 	}); err != nil {
 		return err
 	}
@@ -106,14 +106,27 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 	if err != nil {
 		return err
 	}
-	if err := r.Commandbus.Execute(ectx, "trigger.create", triggerCommand.TriggerCreateCommandOptions{
-		ID:          tid2,
-		Name:        "Task Archiver",
-		Description: "Runs every minute",
-		Cron:        p.String("* * * * *"), // TODO: delete
+	if err := r.Commandbus.Execute(ectx, "automation.create", automationCommand.AutomationCreateCommandOptions{
+		ID:              tid2,
+		Name:            "Task Archiver",
+		Description:     "Archive tasks in Done list",
+		Type:            "task-archiver",
+		JSONInputSchema: "",
 	}); err != nil {
 		return err
 	}
 
+	tid3, err := r.IDGenerator.GenerateV4()
+	if err != nil {
+		return err
+	}
+	if err := r.Commandbus.Execute(ectx, "automation.bindTrigger", automationCommand.TriggerBindingCreateCommandOptions{
+		ID:         tid3,
+		Name:       fmt.Sprintf("Bind Trigger \"%s\" to Automation \"%s\" ", "Task Archiver", "Task Archiver"),
+		Automation: tid2,
+		Trigger:    tid,
+	}); err != nil {
+		return err
+	}
 	return err
 }
