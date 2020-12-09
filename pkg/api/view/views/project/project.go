@@ -72,7 +72,7 @@ func (h *ViewAPI) Handle(ctx context.Context, ev event.Event, logger logger.Logg
 		return err
 	}
 	if project == "" {
-		logger.Info("Evenet not related to any known project", "event", ev.Metadata.Name, "aggregator-type", ev.Metadata.AggregatorRoot, "aggregator-id", ev.Metadata.AggregatorID)
+		logger.Info("Event is not related to any known project", "event", ev.Metadata.Name, "aggregator-type", ev.Metadata.AggregatorRoot, "aggregator-id", ev.Metadata.AggregatorID)
 		return nil
 	}
 	current, err := h.DAL.load(ctx, ev.Tenant.ID, project)

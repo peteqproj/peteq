@@ -44,6 +44,7 @@ func (t *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 		}
 	}
 	return t.Repo.Create(ev.Tenant.ID, trigger.Trigger{
+		Tenant: ev.Tenant,
 		Metadata: trigger.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,

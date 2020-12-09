@@ -14,6 +14,10 @@ dependency-update:
 run:
 	./dist/peteq
 
+.PHONY: run-ui
+run-ui:
+	cd ui && yarn start-dev
+
 .PHONY: run-cron-watcher
 run-cron-watcher:
 	PORT=8082 ./dist/peteq-cron-wacher
