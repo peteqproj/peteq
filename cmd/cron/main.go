@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/config"
@@ -11,6 +13,14 @@ import (
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
+)
+
+type (
+	userTriggerPair struct {
+		user     userDomain.User
+		triggers map[string]triggerDomain.Trigger
+		cron     cron.Cron
+	}
 )
 
 func main() {
@@ -33,8 +43,6 @@ func main() {
 		DB:     db,
 		Logger: logr.Fork("repo", "user"),
 	}
-	users, err := userRepo.List(userDomain.ListOptions{})
-	utils.DieOnError(err, "Failed to load users")
 
 	triggerRepo := &triggerDomain.Repo{
 		DB:     db,
@@ -59,28 +67,63 @@ func main() {
 	utils.DieOnError(err, "Failed to start eventbus")
 	defer ebus.Stop()
 
-	logr.Info("All user loaded", "len", len(users))
-	for _, user := range users {
-		triggers, err := triggerRepo.List(triggerDomain.QueryOptions{
-			UserID: user.Metadata.ID,
-		})
-		utils.DieOnError(err, "Failed to load users triggers")
-		logr.Info("All user triggers loaded", "len", len(triggers))
-		cr := cron.New(cron.Options{
-			EventPublisher: ebus,
-			Logger:         logr.Fork("user", user.Metadata.ID),
-			UserID:         user.Metadata.ID,
-		})
-		for _, t := range triggers {
-			if t.Spec.Cron != nil {
-				logr.Info("Starting to watch", "user", user.Metadata.Email, "cron", t.Spec.Cron)
-				cr.AddFunc(t.Metadata.ID, *t.Spec.Cron)
-			}
-		}
-		go cr.Start()
-		defer cr.Stop()
-	}
+	loop(userRepo, triggerRepo, ebus, logr)
 
 	err = s.Start()
 	utils.DieOnError(err, "Failed to run server")
+}
+
+func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus eventbus.Eventbus, lgr logger.Logger) {
+	l := map[string]userTriggerPair{}
+	for {
+		select {
+		case _ = <-time.After(time.Minute * 1):
+			{
+				lgr.Info("Running loop")
+				res, err := userRepo.List(userDomain.ListOptions{})
+				if err != nil {
+					lgr.Info("Failed to load users", "error", err.Error())
+					continue
+				}
+				for _, u := range res {
+					if _, found := l[u.Metadata.ID]; found {
+						continue
+					}
+					lgr.Info("New user added", "email", u.Metadata.Email, "id", u.Metadata.ID)
+					l[u.Metadata.ID] = userTriggerPair{
+						user:     u,
+						triggers: map[string]triggerDomain.Trigger{},
+						cron: cron.New(cron.Options{
+							EventPublisher: ebus,
+							Logger:         lgr.Fork("user", u.Metadata.ID),
+							UserID:         u.Metadata.ID,
+						}),
+					}
+					go l[u.Metadata.ID].cron.Start()
+				}
+
+				for id, pair := range l {
+					res, err := triggerRepo.List(triggerDomain.QueryOptions{
+						UserID: id,
+					})
+					if err != nil {
+						lgr.Info("Failed to load user triggers", "error", err.Error(), "user", id)
+					}
+
+					for _, t := range res {
+						if _, found := l[id].triggers[t.Metadata.ID]; found {
+							continue
+						}
+						if t.Spec.Cron == nil {
+							continue
+						}
+						lgr.Info("New cron trigger added", "cron", *t.Spec.Cron, "id", t.Metadata.ID)
+						pair.triggers[t.Metadata.ID] = t
+						pair.cron.AddFunc(t.Metadata.ID, *t.Spec.Cron)
+					}
+				}
+			}
+		}
+	}
+
 }
