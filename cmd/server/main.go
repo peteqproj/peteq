@@ -7,6 +7,10 @@ import (
 
 	socketio "github.com/googollee/go-socket.io"
 
+	automationDomain "github.com/peteqproj/peteq/domain/automation"
+	automationCommands "github.com/peteqproj/peteq/domain/automation/command"
+	automationEventHandlers "github.com/peteqproj/peteq/domain/automation/event/handler"
+	automationEventTypes "github.com/peteqproj/peteq/domain/automation/event/types"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
 	listEventHandlers "github.com/peteqproj/peteq/domain/list/event/handler"
@@ -91,6 +95,10 @@ func main() {
 	projectRepo := &projectDomain.Repo{
 		DB:     db,
 		Logger: logr.Fork("repo", "project"),
+	}
+	automationRepo := &automationDomain.Repo{
+		DB:     db,
+		Logger: logr.Fork("repo", "automation"),
 	}
 
 	userRepo := &userDomain.Repo{
@@ -245,6 +253,16 @@ func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomai
 func registerTriggerEventHandlers(eventbus eventbus.Eventbus, repo *triggerDomain.Repo) {
 	// Trigger related event handlers
 	eventbus.Subscribe(triggerEventTypes.TriggerCreatedEvent, &triggerEventHandlers.CreatedHandler{
+		Repo: repo,
+	})
+}
+
+func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automationDomain.Repo) {
+	// Automation related event handlers
+	eventbus.Subscribe(automationEventTypes.AutomationCreatedEvent, &automationEventHandlers.CreatedHandler{
+		Repo: repo,
+	})
+	eventbus.Subscribe(automationEventTypes.TriggerBindingCreatedEvent, &automationEventHandlers.TriggerBindingCreatedHandler{
 		Repo: repo,
 	})
 }
