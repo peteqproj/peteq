@@ -9,5 +9,7 @@ CREATE TABLE IF NOT EXISTS repo_lists (userid text not null, listid text not nul
 CREATE TABLE IF NOT EXISTS repo_projects (userid text not null, projectid text not null PRIMARY KEY, info json NOT NULL);
 CREATE TABLE IF NOT EXISTS repo_tasks (userid text not null, taskid text not null PRIMARY KEY, info json NOT NULL);
 CREATE TABLE IF NOT EXISTS repo_triggers (userid text not null, triggerid text not null PRIMARY KEY, info json NOT NULL);
+CREATE TABLE IF NOT EXISTS repo_automations (userid text not null, automationid text not null PRIMARY KEY, info json NOT NULL);
+CREATE TABLE IF NOT EXISTS repo_trigger_bindings (userid text not null, tbid text not null, triggerid text not null PRIMARY KEY, info json NOT NULL);
 
 CREATE TABLE IF NOT EXISTS event_log (eventid text not null PRIMARY KEY, eventname text not null, userid text not null, info json NOT NULL);

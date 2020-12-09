@@ -8,4 +8,6 @@ delete from repo_lists;
 delete from repo_projects;
 delete from repo_tasks;
 delete from repo_triggers;
+delete from repo_trigger_bindings;
+delete from repo_automations;
 delete from event_log;
