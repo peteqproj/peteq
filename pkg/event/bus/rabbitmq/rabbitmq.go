@@ -25,18 +25,19 @@ const dbName = "event_log"
 type (
 	// Eventbus nats
 	Eventbus struct {
-		Logger           logger.Logger
-		Lock             *sync.Mutex
-		Handlers         map[string][]handler.EventHandler
-		Channel          *amqp.Channel
-		EventlogDB       db.Database
-		RabbitMQHost     string
-		RabbitMQPort     string
-		RabbitMQAPIPort  string
-		RabbitMQUsername string
-		RabbitMQPassword string
-		IDGenerator      utils.IDGenerator
-		WatchQueues      bool
+		Logger            logger.Logger
+		Lock              *sync.Mutex
+		Handlers          map[string][]handler.EventHandler
+		Channel           *amqp.Channel
+		EventlogDB        db.Database
+		RabbitMQHost      string
+		RabbitMQPort      string
+		RabbitMQAPIPort   string
+		RabbitMQUsername  string
+		RabbitMQPassword  string
+		IDGenerator       utils.IDGenerator
+		WatchQueues       bool
+		ExtendContextFunc func(context.Context, event.Event) context.Context
 	}
 )
 
@@ -176,7 +177,7 @@ func (e *Eventbus) Replay(ctx context.Context) error {
 }
 
 func (e *Eventbus) start() error {
-	u := fmt.Sprintf("amqp://%s:%s@%s:%s/", e.RabbitMQUsername, e.RabbitMQPassword, e.RabbitMQHost, e.RabbitMQPort)
+	u := fmt.Sprintf("amqp://%s:%s@%s:%s/ltuqedrw", e.RabbitMQUsername, e.RabbitMQPassword, e.RabbitMQHost, e.RabbitMQPort)
 	client, err := amqp.Dial(u)
 	if err != nil {
 		return err
@@ -296,7 +297,7 @@ func (e *Eventbus) watchQueue(ch <-chan amqp.Delivery, lgr logger.Logger) {
 		}
 		wg.Wait()
 		if err := e.Channel.Ack(msg.DeliveryTag, false); err != nil {
-			e.Logger.Info("Failed to ack evenet", "error", err.Error())
+			e.Logger.Info("Failed to ack event", "error", err.Error())
 		}
 	}
 }
@@ -307,7 +308,7 @@ func (e *Eventbus) deliverEvent(ctx context.Context, wg *sync.WaitGroup, ev even
 		return retry.BackOffDelay(n, err, config)
 	})
 	if err := retry.Do(func() error {
-		return handler.Handle(ctx, ev, lgr)
+		return handler.Handle(e.ExtendContextFunc(ctx, ev), ev, lgr)
 	}, retry.Delay(1*time.Second), retry.Attempts(5), delay); err != nil {
 		lgr.Info("Failed to handle event", "error", err.Error())
 	}

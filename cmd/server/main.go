@@ -103,6 +103,33 @@ func main() {
 		Logger: logr.Fork("repo", "trigger"),
 	}
 
+	ebus, err := eventbus.New(eventbus.Options{
+		Type:        "rabbitmq",
+		Logger:      logr.Fork("module", "eventbus"),
+		EventlogDB:  db,
+		WatchQueues: true,
+		RabbitMQ: eventbus.RabbitMQOptions{
+			Host:     utils.GetEnvOrDie("RABBITMQ_HOST"),
+			Port:     utils.GetEnvOrDie("RABBITMQ_PORT"),
+			APIPort:  utils.GetEnvOrDie("RABBITMQ_API_PORT"),
+			Username: utils.GetEnvOrDie("RABBITMQ_USERNAME"),
+			Password: utils.GetEnvOrDie("RABBITMQ_PASSWORD"),
+		},
+		ExtendContextFunc: func(ctx context.Context, ev event.Event) context.Context {
+			if ev.Tenant.Type != tenant.User.String() {
+				return ctx
+			}
+			user, err := userRepo.Get(ev.Tenant.ID)
+			if err != nil {
+				logr.Info("Failed extend context", "user", ev.Tenant.ID, "event", ev.Metadata.ID)
+				return ctx
+			}
+			return tenant.ContextWithUser(ctx, user)
+		},
+	})
+	utils.DieOnError(err, "Failed to connect to eventbus")
+	defer ebus.Stop()
+
 	cb := commandbus.New(commandbus.Options{
 		Type:   "local",
 		Logger: logr.Fork("module", "commandbus"),
