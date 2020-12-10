@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	listCommand "github.com/peteqproj/peteq/domain/list/command"
+	projectCommand "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/command"
 	"github.com/peteqproj/peteq/pkg/api"
@@ -37,7 +39,10 @@ type (
 	}
 
 	createTaskRequestBody struct {
-		Name string `json:"name" validate:"required"`
+		Name        string `json:"name" validate:"required"`
+		Description string `json:"description"`
+		Project     string `json:"project"`
+		List        string `json:"list"`
 	}
 )
 
@@ -57,6 +62,25 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 		Name: spec.Name,
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
+	}
+
+	if spec.Project != "" {
+		if err := c.Commandbus.Execute(ctx, "project.add-task", projectCommand.AddTasksCommandOptions{
+			Project: spec.Project,
+			TaskID:  tid,
+		}); err != nil {
+			return api.NewRejectedCommandResponse(err)
+		}
+	}
+
+	if spec.List != "" {
+		if err := c.Commandbus.Execute(ctx, "list.move-task", listCommand.MoveTaskArguments{
+			Source:      "",
+			Destination: spec.List,
+			TaskID:      tid,
+		}); err != nil {
+			return api.NewRejectedCommandResponse(err)
+		}
 	}
 	return api.NewAcceptedCommandResponse("task", tid)
 }

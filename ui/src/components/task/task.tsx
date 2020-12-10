@@ -59,7 +59,7 @@ export function Task(props: IProps) {
     const classes = useStyles()
     const [task, updateTask] = useState(props.task);
     const [projectHasSet, updateProjectHasSet] = useState(false);
-    const [project, updateProject] = useState(props.defaultProject?.id || "");
+    const [project] = useState(props.defaultProject?.id || "");
     const [listHasSet, updateListHasSet] = useState(false);
     const [selectedProject, updateSelectedProject] = useState({
         id: props.defaultProject?.id || "",
@@ -69,20 +69,16 @@ export function Task(props: IProps) {
         id: props.defaultList?.id || "",
         name: props.defaultList?.name || "",
     })
-    console.log(selectedList)
 
     const updateTaskList = async (task: string, list: string) => {
         if (listHasSet) {
             return; // was set previously, no changes
         }
-        await props.ListAPI.moveTasks(selectedList.id, list, [task])
         updateListHasSet(true);
-
     }
     return (
         <Card className={classes.root}>
-            <Paper  elevation={3} className={classes.paper}>
-
+            <Paper elevation={3} className={classes.paper}>
                 <Grid container spacing={3}>
                     <Grid item xs={1}>
                         Name:
@@ -97,13 +93,10 @@ export function Task(props: IProps) {
                                     return
                                 }
                                 clone.metadata.name = title;
-                                const t = await upsert(clone, props.TaskAPI)
-                                await updateTask(t)
+                                updateTask(clone)
                                 if (!projectHasSet && project !== "") {
-                                    await props.ProjectAPI.addTasks(project, [t.metadata.id])
                                     updateProjectHasSet(true);
                                 }
-
                                 props.onChange();
                             }}
                         />
@@ -118,14 +111,10 @@ export function Task(props: IProps) {
                             disabled={!!selectedProject.id}
                             className={classes.selection}
                             onSelectionChanged={async (ev: SelectionChangedEvent) => {
-                                if (task.metadata.id === "") {
-                                    return
-                                }
                                 const id = get(ev, 'destination.value');
                                 const name = get(ev, 'destination.title');
                                 updateSelectedProject({ id, name });
                                 updateProjectHasSet(false);
-                                await props.ProjectAPI.addTasks(id, [task.metadata.id])
                                 props.onChange();
                             }}
                             key={selectedProject.name}
@@ -141,9 +130,6 @@ export function Task(props: IProps) {
                         <Select
                             className={classes.selection}
                             onSelectionChanged={async (ev: SelectionChangedEvent) => {
-                                if (task.metadata.id === "") {
-                                    return
-                                }
                                 const id = get(ev, 'destination.value');
                                 const name = get(ev, 'destination.title');
                                 updateListHasSet(false);
@@ -155,7 +141,6 @@ export function Task(props: IProps) {
                             value={selectedList.id}
                             items={props.lists.map(l => ({ title: l.name, value: l.id }))}
                         />
-
                     </Grid>
 
 
@@ -174,26 +159,31 @@ export function Task(props: IProps) {
                                     return
                                 }
                                 clone.metadata.description = description;
-                                const t = await upsert(clone, props.TaskAPI)
-                                await updateTask(t)
                                 if (!projectHasSet && project !== "") {
-                                    await props.ProjectAPI.addTasks(project, [t.metadata.id])
                                     updateProjectHasSet(true);
                                 }
                                 props.onChange();
                             }}
                         />
                     </Grid>                      
+                    <Grid item xs={12}>
+                        <Button variant="contained" color="primary" onClick={async () => {
+                                if (task.metadata.id === "") {
+                                    const t = await props.TaskAPI.create({
+                                        name: task.metadata.name,
+                                        list: selectedList.id,
+                                        project: selectedProject.id,
+                                    });
+                                    await updateTask(t)
+                                }
+                                await props.TaskAPI.update(task);
+                                return task
+                        }} >
+                            Create
+                        </Button>
+                    </Grid>
                 </Grid>
             </Paper>
         </Card>
     )
-}
-
-async function upsert(task: TaskModal, api: TaskAPI): Promise<TaskModal> {
-    if (task.metadata.id === "") {
-        return api.create({ name: task.metadata.name });
-    }
-    await api.update(task);
-    return task
 }

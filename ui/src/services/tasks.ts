@@ -26,6 +26,8 @@ export interface TaskAPI {
 
 export interface CreateTaskRequestBody {
     name: string;
+    list?: string;
+    project?: string;
 }
 
 

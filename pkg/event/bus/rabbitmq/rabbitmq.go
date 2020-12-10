@@ -177,7 +177,7 @@ func (e *Eventbus) Replay(ctx context.Context) error {
 }
 
 func (e *Eventbus) start() error {
-	u := fmt.Sprintf("amqp://%s:%s@%s:%s/ltuqedrw", e.RabbitMQUsername, e.RabbitMQPassword, e.RabbitMQHost, e.RabbitMQPort)
+	u := fmt.Sprintf("amqp://%s:%s@%s:%s", e.RabbitMQUsername, e.RabbitMQPassword, e.RabbitMQHost, e.RabbitMQPort)
 	client, err := amqp.Dial(u)
 	if err != nil {
 		return err
