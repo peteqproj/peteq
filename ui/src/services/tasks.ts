@@ -51,6 +51,7 @@ async function create(spec: CreateTaskRequestBody): Promise<Task> {
     if (cmdResponse.reason) {
         throw new Error(`Failed to create task: ${cmdResponse.reason}`)
     }
+    await Bluebird.delay(800) // it takes some time before the task is added
     return get(cmdResponse.id)
 }
 
