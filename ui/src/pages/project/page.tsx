@@ -128,8 +128,6 @@ export function ProjectPage(props: IProps) {
                 new={true}
                 task={{ metadata: { id: '', name: '', description: '' }, spec: {}, status: { completed: false } }}
                 TaskAPI={props.TaskAPI}
-                ListAPI={props.ListAPI}
-                ProjectAPI={props.ProjectAPI}
               />
             }
           />

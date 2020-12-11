@@ -1,5 +1,6 @@
 import http from './http'
 import { CommnadResponse } from './commandResponse';
+import Bluebird from 'bluebird';
 
 
 export interface Task {

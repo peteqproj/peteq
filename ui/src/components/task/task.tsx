@@ -7,11 +7,10 @@ import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 import { Task as TaskModal, TaskAPI } from './../../services/tasks';
-import { List as ListModal, ListAPI } from './../../services/list';
-import { Project as ProjectModal, ProjectAPI } from './../../services/project';
 import { TaskTitle } from './title';
 import { TaskDescription } from './description';
 import { Select, SelectionChangedEvent } from './../select';
+import { Promise } from 'bluebird';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -38,8 +37,6 @@ const useStyles = makeStyles((theme) => ({
 interface IProps {
     task: TaskModal;
     TaskAPI: TaskAPI;
-    ListAPI: ListAPI;
-    ProjectAPI: ProjectAPI;
     projects: { name: string, id: string }[];
     lists: { name: string, id: string }[];
     defaultProject?: {
@@ -72,6 +69,7 @@ export function Task(props: IProps) {
 
     const updateTaskList = async (task: string, list: string) => {
         if (listHasSet) {
+            console.log(123)
             return; // was set previously, no changes
         }
         updateListHasSet(true);
@@ -175,11 +173,12 @@ export function Task(props: IProps) {
                                         project: selectedProject.id,
                                     });
                                     await updateTask(t)
+                                    return t
                                 }
                                 await props.TaskAPI.update(task);
                                 return task
                         }} >
-                            Create
+                            {props.new ? "Create": "Update"}
                         </Button>
                     </Grid>
                 </Grid>

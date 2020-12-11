@@ -260,8 +260,6 @@ export function HomePage(props: IProps) {
                                 new={false}
                                 task={taskModal}
                                 TaskAPI={props.TaskAPI}
-                                ListAPI={props.ListAPI}
-                                ProjectAPI={props.ProjectAPI}
                             />
                         }
                     />
