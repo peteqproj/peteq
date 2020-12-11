@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,19 +21,20 @@ type (
 
 	// TriggerRunCommandOptions options to trigger the trigger
 	TriggerRunCommandOptions struct {
-		ID string
+		ID string `json:"id"`
 	}
 )
 
 // Handle runs RunCommand to create task
 func (m *RunCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(TriggerCreateCommandOptions)
-	if !ok {
+	opt := &TriggerCreateCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to TriggerRunCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,15 +21,15 @@ type (
 
 	// CreateCommandOptions add new token to allow api calls
 	CreateCommandOptions struct {
-		ID   string
-		Name string
+		ID   string `json:"id"`
+		Name string `json:"name"`
 	}
 )
 
 // Handle runs CreateCommand to create task
 func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	t, ok := arguments.(CreateCommandOptions)
-	if !ok {
+	t := &CreateCommandOptions{}
+	if err := utils.UnmarshalInto(arguments, t); err != nil {
 		return fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
 	}
 	u := tenant.UserFromContext(ctx)

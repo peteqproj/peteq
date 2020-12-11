@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/pubsub"
 	_ "github.com/lib/pq"
+	"google.golang.org/api/option"
 
 	socketio "github.com/googollee/go-socket.io"
 
@@ -135,10 +137,27 @@ func main() {
 	utils.DieOnError(err, "Failed to connect to eventbus")
 	defer ebus.Stop()
 
+	c, err := pubsub.NewClient(context.Background(), "peteq-291604", option.WithCredentialsFile(utils.GetEnvOrDie("GOOGLE_PUBSUN_COMMAND_BUS_SA_CREDENTIALS")))
+	utils.DieOnError(err, "Failed to create Google pub-sub client")
+
 	cb := commandbus.New(commandbus.Options{
-		Type:   "local",
+		Type:                     "google",
+		GooglePubSubClient:       c,
+		GooglePubSubTopic:        utils.GetEnvOrDie("GOOGLE_PUBSUB_COMMAND_BUS_TOPIC"),
+		GooglePubSubSubscribtion: utils.GetEnvOrDie("GOOGLE_PUBSUB_COMMAND_BUS_TOPIC_SUBSCRIBTION"),
+		ExtendContextFunc: func(c context.Context, id string) context.Context {
+			user, err := userRepo.Get(id)
+			if err != nil {
+				logr.Info("Failed extend context", "user", id)
+				return c
+			}
+			return tenant.ContextWithUser(c, user)
+		},
 		Logger: logr.Fork("module", "commandbus"),
 	})
+
+	err = cb.Start()
+	utils.DieOnError(err, "Failed to start command bus")
 
 	registerUserEventHandlers(ebus, userRepo)
 	registerTaskEventHandlers(ebus, taskRepo)

@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,21 +21,22 @@ type (
 
 	// MoveTaskArguments is the arguments the command expects
 	MoveTaskArguments struct {
-		Source      string
-		Destination string
-		TaskID      string
+		Source      string `json:"source"`
+		Destination string `json:"destination"`
+		TaskID      string `json:"taskId"`
 	}
 )
 
 // Handle runs MoveTaskCommand to create task
 func (m *MoveTaskCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(MoveTaskArguments)
-	if !ok {
+	opt := &MoveTaskArguments{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to MoveTaskArguments object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

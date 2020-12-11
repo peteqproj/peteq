@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -21,18 +22,19 @@ type (
 	// AddTasksCommandOptions options to add tasks to project
 	AddTasksCommandOptions struct {
 		Project string `json:"project"`
-		TaskID  string `json:"task"`
+		TaskID  string `json:"taskId"`
 	}
 )
 
 // Handle runs AddTaskCommand to create task
 func (m *AddTaskCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(AddTasksCommandOptions)
-	if !ok {
+	opt := &AddTasksCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to AddTasksCommandOptions object")
 	}
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

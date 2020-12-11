@@ -23,7 +23,7 @@ type (
 
 // Handle will process it the event
 func (t *TaskMovedHandler) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
-	opt := TaskMovedSpec{}
+	opt := &TaskMovedSpec{}
 	err := ev.UnmarshalSpecInto(&opt)
 	if err != nil {
 		return err

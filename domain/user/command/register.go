@@ -29,16 +29,17 @@ type (
 
 	// RegisterCommandOptions to create new user
 	RegisterCommandOptions struct {
-		UserID       string
-		Email        string
-		PasswordHash string
+		UserID       string `json:"userId"`
+		Email        string `json:"email"`
+		PasswordHash string `json:"passwordHash"`
 	}
 )
 
 // Handle runs RegisterCommand to create new user
 func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(RegisterCommandOptions)
-	if !ok {
+	opt := &RegisterCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to User")
 	}
 	usr, err := r.Repo.GetByEmail(opt.Email)
@@ -67,6 +68,8 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 			PasswordHash: opt.PasswordHash,
 		},
 	})
+
+	time.Sleep(time.Second * 5)
 
 	basicLists := []string{"Upcoming", "Today", "Done"}
 	ectx := tenant.ContextWithUser(ctx, user.User{

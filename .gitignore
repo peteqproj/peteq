@@ -26,3 +26,5 @@ yarn-error.log*
 dist
 .db_backup
 .cover
+
+.credentials

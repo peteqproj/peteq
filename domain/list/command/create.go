@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,21 +21,22 @@ type (
 
 	// CreateCommandOptions is the arguments the command expects
 	CreateCommandOptions struct {
-		Name  string
-		ID    string
-		Index int
+		Name  string `json:"name"`
+		ID    string `json:"id"`
+		Index int    `json:"index"`
 	}
 )
 
 // Handle runs Create to create task
 func (m *Create) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(CreateCommandOptions)
-	if !ok {
+	opt := &CreateCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

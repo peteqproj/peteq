@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,23 +21,24 @@ type (
 
 	// AutomationCreateCommandOptions options to create automation
 	AutomationCreateCommandOptions struct {
-		ID              string
-		Name            string
-		Description     string
-		Type            string
-		JSONInputSchema string
+		ID              string `json:"id"`
+		Name            string `json:"name"`
+		Description     string `json:"description"`
+		Type            string `json:"type"`
+		JSONInputSchema string `json:"jsonInputSchema"`
 	}
 )
 
 // Handle runs CreateCommand to create task
 func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(AutomationCreateCommandOptions)
-	if !ok {
+	opt := &AutomationCreateCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to AutomationCreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

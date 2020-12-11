@@ -7,6 +7,7 @@ import (
 
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/list/command"
+	taskCommands "github.com/peteqproj/peteq/domain/task/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -73,14 +74,18 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 		}
 		if destination != nil && destination.Metadata.Name == "Done" {
 			ca.Logger.Info("Completing task", "name", t)
-			if err := ca.Commandbus.Execute(ctx, "task.complete", t); err != nil {
+			if err := ca.Commandbus.Execute(ctx, "task.complete", taskCommands.CompleteTaskArguments{
+				TaskID: t,
+			}); err != nil {
 				ca.Logger.Info("Failed to execute command task.complete", "error", err.Error())
 				return api.NewRejectedCommandResponse(fmt.Errorf("Failed to complete task %s", t))
 			}
 		}
 		if source != nil && source.Metadata.Name == "Done" {
 			ca.Logger.Info("Reopenning task", "name", t)
-			if err := ca.Commandbus.Execute(ctx, "task.reopen", t); err != nil {
+			if err := ca.Commandbus.Execute(ctx, "task.reopen", taskCommands.ReopenTaskArguments{
+				TaskID: t,
+			}); err != nil {
 				ca.Logger.Info("Failed to execute command task.reopen", "error", err.Error())
 				return api.NewRejectedCommandResponse(fmt.Errorf("Failed to reopen task %s", t))
 			}

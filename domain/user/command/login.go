@@ -11,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -22,16 +23,17 @@ type (
 
 	// LoginCommandOptions add new token to allow api calls
 	LoginCommandOptions struct {
-		HashedToken    string
-		Email          string
-		HashedPassword string
+		HashedToken    string `json:"hashedToken"`
+		Email          string `json:"email"`
+		HashedPassword string `json:"hashedPassword"`
 	}
 )
 
 // Handle runs LoginCommand to create new user
 func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(LoginCommandOptions)
-	if !ok {
+	opt := &LoginCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to LoginCommandOptions")
 	}
 	user, err := r.Repo.GetByEmail(opt.Email)

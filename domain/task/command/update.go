@@ -11,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -22,12 +23,13 @@ type (
 
 // Handle runs UpdateCommand to create task
 func (u *UpdateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	t, ok := arguments.(task.Task)
-	if !ok {
+	opt := &task.Task{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	user := tenant.UserFromContext(ctx)
-	_, err := u.Eventbus.Publish(ctx, event.Event{
+	_, err = u.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   user.Metadata.ID,
 			Type: tenant.User.String(),
@@ -36,12 +38,12 @@ func (u *UpdateCommand) Handle(ctx context.Context, arguments interface{}) error
 			Name:           types.TaskUpdatedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
-			AggregatorID:   t.Metadata.ID,
+			AggregatorID:   opt.Metadata.ID,
 		},
 		Spec: handler.UpdatedSpec{
-			ID:          t.Metadata.ID,
-			Name:        t.Metadata.Name,
-			Description: t.Metadata.Description,
+			ID:          opt.Metadata.ID,
+			Name:        opt.Metadata.Name,
+			Description: opt.Metadata.Description,
 		},
 	})
 	return err

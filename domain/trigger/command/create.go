@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,24 +21,25 @@ type (
 
 	// TriggerCreateCommandOptions options to create trigger
 	TriggerCreateCommandOptions struct {
-		ID              string
-		Name            string
-		Description     string
-		Cron            *string
-		URL             *string
-		RequiredHeaders map[string]string
+		ID              string            `json:"id"`
+		Name            string            `json:"name"`
+		Description     string            `json:"description"`
+		Cron            *string           `json:"cron"`
+		URL             *string           `json:"url"`
+		RequiredHeaders map[string]string `json:"requiredHeaders"`
 	}
 )
 
 // Handle runs CreateCommand to create task
 func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(TriggerCreateCommandOptions)
-	if !ok {
+	opt := &TriggerCreateCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to TriggerCreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

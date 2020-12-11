@@ -18,8 +18,12 @@ type (
 	}
 )
 
+// Start local do nothing
+func (c *CommandBus) Start() error {
+	return nil
+}
+
 // Execute runs command handler
-// error will be reported to the channel
 func (c *CommandBus) Execute(ctx context.Context, name string, arguments interface{}) error {
 	h, ok := c.Handlers[name]
 	if !ok {

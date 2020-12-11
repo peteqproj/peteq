@@ -10,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -20,22 +21,23 @@ type (
 
 	// TriggerBindingCreateCommandOptions options to create automation
 	TriggerBindingCreateCommandOptions struct {
-		ID         string
-		Name       string
-		Trigger    string
-		Automation string
+		ID         string `json:"id"`
+		Name       string `json:"name"`
+		Trigger    string `json:"trigger"`
+		Automation string `json:"automation"`
 	}
 )
 
 // Handle runs CreateTriggerBindingCommand to create task
 func (m *CreateTriggerBindingCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt, ok := arguments.(TriggerBindingCreateCommandOptions)
-	if !ok {
+	opt := &TriggerBindingCreateCommandOptions{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to TriggerBindingCreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
-	_, err := m.Eventbus.Publish(ctx, event.Event{
+	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),

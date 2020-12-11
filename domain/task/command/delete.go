@@ -11,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -22,12 +23,13 @@ type (
 
 // Handle runs DeleteCommand to create task
 func (c *DeleteCommand) Handle(ctx context.Context, arguments interface{}) error {
-	t, ok := arguments.(task.Task)
-	if !ok {
+	opt := &task.Task{}
+	err := utils.UnmarshalInto(arguments, opt)
+	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	u := tenant.UserFromContext(ctx)
-	_, err := c.Eventbus.Publish(ctx, event.Event{
+	_, err = c.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
 			Type: tenant.User.String(),
@@ -36,10 +38,10 @@ func (c *DeleteCommand) Handle(ctx context.Context, arguments interface{}) error
 			Name:           types.TaskDeletedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
-			AggregatorID:   t.Metadata.ID,
+			AggregatorID:   opt.Metadata.ID,
 		},
 		Spec: handler.DeletedSpec{
-			ID: t.Metadata.ID,
+			ID: opt.Metadata.ID,
 		},
 	})
 	return err
