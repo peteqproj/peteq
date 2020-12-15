@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	automationCommand "github.com/peteqproj/peteq/domain/automation/command"
-	listCommand "github.com/peteqproj/peteq/domain/list/command"
-	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/domain/user/event/handler"
 	"github.com/peteqproj/peteq/domain/user/event/types"
@@ -68,68 +65,5 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 			PasswordHash: opt.PasswordHash,
 		},
 	})
-
-	time.Sleep(time.Second * 5)
-
-	basicLists := []string{"Upcoming", "Today", "Done"}
-	ectx := tenant.ContextWithUser(ctx, user.User{
-		Metadata: user.Metadata{
-			Email: opt.Email,
-			ID:    opt.UserID,
-		},
-	})
-	for i, l := range basicLists {
-		id, err := r.IDGenerator.GenerateV4()
-		if err != nil {
-			return err
-		}
-		if err := r.Commandbus.Execute(ectx, "list.create", listCommand.CreateCommandOptions{
-			Name:  l,
-			ID:    id,
-			Index: i,
-		}); err != nil {
-			return err
-		}
-	}
-
-	tid, err := r.IDGenerator.GenerateV4()
-	if err != nil {
-		return err
-	}
-	if err := r.Commandbus.Execute(ectx, "trigger.create", triggerCommand.TriggerCreateCommandOptions{
-		ID:          tid,
-		Name:        "Task Archiver",
-		Description: "Runs at 00:00 every day",
-		Cron:        utils.PtrString("0 00 * * 0-4"), // “At 00:00 on every day-of-week from Sunday through Thursday.”
-	}); err != nil {
-		return err
-	}
-
-	tid2, err := r.IDGenerator.GenerateV4()
-	if err != nil {
-		return err
-	}
-	if err := r.Commandbus.Execute(ectx, "automation.create", automationCommand.AutomationCreateCommandOptions{
-		ID:              tid2,
-		Name:            "Task Archiver",
-		Description:     "Archive tasks in Done list",
-		Type:            "task-archiver",
-		JSONInputSchema: "",
-	}); err != nil {
-		return err
-	}
-
-	tid3, err := r.IDGenerator.GenerateV4()
-	if err != nil {
-		return err
-	}
-	if err := r.Commandbus.Execute(ectx, "automation.bindTrigger", automationCommand.TriggerBindingCreateCommandOptions{
-		ID:         tid3,
-		Name:       fmt.Sprintf("Bind Trigger \"%s\" to Automation \"%s\" ", "Task Archiver", "Task Archiver"),
-		Automation: tid2,
-		Trigger:    tid,
-	}); err != nil {
-		return err
-	}
 	return err
 }

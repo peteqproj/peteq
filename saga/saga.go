@@ -8,10 +8,13 @@ import (
 	projectDomain "github.com/peteqproj/peteq/domain/project"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
+	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
+	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -35,19 +38,37 @@ type (
 
 func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
 	logger.Info("Handling saga event", "event", ev.Metadata.Name, "id", ev.Metadata.ID)
-	tb, err := e.AutomationRepo.GetTriggerBindingByTriggerID(ev.Tenant.ID, ev.Metadata.AggregatorID)
-	if err != nil {
-		return err
+
+	switch ev.Metadata.Name {
+	case userEventTypes.UserRegistredEvent:
+		{
+			return (&registrator{
+				Commandbus:  e.CommandBus,
+				ListRepo:    e.ListRepo,
+				UserRepo:    e.UserRepo,
+				Logger:      logger,
+				IDGenerator: utils.NewGenerator(),
+			}).Run(ctx)
+		}
+	case triggerEventTypes.TriggerTriggeredEvent:
+		{
+			tb, err := e.AutomationRepo.GetTriggerBindingByTriggerID(ev.Tenant.ID, ev.Metadata.AggregatorID)
+			if err != nil {
+				return err
+			}
+			a, err := e.AutomationRepo.Get(ev.Tenant.ID, tb.Spec.Automation)
+			if err != nil {
+				return err
+			}
+			switch a.Spec.Type {
+			case "task-archiver":
+				return newTaskArchiver(e.CommandBus, e.TaskRepo, e.ListRepo, logger, ev.Tenant.ID).Run(ctx)
+			}
+			logger.Info("Spec does not match to any known saga process", "type", a.Spec.Type)
+		}
 	}
-	a, err := e.AutomationRepo.Get(ev.Tenant.ID, tb.Spec.Automation)
-	if err != nil {
-		return err
-	}
-	switch a.Spec.Type {
-	case "task-archiver":
-		return newTaskArchiver(e.CommandBus, e.TaskRepo, e.ListRepo, logger, ev.Tenant.ID).Run(ctx)
-	}
-	logger.Info("Spec does not match to any known saga process", "type", a.Spec.Type)
+
+	logger.Info("Event does not match to any known saga process", "event", ev.Metadata.Name)
 	return nil
 
 }

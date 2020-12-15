@@ -357,4 +357,5 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbu
 
 func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
 	eventbus.Subscribe(triggerEventTypes.TriggerTriggeredEvent, eh)
+	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
 }
