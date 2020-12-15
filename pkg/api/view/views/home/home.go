@@ -3,6 +3,7 @@ package home
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
@@ -218,6 +219,9 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 			Project: taskProject,
 		})
 	}
+	sort.Slice(view.Lists, func(i, j int) bool {
+		return view.Lists[i].Metadata.Index < view.Lists[j].Metadata.Index
+	})
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskUpdated(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
