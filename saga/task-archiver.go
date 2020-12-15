@@ -13,8 +13,8 @@ import (
 type (
 	archiver struct {
 		Commandbus commandbus.CommandBus
-		TaskRepo   taskDomain.Repo
-		ListRepo   listDomain.Repo
+		TaskRepo   *taskDomain.Repo
+		ListRepo   *listDomain.Repo
 		Logger     logger.Logger
 		User       string
 	}

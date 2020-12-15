@@ -57,8 +57,8 @@ func (e *EventHandler) Name() string {
 func newTaskArchiver(cb commandbus.CommandBus, taskRepo *taskDomain.Repo, listRepo *listDomain.Repo, lgr logger.Logger, user string) Saga {
 	return &archiver{
 		Commandbus: cb,
-		TaskRepo:   *taskRepo,
-		ListRepo:   *listRepo,
+		TaskRepo:   taskRepo,
+		ListRepo:   listRepo,
 		Logger:     lgr,
 		User:       user,
 	}
