@@ -16,7 +16,7 @@ type (
 		TaskRepo   *taskDomain.Repo
 		ListRepo   *listDomain.Repo
 		Logger     logger.Logger
-		User       string
+		User       string // TODO: use from context tenant
 	}
 )
 

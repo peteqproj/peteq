@@ -3,19 +3,17 @@ package list
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/imdario/mergo"
 	"github.com/peteqproj/peteq/pkg/db"
+	"github.com/peteqproj/peteq/pkg/errors"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
 
 const dbName = "repo_lists"
-
-var errNotFound = errors.New("List not found")
 
 type (
 	// Repo is list repository
@@ -43,9 +41,26 @@ func (r *Repo) Get(userID string, id string) (List, error) {
 		return List{}, err
 	}
 	if len(lists) == 0 {
-		return List{}, errNotFound
+		return List{}, errors.NewNotFoundError("List", id)
 	}
 	return lists[0], nil
+}
+
+// GetListByName returns list given list name
+func (r *Repo) GetListByName(userID string, name string) (List, error) {
+	lists, err := r.List(QueryOptions{
+		UserID: userID,
+	})
+	if err != nil {
+		return List{}, err
+	}
+	for _, l := range lists {
+		if l.Metadata.Name == name {
+			return l, nil
+		}
+	}
+	return List{}, errors.NewNotFoundError("List", name)
+
 }
 
 // Create will save new task into db

@@ -5,11 +5,10 @@ import (
 	"fmt"
 
 	automationCommand "github.com/peteqproj/peteq/domain/automation/command"
-	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
-	userDomain "github.com/peteqproj/peteq/domain/user"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
+	"github.com/peteqproj/peteq/pkg/errors"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
@@ -18,10 +17,9 @@ import (
 type (
 	registrator struct {
 		Commandbus  commandbus.CommandBus
-		ListRepo    *listDomain.Repo
-		UserRepo    *userDomain.Repo
 		Logger      logger.Logger
 		IDGenerator utils.IDGenerator
+		ListRepo    ListRepo
 	}
 )
 
@@ -29,32 +27,38 @@ func (a *registrator) Run(ctx context.Context) error {
 	a.Logger.Info("Running user registrator")
 	user := tenant.UserFromContext(ctx)
 	if user == nil {
-		return fmt.Errorf("Failed to register user. Saga context does not include user")
+		return fmt.Errorf("Authentication Error: user not found in context")
 	}
 	if err := a.createBasicLists(ctx); err != nil {
-		return fmt.Errorf("Failed to create basic lists: %w", err)
+		return err
 	}
 
 	if err := a.createBasicTriggerAndAutomation(ctx); err != nil {
-		return fmt.Errorf("Failed to create basic trigger or automation: %w", err)
+		return err
 	}
 	return nil
 }
 
 func (a *registrator) createBasicLists(ctx context.Context) error {
-	// TODO: check if those lists already exists
 	basicLists := []string{"Upcoming", "Today", "Done"}
 	for i, l := range basicLists {
+		list, err := a.ListRepo.GetListByName(tenant.UserFromContext(ctx).Metadata.ID, l)
+
+		var e errors.NotFoundError
+		if err != nil && !errors.As(err, &e) {
+			return err
+		}
+
 		id, err := a.IDGenerator.GenerateV4()
 		if err != nil {
 			return err
 		}
 		if err := a.Commandbus.Execute(ctx, "list.create", listCommand.CreateCommandOptions{
-			Name:  l,
+			Name:  list.Metadata.Name,
 			ID:    id,
 			Index: i,
 		}); err != nil {
-			return err
+			return fmt.Errorf("Failed to create list %s: %w", l, err)
 		}
 	}
 	return nil
@@ -72,7 +76,7 @@ func (a *registrator) createBasicTriggerAndAutomation(ctx context.Context) error
 		Description: "Runs at 00:00 every day",
 		Cron:        utils.PtrString("0 00 * * 0-4"), // “At 00:00 on every day-of-week from Sunday through Thursday.”
 	}); err != nil {
-		return err
+		return fmt.Errorf("Failed to create trigger Task Archiver: %w", err)
 	}
 
 	tid2, err := a.IDGenerator.GenerateV4()
@@ -86,7 +90,7 @@ func (a *registrator) createBasicTriggerAndAutomation(ctx context.Context) error
 		Type:            "task-archiver",
 		JSONInputSchema: "",
 	}); err != nil {
-		return err
+		return fmt.Errorf("Failed to create automation Task Archiver: %w", err)
 	}
 
 	tid3, err := a.IDGenerator.GenerateV4()
@@ -99,7 +103,7 @@ func (a *registrator) createBasicTriggerAndAutomation(ctx context.Context) error
 		Automation: tid2,
 		Trigger:    tid,
 	}); err != nil {
-		return err
+		return fmt.Errorf("Failed to automation-trigger-binding for Task Archiver trigger: %w", err)
 	}
 	return nil
 }

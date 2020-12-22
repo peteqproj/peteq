@@ -44,8 +44,6 @@ func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger
 		{
 			return (&registrator{
 				Commandbus:  e.CommandBus,
-				ListRepo:    e.ListRepo,
-				UserRepo:    e.UserRepo,
 				Logger:      logger,
 				IDGenerator: utils.NewGenerator(),
 			}).Run(ctx)

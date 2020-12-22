@@ -69,7 +69,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 				},
 			},
 			want: api.NewRejectedCommandResponse(
-				fmt.Errorf("Source list: List not found"),
+				fmt.Errorf("Source list: Resource List with ID not-found was not found"),
 			),
 		},
 		{
@@ -113,7 +113,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 				},
 			},
 			want: api.NewRejectedCommandResponse(
-				fmt.Errorf("Destination list: List not found"),
+				fmt.Errorf("Destination list: Resource List with ID not-found was not found"),
 			),
 		},
 		{
