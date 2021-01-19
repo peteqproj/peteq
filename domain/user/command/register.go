@@ -48,7 +48,13 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 	if usr != nil {
 		return fmt.Errorf("Email already registred")
 	}
-	_, err = r.Eventbus.Publish(ctx, event.Event{
+	ectx := tenant.ContextWithUser(ctx, user.User{
+		Metadata: user.Metadata{
+			ID:    opt.UserID,
+			Email: opt.Email,
+		},
+	})
+	_, err = r.Eventbus.Publish(ectx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
 			Type: tenant.User.String(),

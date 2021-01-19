@@ -60,7 +60,7 @@ func (b *Bus) Start() error {
 				b.Logger.Info("UserID is not set", "handler", name)
 			}
 			if err := h.Handle(b.ExtendContextFunc(ctx, uid), string(msg.Data)); err != nil {
-				b.Logger.Info("Failed to handler command", "handler", name, "error", err.Error())
+				b.Logger.Info("Failed to handle command", "handler", name, "error", err.Error())
 			}
 		})
 		if err != nil {

@@ -28,3 +28,7 @@ dist
 .cover
 
 .credentials
+.envrc
+.env
+
+ui/build

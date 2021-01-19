@@ -48,7 +48,8 @@ func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error 
 		return fmt.Errorf("Invalid credentials")
 	}
 
-	_, err = r.Eventbus.Publish(ctx, event.Event{
+	ectx := tenant.ContextWithUser(ctx, *user)
+	_, err = r.Eventbus.Publish(ectx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   user.Metadata.ID,
 			Type: tenant.User.String(),

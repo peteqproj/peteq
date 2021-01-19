@@ -1,14 +1,7 @@
 package main
 
 import (
-	"context"
-	"fmt"
-
-	"cloud.google.com/go/pubsub"
 	_ "github.com/lib/pq"
-	"google.golang.org/api/option"
-
-	socketio "github.com/googollee/go-socket.io"
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	automationCommands "github.com/peteqproj/peteq/domain/automation/command"
@@ -33,16 +26,15 @@ import (
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
 	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
+	"github.com/peteqproj/peteq/internal"
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
-	"github.com/peteqproj/peteq/pkg/event"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
-	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
 
@@ -61,18 +53,11 @@ type (
 func main() {
 	logr := logger.New(logger.Options{})
 	cnf := &config.Server{
-		Port:                 utils.GetEnvOrDie("PORT"),
-		EncryptionPassphrase: "local",
+		Port: utils.GetEnvOrDie("PORT"),
 	}
 	s := server.New(server.Options{
 		Config: cnf,
 	})
-	wsserver, err := socketio.NewServer(nil)
-	defer wsserver.Close()
-	utils.DieOnError(err, "Failed to create WS server")
-	handlerWSEvents(wsserver)
-	err = s.AddWS(wsserver)
-	utils.DieOnError(err, "Failed to attach WS server")
 
 	pg, err := postgres.Connect(utils.GetEnvOrDie("POSTGRES_URL"))
 	defer pg.Close()
@@ -110,54 +95,12 @@ func main() {
 		Logger: logr.Fork("repo", "trigger"),
 	}
 
-	ebus, err := eventbus.New(eventbus.Options{
-		Type:        "rabbitmq",
-		Logger:      logr.Fork("module", "eventbus"),
-		EventlogDB:  db,
-		WatchQueues: true,
-		RabbitMQ: eventbus.RabbitMQOptions{
-			Host:     utils.GetEnvOrDie("RABBITMQ_HOST"),
-			Port:     utils.GetEnvOrDie("RABBITMQ_PORT"),
-			APIPort:  utils.GetEnvOrDie("RABBITMQ_API_PORT"),
-			Username: utils.GetEnvOrDie("RABBITMQ_USERNAME"),
-			Password: utils.GetEnvOrDie("RABBITMQ_PASSWORD"),
-		},
-		ExtendContextFunc: func(ctx context.Context, ev event.Event) context.Context {
-			if ev.Tenant.Type != tenant.User.String() {
-				return ctx
-			}
-			user, err := userRepo.Get(ev.Tenant.ID)
-			if err != nil {
-				logr.Info("Failed extend context", "user", ev.Tenant.ID, "event", ev.Metadata.ID)
-				return ctx
-			}
-			return tenant.ContextWithUser(ctx, user)
-		},
-	})
-	utils.DieOnError(err, "Failed to connect to eventbus")
+	ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, logr.Fork("module", "eventbus"))
 	defer ebus.Stop()
-
-	c, err := pubsub.NewClient(context.Background(), "peteq-291604", option.WithCredentialsFile(utils.GetEnvOrDie("GOOGLE_PUBSUN_COMMAND_BUS_SA_CREDENTIALS")))
-	utils.DieOnError(err, "Failed to create Google pub-sub client")
-
-	cb := commandbus.New(commandbus.Options{
-		Type:                     "google",
-		GooglePubSubClient:       c,
-		GooglePubSubTopic:        utils.GetEnvOrDie("GOOGLE_PUBSUB_COMMAND_BUS_TOPIC"),
-		GooglePubSubSubscribtion: utils.GetEnvOrDie("GOOGLE_PUBSUB_COMMAND_BUS_TOPIC_SUBSCRIBTION"),
-		ExtendContextFunc: func(c context.Context, id string) context.Context {
-			user, err := userRepo.Get(id)
-			if err != nil {
-				logr.Info("Failed extend context", "user", id)
-				return c
-			}
-			return tenant.ContextWithUser(c, user)
-		},
-		Logger: logr.Fork("module", "commandbus"),
-	})
-
+	logr.Info("Eventbus connected")
+	cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 	err = cb.Start()
-	utils.DieOnError(err, "Failed to start command bus")
+	logr.Info("Commandbus connected")
 
 	registerUserEventHandlers(ebus, userRepo)
 	registerTaskEventHandlers(ebus, taskRepo)
@@ -188,7 +131,6 @@ func main() {
 		Eventbus:    ebus,
 		Logger:      logr,
 	}
-
 	s.AddResource(apiBuilder.BuildCommandAPI())
 	s.AddResource(apiBuilder.BuildViewAPI())
 	s.AddResource(apiBuilder.BuildRestfulAPI())
@@ -196,36 +138,6 @@ func main() {
 	utils.DieOnError(err, "Failed to start eventbus")
 	err = s.Start()
 	utils.DieOnError(err, "Failed to run server")
-}
-
-func handlerWSEvents(server *socketio.Server) {
-	server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
-		fmt.Println("connected:", s.ID())
-		return nil
-	})
-	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
-		fmt.Println(msg)
-		s.Emit("reply", "have "+msg)
-	})
-	server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
-		s.SetContext(msg)
-		return "recv " + msg
-	})
-	server.OnEvent("/", "bye", func(s socketio.Conn) string {
-		last := s.Context().(string)
-		s.Emit("bye", last)
-		s.Close()
-		return last
-	})
-	server.OnError("/", func(s socketio.Conn, e error) {
-		fmt.Println("meet error:", e)
-	})
-	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
-		fmt.Println("closed", msg)
-	})
-
-	go server.Serve()
 }
 
 func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *taskDomain.Repo) {

@@ -22,36 +22,35 @@ type (
 
 	// Options to build commandbus
 	Options struct {
-		Type                     string
-		Logger                   logger.Logger
-		ExtendContextFunc        func(context.Context, string) context.Context
-		GooglePubSubClient       *pubsub.Client
-		GooglePubSubTopic        string
-		GooglePubSubSubscribtion string
+		Logger            logger.Logger
+		ExtendContextFunc func(context.Context, string) context.Context
+		GoogleOptions     *GoogleCommandBusOptions
+	}
+
+	GoogleCommandBusOptions struct {
+		PubSubClient       *pubsub.Client
+		PubSubTopic        string
+		PubSubSubscribtion string
 	}
 )
 
 // New builds commandbus from options
 func New(options Options) CommandBus {
-	if options.Type == "local" {
-		return &local.CommandBus{
-			Handlers: map[string]handler.CommandHandler{},
-			Lock:     &sync.Mutex{},
-			Logger:   options.Logger,
-		}
-	}
-
-	if options.Type == "google" {
+	if options.GoogleOptions != nil {
 		return &google.Bus{
 			Handlers:          map[string]handler.CommandHandler{},
 			Lock:              &sync.Mutex{},
 			Logger:            options.Logger,
-			Ps:                options.GooglePubSubClient,
-			Topic:             options.GooglePubSubTopic,
-			Subscribtion:      options.GooglePubSubSubscribtion,
+			Ps:                options.GoogleOptions.PubSubClient,
+			Topic:             options.GoogleOptions.PubSubTopic,
+			Subscribtion:      options.GoogleOptions.PubSubSubscribtion,
 			IDGenerator:       utils.NewGenerator(),
 			ExtendContextFunc: options.ExtendContextFunc,
 		}
 	}
-	return nil
+	return &local.CommandBus{
+		Handlers: map[string]handler.CommandHandler{},
+		Lock:     &sync.Mutex{},
+		Logger:   options.Logger,
+	}
 }

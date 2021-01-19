@@ -5,11 +5,12 @@ import (
 	"errors"
 	"sync"
 
-	socketio "github.com/googollee/go-socket.io"
-	"github.com/peteqproj/peteq/pkg/db"
+	"cloud.google.com/go/pubsub"
 	"github.com/peteqproj/peteq/pkg/event"
+	"github.com/peteqproj/peteq/pkg/event/bus/google"
 	"github.com/peteqproj/peteq/pkg/event/bus/rabbitmq"
 	"github.com/peteqproj/peteq/pkg/event/handler"
+	"github.com/peteqproj/peteq/pkg/event/storage"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
@@ -34,22 +35,25 @@ type (
 
 	// Options to create eventbus
 	Options struct {
-		Type              string
-		WS                *socketio.Server
 		Logger            logger.Logger
-		EventlogDB        db.Database
-		RabbitMQ          RabbitMQOptions
-		WatchQueues       bool
+		RabbitMQ          *RabbitMQOptions
+		GooglePubSub      *GooglePubSubOptions
 		ExtendContextFunc func(context.Context, event.Event) context.Context
+		EventStorage      *storage.Storage
 	}
 
 	// RabbitMQOptions to initiate rabbitmq
 	RabbitMQOptions struct {
-		Host     string
-		Port     string
-		APIPort  string
-		Username string
-		Password string
+		Host        string
+		Port        string
+		APIPort     string
+		Username    string
+		Password    string
+		WatchQueues bool
+	}
+	// GooglePubSubOptions to initiate Google pubsub
+	GooglePubSubOptions struct {
+		Client *pubsub.Client
 	}
 
 	// ReplayOptions options to replay events
@@ -61,20 +65,32 @@ type (
 // New is factory for eventbus
 func New(options Options) (Eventbus, error) {
 
-	if options.Type == "rabbitmq" {
+	if options.RabbitMQ != nil {
 		return &rabbitmq.Eventbus{
 			Lock:              &sync.Mutex{},
 			Logger:            options.Logger,
 			Handlers:          map[string][]handler.EventHandler{},
-			EventlogDB:        options.EventlogDB,
 			RabbitMQHost:      options.RabbitMQ.Host,
 			RabbitMQPassword:  options.RabbitMQ.Password,
 			RabbitMQUsername:  options.RabbitMQ.Username,
 			RabbitMQPort:      options.RabbitMQ.Port,
 			RabbitMQAPIPort:   options.RabbitMQ.APIPort,
 			IDGenerator:       utils.NewGenerator(),
-			WatchQueues:       options.WatchQueues,
+			WatchQueues:       options.RabbitMQ.WatchQueues,
 			ExtendContextFunc: options.ExtendContextFunc,
+			EventStorage:      options.EventStorage,
+		}, nil
+	}
+
+	if options.GooglePubSub != nil {
+		return &google.Eventbus{
+			Logger:            options.Logger,
+			ExtendContextFunc: options.ExtendContextFunc,
+			IDGenerator:       utils.NewGenerator(),
+			Ps:                options.GooglePubSub.Client,
+			EventStorage:      options.EventStorage,
+			Lock:              &sync.Mutex{},
+			Handlers:          map[string][]handler.EventHandler{},
 		}, nil
 	}
 

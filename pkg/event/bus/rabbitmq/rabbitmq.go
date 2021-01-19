@@ -5,14 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
 	retry "github.com/avast/retry-go"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -29,7 +25,6 @@ type (
 		Lock              *sync.Mutex
 		Handlers          map[string][]handler.EventHandler
 		Channel           *amqp.Channel
-		EventlogDB        db.Database
 		RabbitMQHost      string
 		RabbitMQPort      string
 		RabbitMQAPIPort   string
@@ -37,7 +32,11 @@ type (
 		RabbitMQPassword  string
 		IDGenerator       utils.IDGenerator
 		WatchQueues       bool
+		EventStorage      EventStorage
 		ExtendContextFunc func(context.Context, event.Event) context.Context
+	}
+	EventStorage interface {
+		Persist(context.Context, event.Event) error
 	}
 )
 
@@ -54,7 +53,7 @@ func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) 
 	}
 	ev.Metadata.ID = id
 	bytes, err := json.Marshal(ev)
-	if err := e.persistEvent(context.Background(), ev.Tenant.ID, id, ev.Metadata.Name, string(bytes)); err != nil {
+	if err := e.EventStorage.Persist(ctx, ev); err != nil {
 		e.Logger.Info("Failed to persist event", "error", err.Error())
 		return "", err
 	}
@@ -102,78 +101,7 @@ func (e *Eventbus) Stop() {
 }
 
 func (e *Eventbus) Replay(ctx context.Context) error {
-	e.Logger.Info("Replaying")
-	err := e.start()
-	if err != nil {
-		return err
-	}
-	user := ctx.Value("UserID")
-	if user == nil {
-		return fmt.Errorf("UserID was not passed in contxt")
-	}
-	ex := exp.Ex{
-		"userid": user.(string),
-	}
-	q, _, err := goqu.
-		From(dbName).
-		Where(ex).
-		ToSQL()
-	if err != nil {
-		return err
-	}
-	rows, err := e.EventlogDB.QueryContext(ctx, q)
-	if err != nil {
-		return err
-	}
-	set := []event.Event{}
-	for rows.Next() {
-		id := ""
-		name := ""
-		user := ""
-		ev := ""
-		if err := rows.Scan(&id, &name, &user, &ev); err != nil {
-			return err
-		}
-		event := event.Event{}
-		if err := json.Unmarshal([]byte(ev), &event); err != nil {
-			return err
-		}
-		set = append(set, event)
-	}
-	if len(set) == 0 {
-		e.Logger.Info("No events were found")
-		return nil
-	}
-	key := fmt.Sprintf("replay-%s", e.getKey(set[0]))
-	if err := e.ensureQueue(key, true); err != nil {
-		return fmt.Errorf("Failed to ensure queue: %w", err)
-	}
-	for _, ev := range set {
-		e.Logger.Info("Processing event", "name", ev.Metadata.Name)
-		data, err := json.Marshal(ev)
-		if err != nil {
-			return err
-		}
-		if err := e.publish(ev.Metadata.Name, key, data); err != nil {
-			return err
-		}
-	}
-	for {
-		queue, err := e.Channel.QueueInspect(key)
-		if err != nil {
-			return err
-		}
-		if queue.Messages != 0 {
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		e.Logger.Info("No messages in queue, deleting")
-		_, err = e.Channel.QueueDelete(key, false, true, false)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
+	return nil
 }
 
 func (e *Eventbus) start() error {
@@ -204,22 +132,6 @@ func (e *Eventbus) publish(name string, key string, data []byte) error {
 
 func (e *Eventbus) getKey(ev event.Event) string {
 	return fmt.Sprintf("user-%s", ev.Tenant.ID)
-}
-
-func (e *Eventbus) persistEvent(ctx context.Context, user string, id string, name string, data string) error {
-	q, _, err := goqu.
-		Insert(dbName).
-		Cols("eventid", "eventname", "userid", "info").
-		Vals(goqu.Vals{id, name, user, data}).
-		ToSQL()
-	if err != nil {
-		return err
-	}
-	_, err = e.EventlogDB.ExecContext(ctx, q)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (e *Eventbus) queueList() map[string]bool {
@@ -256,9 +168,6 @@ func (e *Eventbus) watchQueues() {
 			if _, ok := knownQueues[name]; !ok {
 				e.Logger.Info("Queue added, starting to watch", "name", name)
 				replayQueue := false
-				if strings.HasPrefix(name, "replay") {
-					replayQueue = true
-				}
 				msgs, err := e.Channel.Consume(name, "", false, replayQueue, false, false, nil)
 				if err != nil {
 					e.Logger.Info("Failed to Consume", "error", err.Error())

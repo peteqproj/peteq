@@ -8,7 +8,6 @@ import (
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
-	"github.com/peteqproj/peteq/pkg/errors"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
@@ -42,19 +41,12 @@ func (a *registrator) Run(ctx context.Context) error {
 func (a *registrator) createBasicLists(ctx context.Context) error {
 	basicLists := []string{"Upcoming", "Today", "Done"}
 	for i, l := range basicLists {
-		list, err := a.ListRepo.GetListByName(tenant.UserFromContext(ctx).Metadata.ID, l)
-
-		var e errors.NotFoundError
-		if err != nil && !errors.As(err, &e) {
-			return err
-		}
-
 		id, err := a.IDGenerator.GenerateV4()
 		if err != nil {
 			return err
 		}
 		if err := a.Commandbus.Execute(ctx, "list.create", listCommand.CreateCommandOptions{
-			Name:  list.Metadata.Name,
+			Name:  l,
 			ID:    id,
 			Index: i,
 		}); err != nil {
