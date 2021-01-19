@@ -6,7 +6,6 @@ Peteq is a note.
 Peteq focuses on the individual, rather on team, company or organization.
 
 ## Roadmap
-* Database...
 * User Management
 * Better UI
 * Integrations:
