@@ -85,7 +85,7 @@ func (e *Eventbus) Subscribe(name string, h handler.EventHandler) {
 }
 
 func (e *Eventbus) Start() error {
-	go e.watchSubscripsions()
+	go e.watchSubscriptions()
 	return nil
 }
 
@@ -98,15 +98,15 @@ func (e *Eventbus) Replay(ctx context.Context) error {
 func (e *Eventbus) getTopic(ev event.Event) string {
 	return fmt.Sprintf("user-%s", ev.Tenant.ID)
 }
-func (e *Eventbus) watchSubscripsions() {
+func (e *Eventbus) watchSubscriptions() {
 	knownSubscriptions := map[string]bool{}
 	for {
-		e.Logger.Info("Listing all subscripsions")
+		e.Logger.Info("Listing all subscriptions")
 		it := e.Ps.Subscriptions(context.Background())
 		for {
 			s, err := it.Next()
 			if err == iterator.Done {
-				e.Logger.Info("No more subscripsions found")
+				e.Logger.Info("No more subscriptions found")
 				break
 			}
 			if err != nil {
@@ -117,7 +117,7 @@ func (e *Eventbus) watchSubscripsions() {
 				knownSubscriptions[s.ID()] = true
 				if strings.HasPrefix(s.ID(), "user") {
 					e.Logger.Info("Starting to watch suscripsion", "name", s.ID())
-					go e.watchSubscripsion(s)
+					go e.watchSubscription(s)
 				}
 			}
 		}
@@ -157,7 +157,7 @@ func (e *Eventbus) createSubscriptionIfNotExists(name string, topic *pubsub.Topi
 	return nil
 }
 
-func (e *Eventbus) watchSubscripsion(sub *pubsub.Subscription) {
+func (e *Eventbus) watchSubscription(sub *pubsub.Subscription) {
 	err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
 		msg.Ack()
 		e.Logger.Info("Received message", "msg", string(msg.Data))
