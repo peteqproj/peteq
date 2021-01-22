@@ -35,7 +35,7 @@ func (c *CommandBus) Execute(ctx context.Context, name string, arguments interfa
 	if err != nil {
 		return err
 	}
-	return h.Handle(ctx, data)
+	return h.Handle(ctx, string(data))
 }
 
 // RegisterHandler registers new command handler
