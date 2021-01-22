@@ -2,6 +2,7 @@ package local
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -30,7 +31,11 @@ func (c *CommandBus) Execute(ctx context.Context, name string, arguments interfa
 		return fmt.Errorf("Handler not found")
 	}
 	c.Logger.Info("Calling command handler", "name", name)
-	return h.Handle(ctx, arguments)
+	data, err := json.Marshal(arguments)
+	if err != nil {
+		return err
+	}
+	return h.Handle(ctx, data)
 }
 
 // RegisterHandler registers new command handler
