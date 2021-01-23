@@ -11,6 +11,7 @@ const memory = {
 };
 
 async function start() {
+    setTimeout(() => process.exit(1), 60000);
     const email = process.env.EMAIL || 'demo@peteq.io';
     const password = process.env.password || 'demo';
     const url = process.env.URL || 'http://localhost'
@@ -20,7 +21,7 @@ async function start() {
     console.log('Registration request approved, waiting to be completed');
     for (let index = 0; index < 10; index++) {
         try {
-            console.log(`Loggin attemp #${index}`);
+            console.log(`Loggin attempt #${index}`);
             token = await login({url, email, password});
             break;
         } catch(err) {
@@ -31,22 +32,28 @@ async function start() {
     await getLists({url, token})
     const s = new Chance();
     try {
-
         for (let index = 0; index < s.integer({min: 3, max: 7}); index++) {
-        const project = generateProject(s);
-        console.log(`Generating project: ${project.name}`);
-        const pid = await createProject({url, token, project });
-        memory.projects.push(pid);
+            const project = generateProject(s);
+            console.log(`Generating project: ${project.name}`);
+            const pid = await createProject({url, token, project });
+            memory.projects.push(pid);
         }
     } catch(err) {
         console.log(`Failed to create project: ${err.message}`);
+        process.exit(1);
     }
-    
-    for (let index = 0; index < s.integer({ min: 50, max: 80 }); index++ ) {
-        const task = generateTask(s);
-        console.log(`Generating Task: ${task.name}`);
-        await createTask({url, token, task})
+
+    try {
+        for (let index = 0; index < s.integer({ min: 50, max: 80 }); index++ ) {
+            const task = generateTask(s);
+            console.log(`Generating Task: ${task.name}`);
+            await createTask({url, token, task})
+        }
+    } catch(err) {
+        console.log(`Failed to create task: ${err.message}`);
+        process.exit(1);
     }
+    process.exit(0);
 }
 
 async function getLists({ url, token }) {
@@ -64,15 +71,25 @@ async function getLists({ url, token }) {
     })
 }
 
-async function register({url, email, password}) {
-    await axios({
-        url: `${url}/c/user/register`,
-        method: 'POST',
-        data: {
-            email,
-            password
+async function register({url, email, password, attempt = 0}) {
+    try {
+        if (attempt !== 0) {
+            console.log(`Registration attemptt #${attempt+1}`);
         }
-    })
+        await axios({
+            url: `${url}/c/user/register`,
+            method: 'POST',
+            data: {
+                email,
+                password
+            }
+        })
+    } catch (err) {
+        console.log(err.message);
+        await Bluebird.delay(3000);
+        await register({url, email, password, attempt: attempt + 1 });
+    }
+    
 }
 
 async function login({url, email, password}) {

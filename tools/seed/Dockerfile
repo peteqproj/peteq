@@ -6,6 +6,8 @@ COPY package.json yarn.lock /app/
 
 RUN yarn --prod
 
+COPY . .
+
 CMD ["node", "index.js"]
 
 
