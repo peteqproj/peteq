@@ -12,7 +12,7 @@ require (
 	github.com/go-logr/logr v0.2.1
 	github.com/go-logr/zapr v0.2.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-playground/validator/v10 v10.3.0
+	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/googollee/go-socket.io v1.4.4
