@@ -20,9 +20,10 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/robfig/cron/v3 v3.0.0
+	github.com/spf13/cobra v1.0.0
+	github.com/spf13/viper v1.7.0
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.6.1
-	github.com/vektra/mockery/v2 v2.4.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11 // indirect

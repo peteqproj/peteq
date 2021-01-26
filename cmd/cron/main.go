@@ -5,6 +5,7 @@ import (
 
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
+	"github.com/peteqproj/peteq/internal"
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/cron"
 	"github.com/peteqproj/peteq/pkg/db"
@@ -48,24 +49,9 @@ func main() {
 		DB:     db,
 		Logger: logr.Fork("repo", "trigger"),
 	}
-
-	ebus, err := eventbus.New(eventbus.Options{
-		Type:        "rabbitmq",
-		Logger:      logr.Fork("module", "eventbus"),
-		EventlogDB:  db,
-		WatchQueues: false,
-		RabbitMQ: eventbus.RabbitMQOptions{
-			Host:     utils.GetEnvOrDie("RABBITMQ_HOST"),
-			Port:     utils.GetEnvOrDie("RABBITMQ_PORT"),
-			APIPort:  utils.GetEnvOrDie("RABBITMQ_API_PORT"),
-			Username: utils.GetEnvOrDie("RABBITMQ_USERNAME"),
-			Password: utils.GetEnvOrDie("RABBITMQ_PASSWORD"),
-		},
-	})
-	utils.DieOnError(err, "Failed to connect to eventbus")
-	err = ebus.Start()
-	utils.DieOnError(err, "Failed to start eventbus")
+	ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, logr.Fork("module", "eventbus"))
 	defer ebus.Stop()
+	logr.Info("Eventbus connected")
 
 	loop(userRepo, triggerRepo, ebus, logr)
 

@@ -1,6 +1,6 @@
 FROM golang:1.15-alpine3.12 AS dev
 
-RUN apk add make
+RUN apk update && apk add make gcc musl-dev
 
 WORKDIR /peteq
 
@@ -10,12 +10,14 @@ RUN make dependency-update
 
 COPY . .
 
+RUN make test
+
 RUN make build
 
 FROM alpine:3.12
 
 RUN apk update && apk add ca-certificates
 
-COPY --from=dev /peteq/dist/peteq /peteq
+COPY --from=dev /peteq/dist/peteq /usr/local/bin/peteq
 
-CMD [ "/peteq" ]
+ENTRYPOINT [ "peteq" ]

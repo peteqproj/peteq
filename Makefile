@@ -1,8 +1,8 @@
 .PHONY: build
 build:
-	go build -o ./dist/peteq ./cmd/server
+	go build -o ./dist/peteq main.go
 
-.PHONY: build-cron-watcher
+@.PHONY: build-cron-watcher
 build-cron-watcher:
 	go build -o ./dist/peteq-cron-wacher ./cmd/cron
 
