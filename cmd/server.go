@@ -161,7 +161,7 @@ func init() {
 	viper.SetDefault("port", "8080")
 
 	serverCmd.Flags().StringVar(&serverCmdFlags.port, "port", viper.GetString("port"), "Set server port")
-	serverCmd.Flags().StringVar(&serverCmdFlags.postgresURL, "postgres-url", viper.GetString("portgres-url"), "Connection string to postgres [$POSTGRES_URL]")
+	serverCmd.Flags().StringVar(&serverCmdFlags.postgresURL, "postgres-url", viper.GetString("postgres-url"), "Connection string to postgres [$POSTGRES_URL]")
 	serverCmd.Flags().StringVar(&serverCmdFlags.rabbitmqHost, "rabbitmq-host", viper.GetString("rabbitmq-host"), "RabbitMQ host [$RABBITMQ_HOST]")
 	serverCmd.Flags().StringVar(&serverCmdFlags.rabbitmqPort, "rabbitmq-port", viper.GetString("rabbitmq-port"), "RabbitMQ port [$RABBITMQ_PORT]")
 	serverCmd.Flags().StringVar(&serverCmdFlags.rabbitmqAPIPort, "rabbitmq-api-port", viper.GetString("rabbitmq-api-port"), "RabbitMQ API port [$RABBITMQ_API_PORT]")
