@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.73.0 // indirect
-	cloud.google.com/go/pubsub v1.9.0
+	cloud.google.com/go/pubsub v1.9.1
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.10.0
