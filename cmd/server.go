@@ -41,6 +41,7 @@ import (
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -167,6 +168,12 @@ func init() {
 	serverCmd.Flags().StringVar(&serverCmdFlags.rabbitmqAPIPort, "rabbitmq-api-port", viper.GetString("rabbitmq-api-port"), "RabbitMQ API port [$RABBITMQ_API_PORT]")
 	serverCmd.Flags().StringVar(&serverCmdFlags.rabbitmqUsername, "rabbitmq-username", viper.GetString("rabbitmq-username"), "RabbitMQ username [$RABBITMQ_API_PORT]")
 
+	// Set flag value when viper has value from env var
+	serverCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		if viper.IsSet(f.Name) && viper.GetString(f.Name) != "" {
+			serverCmd.Flags().Set(f.Name, viper.GetString(f.Name))
+		}
+	})
 	serverCmd.MarkFlagRequired("postgres-url")
 }
 func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *taskDomain.Repo) {
