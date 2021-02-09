@@ -2,7 +2,8 @@ name: ci
 
 on:
   push:
-    branches: master
+    branches:
+    - !master
 
 jobs:
   main:
@@ -26,6 +27,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: peteqproj/peteq:latest
+          tags: peteqproj/peteq:${{ github.event.pull_request.head.sha }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
