@@ -22,14 +22,12 @@ jobs:
         id: version
         shell: bash
         run: |
-          ls 
-          cat VERSION
-          set-env VERSION=$(cat VERSION)
+          echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: peteqproj/peteq:latest
+          tags: peteqproj/peteq:${{ env.VERSION }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
