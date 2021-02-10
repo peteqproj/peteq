@@ -17,10 +17,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: set output
-        id: set
+      - name: Calc Version
+        id: version
+        shell: bash
         run: |
-          ls 
+          cat VERSION
+          set-env VERSION=$(cat VERSION)
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
