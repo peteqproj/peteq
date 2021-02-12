@@ -28,6 +28,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: peteqproj/peteq:${{ env.VERSION }}
+          tags: |
+            peteqproj/peteq:${{ env.VERSION }}
+            peteqproj/peteq:latest
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
