@@ -2,6 +2,8 @@ package cmd
 
 import (
 	_ "github.com/lib/pq"
+	"github.com/peteqproj/peteq/pkg/db"
+	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
 
@@ -28,6 +30,7 @@ import (
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
 	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
+	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 
@@ -168,4 +171,21 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
 	eventbus.Subscribe(triggerEventTypes.TriggerTriggeredEvent, eh)
 	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
+}
+
+func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *taskDomain.Repo, listRepo *listDomain.Repo, projectRepo *projectDomain.Repo, logger logger.Logger) {
+	vb := viewBuilder.New(&viewBuilder.Options{
+		TaskRepo:    taskRepo,
+		ListRepo:    listRepo,
+		ProjectRepo: projectRepo,
+		Logger:      logger,
+		DB:          db,
+	})
+	views := vb.BuildViews()
+	for _, view := range views {
+		for name, handler := range view.EventHandlers() {
+			logger.Info("Subscribing", "name", name, "handler", handler.Name())
+			eventbus.Subscribe(name, handler)
+		}
+	}
 }

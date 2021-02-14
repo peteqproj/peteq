@@ -86,7 +86,6 @@ var commandServiceCmd = &cobra.Command{
 			TaskRepo:    taskRepo,
 			Commandbus:  cb,
 			DB:          db,
-			Eventbus:    ebus,
 			Logger:      logr,
 		}
 		s.AddResource(apiBuilder.BuildCommandAPI())

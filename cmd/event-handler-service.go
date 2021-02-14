@@ -93,6 +93,7 @@ var eventHandlerServiceCmd = &cobra.Command{
 		registerProjectEventHandlers(ebus, projectRepo)
 		registerTriggerEventHandlers(ebus, triggerRepo)
 		registerAutomationEventHandlers(ebus, automationRepo)
+		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
 		sagaEventHandler := &saga.EventHandler{
 			CommandBus:     cb,
 			TaskRepo:       taskRepo,

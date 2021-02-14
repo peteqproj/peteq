@@ -20,7 +20,6 @@ import (
 	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/db"
-	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
@@ -33,7 +32,6 @@ type (
 		ProjectRepo *project.Repo
 		TaskRepo    *task.Repo
 		Commandbus  commandbus.CommandBus
-		Eventbus    bus.Eventbus
 		Logger      logger.Logger
 		DB          db.Database
 	}
@@ -181,12 +179,6 @@ func (b *Builder) BuildViewAPI() api.Resource {
 		DB:          b.DB,
 	})
 	views := vb.BuildViews()
-	for _, view := range views {
-		for name, handler := range view.EventHandlers() {
-			b.Logger.Info("Subscribing", "name", name, "handler", handler.Name())
-			b.Eventbus.Subscribe(name, handler)
-		}
-	}
 	resource := api.Resource{
 		Path: "/q",
 		Midderwares: []gin.HandlerFunc{
