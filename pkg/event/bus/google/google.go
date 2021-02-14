@@ -101,7 +101,6 @@ func (e *Eventbus) getTopic(ev event.Event) string {
 func (e *Eventbus) watchSubscriptions() {
 	knownSubscriptions := map[string]bool{}
 	for {
-		e.Logger.Info("Listing all subscriptions")
 		it := e.Ps.Subscriptions(context.Background())
 		for {
 			s, err := it.Next()

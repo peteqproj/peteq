@@ -161,10 +161,8 @@ func (e *Eventbus) queueList() map[string]bool {
 func (e *Eventbus) watchQueues() {
 	knownQueues := map[string]bool{}
 	for {
-		e.Logger.Info("Listing queues")
 		list := e.queueList()
 		for name := range list {
-			e.Logger.Info("Testing queue for consumptions", "name", name)
 			if _, ok := knownQueues[name]; !ok {
 				e.Logger.Info("Queue added, starting to watch", "name", name)
 				replayQueue := false
