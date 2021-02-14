@@ -87,6 +87,8 @@ var eventHandlerServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
+		registerCommandHandlers(cb, ebus, userRepo)
+
 		registerUserEventHandlers(ebus, userRepo)
 		registerTaskEventHandlers(ebus, taskRepo)
 		registerListEventHandlers(ebus, listRepo)
