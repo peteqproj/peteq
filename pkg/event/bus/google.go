@@ -1,4 +1,4 @@
-package google
+package bus
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 )
 
 type (
-	Eventbus struct {
+	GoogleEventbus struct {
 		Logger            logger.Logger
 		Ps                *pubsub.Client
 		Lock              *sync.Mutex
@@ -27,13 +27,9 @@ type (
 		IDGenerator       utils.IDGenerator
 		ExtendContextFunc func(context.Context, event.Event) context.Context
 	}
-
-	EventStorage interface {
-		Persist(context.Context, event.Event) error
-	}
 )
 
-func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) {
+func (e *GoogleEventbus) Publish(ctx context.Context, ev event.Event) (string, error) {
 	id, err := e.IDGenerator.GenerateV4()
 	if err != nil {
 		e.Logger.Info("Failed to create event id", "error", err.Error())
@@ -72,7 +68,7 @@ func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) 
 	return "", nil
 }
 
-func (e *Eventbus) Subscribe(name string, h handler.EventHandler) {
+func (e *GoogleEventbus) Subscribe(name string, h handler.EventHandler) {
 	e.Lock.Lock()
 	defer e.Lock.Unlock()
 	if _, ok := e.Handlers[name]; ok {
@@ -84,21 +80,18 @@ func (e *Eventbus) Subscribe(name string, h handler.EventHandler) {
 
 }
 
-func (e *Eventbus) Start() error {
+func (e *GoogleEventbus) Start() error {
 	go e.watchSubscriptions()
 	return nil
 }
 
-func (e *Eventbus) Stop() {
+func (e *GoogleEventbus) Stop() {
 }
 
-func (e *Eventbus) Replay(ctx context.Context) error {
-	return nil
-}
-func (e *Eventbus) getTopic(ev event.Event) string {
+func (e *GoogleEventbus) getTopic(ev event.Event) string {
 	return fmt.Sprintf("user-%s", ev.Tenant.ID)
 }
-func (e *Eventbus) watchSubscriptions() {
+func (e *GoogleEventbus) watchSubscriptions() {
 	knownSubscriptions := map[string]bool{}
 	for {
 		it := e.Ps.Subscriptions(context.Background())
@@ -123,7 +116,7 @@ func (e *Eventbus) watchSubscriptions() {
 		time.Sleep(5 * time.Second)
 	}
 }
-func (e *Eventbus) ensureTopic(name string) (error, *pubsub.Topic) {
+func (e *GoogleEventbus) ensureTopic(name string) (error, *pubsub.Topic) {
 	ctx := context.Background()
 	t := e.Ps.Topic(name)
 	ok, err := t.Exists(ctx)
@@ -139,7 +132,7 @@ func (e *Eventbus) ensureTopic(name string) (error, *pubsub.Topic) {
 	}
 	return nil, t
 }
-func (e *Eventbus) createSubscriptionIfNotExists(name string, topic *pubsub.Topic) error {
+func (e *GoogleEventbus) createSubscriptionIfNotExists(name string, topic *pubsub.Topic) error {
 	ctx := context.Background()
 	_, err := e.Ps.CreateSubscription(ctx, name, pubsub.SubscriptionConfig{
 		Topic:                 topic,
@@ -156,7 +149,7 @@ func (e *Eventbus) createSubscriptionIfNotExists(name string, topic *pubsub.Topi
 	return nil
 }
 
-func (e *Eventbus) watchSubscription(sub *pubsub.Subscription) {
+func (e *GoogleEventbus) watchSubscription(sub *pubsub.Subscription) {
 	err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
 		msg.Ack()
 		e.Logger.Info("Received message", "msg", string(msg.Data))

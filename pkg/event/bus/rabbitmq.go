@@ -1,4 +1,4 @@
-package rabbitmq
+package bus
 
 import (
 	"context"
@@ -19,8 +19,8 @@ import (
 const dbName = "event_log"
 
 type (
-	// Eventbus nats
-	Eventbus struct {
+	// RabbitMQEventbus nats
+	RabbitMQEventbus struct {
 		Logger            logger.Logger
 		Lock              *sync.Mutex
 		Handlers          map[string][]handler.EventHandler
@@ -35,13 +35,10 @@ type (
 		EventStorage      EventStorage
 		ExtendContextFunc func(context.Context, event.Event) context.Context
 	}
-	EventStorage interface {
-		Persist(context.Context, event.Event) error
-	}
 )
 
 // Publish event
-func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) {
+func (e *RabbitMQEventbus) Publish(ctx context.Context, ev event.Event) (string, error) {
 	e.Logger.Info("Publishing event", "name", ev.Metadata.Name)
 	if err := e.ensureQueue(e.getKey(ev), false); err != nil {
 		return "", fmt.Errorf("Failed to ensure queue: %w", err)
@@ -69,7 +66,7 @@ func (e *Eventbus) Publish(ctx context.Context, ev event.Event) (string, error) 
 // should be called with go Subscribe as this function is creating
 // a channel and waits on it to receive event in order
 // to call the handler
-func (e *Eventbus) Subscribe(name string, h handler.EventHandler) {
+func (e *RabbitMQEventbus) Subscribe(name string, h handler.EventHandler) {
 	e.Lock.Lock()
 	defer e.Lock.Unlock()
 	if _, ok := e.Handlers[name]; ok {
@@ -80,7 +77,7 @@ func (e *Eventbus) Subscribe(name string, h handler.EventHandler) {
 	e.Handlers[name] = []handler.EventHandler{h}
 }
 
-func (e *Eventbus) Start() error {
+func (e *RabbitMQEventbus) Start() error {
 	err := e.start()
 	if err != nil {
 		return err
@@ -91,7 +88,7 @@ func (e *Eventbus) Start() error {
 	return nil
 }
 
-func (e *Eventbus) Stop() {
+func (e *RabbitMQEventbus) Stop() {
 	e.Logger.Info("Stopping eventbus")
 	if e.Channel != nil {
 		if err := e.Channel.Close(); err != nil {
@@ -100,11 +97,7 @@ func (e *Eventbus) Stop() {
 	}
 }
 
-func (e *Eventbus) Replay(ctx context.Context) error {
-	return nil
-}
-
-func (e *Eventbus) start() error {
+func (e *RabbitMQEventbus) start() error {
 	u := fmt.Sprintf("amqp://%s:%s@%s:%s", e.RabbitMQUsername, e.RabbitMQPassword, e.RabbitMQHost, e.RabbitMQPort)
 	client, err := amqp.Dial(u)
 	if err != nil {
@@ -118,7 +111,7 @@ func (e *Eventbus) start() error {
 	return nil
 }
 
-func (e *Eventbus) publish(name string, key string, data []byte) error {
+func (e *RabbitMQEventbus) publish(name string, key string, data []byte) error {
 	defaultExchange := ""
 	err := e.Channel.Publish(defaultExchange, key, false, false, amqp.Publishing{
 		ContentType: "text/plain",
@@ -130,11 +123,11 @@ func (e *Eventbus) publish(name string, key string, data []byte) error {
 	return nil
 }
 
-func (e *Eventbus) getKey(ev event.Event) string {
+func (e *RabbitMQEventbus) getKey(ev event.Event) string {
 	return fmt.Sprintf("user-%s", ev.Tenant.ID)
 }
 
-func (e *Eventbus) queueList() map[string]bool {
+func (e *RabbitMQEventbus) queueList() map[string]bool {
 	type Queue struct {
 		Name  string `json:name`
 		VHost string `json:vhost`
@@ -158,7 +151,7 @@ func (e *Eventbus) queueList() map[string]bool {
 	return res
 }
 
-func (e *Eventbus) watchQueues() {
+func (e *RabbitMQEventbus) watchQueues() {
 	knownQueues := map[string]bool{}
 	for {
 		list := e.queueList()
@@ -179,7 +172,7 @@ func (e *Eventbus) watchQueues() {
 	}
 }
 
-func (e *Eventbus) watchQueue(ch <-chan amqp.Delivery, lgr logger.Logger) {
+func (e *RabbitMQEventbus) watchQueue(ch <-chan amqp.Delivery, lgr logger.Logger) {
 
 	for msg := range ch {
 		ev := event.Event{}
@@ -209,7 +202,7 @@ func (e *Eventbus) watchQueue(ch <-chan amqp.Delivery, lgr logger.Logger) {
 	}
 }
 
-func (e *Eventbus) deliverEvent(ctx context.Context, wg *sync.WaitGroup, ev event.Event, handler handler.EventHandler, lgr logger.Logger) {
+func (e *RabbitMQEventbus) deliverEvent(ctx context.Context, wg *sync.WaitGroup, ev event.Event, handler handler.EventHandler, lgr logger.Logger) {
 	delay := retry.DelayType(func(n uint, err error, config *retry.Config) time.Duration {
 		lgr.Info("Failed to handle event, retrying")
 		return retry.BackOffDelay(n, err, config)
@@ -222,7 +215,7 @@ func (e *Eventbus) deliverEvent(ctx context.Context, wg *sync.WaitGroup, ev even
 	wg.Done()
 }
 
-func (e *Eventbus) ensureQueue(name string, replayQueue bool) error {
+func (e *RabbitMQEventbus) ensureQueue(name string, replayQueue bool) error {
 	durable := false
 	autoDelete := true
 	exclusive := false

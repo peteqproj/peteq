@@ -16,7 +16,7 @@ import (
 type (
 	// RunCommand to create task
 	RunCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	// TriggerRunCommandOptions options to trigger the trigger

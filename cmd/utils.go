@@ -105,7 +105,7 @@ func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automatio
 	})
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.Eventbus, userRepo *userDomain.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,

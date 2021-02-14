@@ -49,7 +49,7 @@ func main() {
 		DB:     db,
 		Logger: logr.Fork("repo", "trigger"),
 	}
-	ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, logr.Fork("module", "eventbus"))
+	ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
 	defer ebus.Stop()
 	logr.Info("Eventbus connected")
 

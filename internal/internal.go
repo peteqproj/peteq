@@ -16,14 +16,14 @@ import (
 	"google.golang.org/api/option"
 )
 
-func NewEventBusFromFlagsOrDie(db db.Database, repo *user.Repo, logger logger.Logger) eventbus.Eventbus {
+func NewEventBusFromFlagsOrDie(db db.Database, repo *user.Repo, watchQueues bool, logger logger.Logger) eventbus.Eventbus {
 	logger.Info("Connecting to eventbus")
 	etype := utils.GetEnvOrDie("EVENTBUS_TYPE")
 	var rabbit *eventbus.RabbitMQOptions
 	var google *eventbus.GooglePubSubOptions
 	if etype == "rabbitmq" {
 		rabbit = &eventbus.RabbitMQOptions{
-			WatchQueues: true,
+			WatchQueues: watchQueues,
 			Host:        utils.GetEnvOrDie("RABBITMQ_HOST"),
 			Port:        utils.GetEnvOrDie("RABBITMQ_PORT"),
 			APIPort:     utils.GetEnvOrDie("RABBITMQ_API_PORT"),

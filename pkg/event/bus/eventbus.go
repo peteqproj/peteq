@@ -7,8 +7,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/peteqproj/peteq/pkg/event"
-	"github.com/peteqproj/peteq/pkg/event/bus/google"
-	"github.com/peteqproj/peteq/pkg/event/bus/rabbitmq"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/event/storage"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -20,9 +18,6 @@ type (
 	Eventbus interface {
 		EventPublisher
 		EventWatcher
-		Start() error
-		Stop()
-		Replay(ctx context.Context) error
 	}
 
 	EventPublisher interface {
@@ -31,6 +26,12 @@ type (
 
 	EventWatcher interface {
 		Subscribe(name string, handler handler.EventHandler)
+		Start() error
+		Stop()
+	}
+
+	EventStorage interface {
+		Persist(context.Context, event.Event) error
 	}
 
 	// Options to create eventbus
@@ -60,13 +61,19 @@ type (
 	ReplayOptions struct {
 		User string
 	}
+
+	// EventPublisherOptions to build new Publisher
+	EventPublisherOptions struct{}
+
+	// EventWatcherOptions to build new Watcher
+	EventWatcherOptions struct{}
 )
 
 // New is factory for eventbus
 func New(options Options) (Eventbus, error) {
 
 	if options.RabbitMQ != nil {
-		return &rabbitmq.Eventbus{
+		return &RabbitMQEventbus{
 			Lock:              &sync.Mutex{},
 			Logger:            options.Logger,
 			Handlers:          map[string][]handler.EventHandler{},
@@ -83,7 +90,7 @@ func New(options Options) (Eventbus, error) {
 	}
 
 	if options.GooglePubSub != nil {
-		return &google.Eventbus{
+		return &GoogleEventbus{
 			Logger:            options.Logger,
 			ExtendContextFunc: options.ExtendContextFunc,
 			IDGenerator:       utils.NewGenerator(),
@@ -95,4 +102,12 @@ func New(options Options) (Eventbus, error) {
 	}
 
 	return nil, errors.New("Not found")
+}
+
+func NewEventPublisher(options EventPublisherOptions) (EventPublisher, error) {
+	return nil, nil
+}
+
+func NewEventWatcher(options EventWatcherOptions) (EventWatcher, error) {
+	return nil, nil
 }

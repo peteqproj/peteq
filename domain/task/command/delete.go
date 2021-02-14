@@ -17,7 +17,7 @@ import (
 type (
 	// DeleteCommand to create task
 	DeleteCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 )
 

@@ -16,7 +16,7 @@ import (
 type (
 	// CompleteCommand to create task
 	CompleteCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	CompleteTaskArguments struct {

@@ -17,7 +17,7 @@ import (
 type (
 	// UpdateCommand to create task
 	UpdateCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 )
 

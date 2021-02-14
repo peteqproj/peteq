@@ -81,7 +81,7 @@ var eventHandlerServiceCmd = &cobra.Command{
 			Logger: logr.Fork("repo", "trigger"),
 		}
 
-		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, logr.Fork("module", "eventbus"))
+		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, true, logr.Fork("module", "eventbus"))
 		defer ebus.Stop()
 		logr.Info("Eventbus connected")
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))

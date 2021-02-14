@@ -16,7 +16,7 @@ import (
 type (
 	// MoveTaskCommand to create task
 	MoveTaskCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	// MoveTaskArguments is the arguments the command expects

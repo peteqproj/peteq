@@ -17,7 +17,7 @@ import (
 type (
 	// LoginCommand to create task
 	LoginCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 		Repo     *user.Repo
 	}
 

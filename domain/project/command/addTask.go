@@ -16,7 +16,7 @@ import (
 type (
 	// AddTaskCommand to create task
 	AddTaskCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	// AddTasksCommandOptions options to add tasks to project

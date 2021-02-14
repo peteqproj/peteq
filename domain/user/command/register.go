@@ -18,7 +18,7 @@ import (
 type (
 	// RegisterCommand to create task
 	RegisterCommand struct {
-		Eventbus    bus.Eventbus
+		Eventbus    bus.EventPublisher
 		Repo        *user.Repo
 		Commandbus  commandbus.CommandBus
 		IDGenerator utils.IDGenerator

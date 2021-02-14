@@ -16,7 +16,7 @@ import (
 type (
 	// CreateTriggerBindingCommand to create task
 	CreateTriggerBindingCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	// TriggerBindingCreateCommandOptions options to create automation

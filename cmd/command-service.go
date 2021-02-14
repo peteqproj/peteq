@@ -71,7 +71,7 @@ var commandServiceCmd = &cobra.Command{
 			Logger: logr.Fork("repo", "user"),
 		}
 
-		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, logr.Fork("module", "eventbus"))
+		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
 		defer ebus.Stop()
 		logr.Info("Eventbus connected")
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))

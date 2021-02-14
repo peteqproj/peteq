@@ -16,7 +16,7 @@ import (
 type (
 	// Create to create task
 	Create struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	// CreateCommandOptions is the arguments the command expects

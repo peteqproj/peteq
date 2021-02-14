@@ -7,7 +7,6 @@ import (
 	projectDomain "github.com/peteqproj/peteq/domain/project"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	userDomain "github.com/peteqproj/peteq/domain/user"
-	"github.com/peteqproj/peteq/internal"
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/db"
@@ -68,27 +67,15 @@ var restServiceCmd = &cobra.Command{
 			Logger: logr.Fork("repo", "user"),
 		}
 
-		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, logr.Fork("module", "eventbus"))
-		defer ebus.Stop()
-		logr.Info("Eventbus connected")
-		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
-		err = cb.Start()
-		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo)
-
 		apiBuilder := builder.Builder{
 			UserRepo:    userRepo,
 			ListRpeo:    listRepo,
 			ProjectRepo: projectRepo,
 			TaskRepo:    taskRepo,
-			Commandbus:  cb,
 			DB:          db,
-			Eventbus:    ebus,
 			Logger:      logr,
 		}
 		s.AddResource(apiBuilder.BuildRestfulAPI())
-		err = ebus.Start()
-		utils.DieOnError(err, "Failed to start eventbus")
 		return s.Start()
 	},
 }

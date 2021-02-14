@@ -16,7 +16,7 @@ import (
 type (
 	// ReopenCommand to create task
 	ReopenCommand struct {
-		Eventbus bus.Eventbus
+		Eventbus bus.EventPublisher
 	}
 
 	ReopenTaskArguments struct {
