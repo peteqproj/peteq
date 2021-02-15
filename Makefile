@@ -20,8 +20,8 @@ run-cron-watcher:
 
 .PHONY: mock-all
 mock-all:
-	go get github.com/vektra/mockery/v2/.../
-	mockery --all --inpackage
+	docker pull vektra/mockery:latest
+	docker run --workdir=/app -v $(PWD):/app vektra/mockery:latest --all --inpackage	
 
 .PHONY: test
 test:

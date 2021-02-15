@@ -24,6 +24,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0
+	github.com/vektra/mockery/v2 v2.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	google.golang.org/api v0.39.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

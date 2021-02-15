@@ -91,6 +91,7 @@ var commandServiceCmd = &cobra.Command{
 		s.AddResource(apiBuilder.BuildCommandAPI())
 		err = ebus.Start()
 		utils.DieOnError(err, "Failed to start eventbus")
+		s.SetReady()
 		return s.Start()
 	},
 }

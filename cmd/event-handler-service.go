@@ -108,6 +108,7 @@ var eventHandlerServiceCmd = &cobra.Command{
 		registerSagas(ebus, sagaEventHandler)
 		err = ebus.Start()
 		utils.DieOnError(err, "Failed to start eventbus")
+		s.SetReady()
 		return s.Start()
 	},
 }

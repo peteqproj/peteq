@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	socketio "github.com/googollee/go-socket.io"
 	"github.com/peteqproj/peteq/pkg/api"
 	"github.com/peteqproj/peteq/pkg/config"
 )
@@ -14,7 +13,7 @@ type (
 	Server interface {
 		Start() error
 		AddResource(r api.Resource) error
-		AddWS(ws *socketio.Server) error
+		SetReady()
 	}
 
 	// Options to create server
@@ -23,8 +22,9 @@ type (
 	}
 
 	server struct {
-		cnf *config.Server
-		srv *gin.Engine
+		cnf     *config.Server
+		srv     *gin.Engine
+		isReady bool
 	}
 )
 
@@ -45,10 +45,29 @@ func New(options Options) Server {
 		c.Next()
 
 	})
-	return &server{
-		srv: srv,
-		cnf: options.Config,
+	s := &server{
+		srv:     srv,
+		cnf:     options.Config,
+		isReady: false,
 	}
+	s.AddResource(api.Resource{
+		Path: "/ready",
+		Endpoints: []api.Endpoint{
+			{
+				Verb: "GET",
+				Path: "/",
+				Handler: func(c *gin.Context) {
+					if s.isReady {
+						c.Status(200)
+						return
+					}
+					c.Status(500)
+					return
+				},
+			},
+		},
+	})
+	return s
 }
 
 func (s *server) Start() error {
@@ -60,10 +79,8 @@ func (s *server) AddResource(r api.Resource) error {
 	return s.addResource(r, nil)
 }
 
-func (s *server) AddWS(wsserver *socketio.Server) error {
-	s.srv.GET("/ws/*any", gin.WrapH(wsserver))
-	s.srv.POST("/ws/*any", gin.WrapH(wsserver))
-	return nil
+func (s *server) SetReady() {
+	s.isReady = true
 }
 
 func (s *server) addResource(r api.Resource, parent *gin.RouterGroup) error {

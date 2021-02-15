@@ -76,6 +76,7 @@ var restServiceCmd = &cobra.Command{
 			Logger:      logr,
 		}
 		s.AddResource(apiBuilder.BuildRestfulAPI())
+		s.SetReady()
 		return s.Start()
 	},
 }

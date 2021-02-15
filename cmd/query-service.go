@@ -76,6 +76,7 @@ var queryServiceCmd = &cobra.Command{
 			Logger:      logr,
 		}
 		s.AddResource(apiBuilder.BuildViewAPI())
+		s.SetReady()
 		return s.Start()
 	},
 }
