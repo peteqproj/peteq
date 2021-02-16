@@ -36,7 +36,7 @@ require (
 	github.com/vektra/mockery/v2 v2.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	google.golang.org/api v0.39.0
+	google.golang.org/api v0.40.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
