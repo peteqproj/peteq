@@ -27,7 +27,7 @@ type (
 	AddTasksRequestBody struct {
 		Project string   `json:"project" validate:"required"`
 		TaskIDs []string `json:"tasks" validate:"required"`
-	}
+	} //@name AddTasksRequestBody
 
 	// CreateProjectRequestBody body spec of the request command Create
 	CreateProjectRequestBody struct {
@@ -35,10 +35,19 @@ type (
 		Description string `json:"description"`
 		Color       string `json:"color"`
 		ImageURL    string `json:"imageUrl"`
-	}
+	} //@name CreateProjectRequestBody
 )
 
 // Create creates new project
+// @Description Create project
+// @Tags Project Command API
+// @Accept  json
+// @Produce  json
+// @Param body body AddTasksRequestBody true "Add tasks into project"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/project/addTasks [post]
+// @Security ApiKeyAuth
 func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	u := tenant.UserFromContext(ctx)
 	spec := CreateProjectRequestBody{}
@@ -73,6 +82,15 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 }
 
 // AddTasks assign tasks to project
+// @Description Add tasks into project
+// @Tags Project Command API
+// @Accept  json
+// @Produce  json
+// @Param body body AddTasksRequestBody true "Move tasks from source to destination list"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/list/moveTasks [post]
+// @Security ApiKeyAuth
 func (ca *CommandAPI) AddTasks(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := AddTasksRequestBody{}
 	if err := api.UnmarshalInto(body, &opt); err != nil {

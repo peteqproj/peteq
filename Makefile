@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	go build -o ./dist/peteq main.go
+	make gen-openapi && go build -o ./dist/peteq main.go
 
 @.PHONY: build-cron-watcher
 build-cron-watcher:
@@ -22,6 +22,10 @@ run-cron-watcher:
 mock-all:
 	docker pull vektra/mockery:latest
 	docker run --workdir=/app -v $(PWD):/app vektra/mockery:latest --all --inpackage	
+
+.PHONY: gen-openapi
+gen-openapi:
+	docker run --workdir=/app -v $(PWD):/app peteqproj/openapi swag init -g pkg/server/openapi.go
 
 .PHONY: test
 test:

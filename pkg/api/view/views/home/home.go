@@ -47,6 +47,12 @@ type (
 )
 
 // Get builds home view
+// @description Home View
+// @tags View
+// @produce  json
+// @success 200 {object} homeView
+// @router /q/home [get]
+// @Security ApiKeyAuth
 func (h *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	view, err := h.DAL.load(c.Request.Context(), u.Metadata.ID)

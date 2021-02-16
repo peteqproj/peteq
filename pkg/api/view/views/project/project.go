@@ -32,6 +32,13 @@ type (
 )
 
 // Get build project view
+// @description Single Project View
+// @tags View
+// @produce  json
+// @success 200 {object} projectView
+// @Param id path string true "Project ID"
+// @router /q/project/{id} [get]
+// @Security ApiKeyAuth
 func (h *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	id := c.Param("id")

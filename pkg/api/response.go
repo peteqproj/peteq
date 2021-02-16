@@ -26,7 +26,7 @@ type (
 		ID string `json:"id"`
 		// Data to pass additional data
 		Data interface{} `json:"data"`
-	}
+	} //@name CommandResponse
 )
 
 // NewRejectedCommandResponse build CommandResponse that is rejected with reason

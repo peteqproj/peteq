@@ -55,6 +55,12 @@ type (
 )
 
 // Get build backlog view
+// @description Backlog View
+// @tags View
+// @produce  json
+// @success 200 {object} backlogView
+// @router /q/backlog [get]
+// @Security ApiKeyAuth
 func (h *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	view, err := h.DAL.load(c.Request.Context(), u.Metadata.ID)

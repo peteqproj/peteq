@@ -27,16 +27,24 @@ type (
 	RegistrationRequestBody struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required"`
-	}
+	} //@name RegistrationRequestBody
 
 	// LoginRequestBody user to register new users
 	LoginRequestBody struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required"`
-	}
+	} //@name LoginRequestBody
 )
 
 // Register new user
+// @description Register new user
+// @tags User Command API
+// @accept  json
+// @produce  json
+// @param body body RegistrationRequestBody true "Register new user"
+// @success 200 {object} api.CommandResponse
+// @success 400 {object} api.CommandResponse
+// @router /c/user/register [post]
 func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := RegistrationRequestBody{}
 	if err := api.UnmarshalInto(body, &opt); err != nil {
@@ -58,6 +66,14 @@ func (c *CommandAPI) Register(ctx context.Context, body io.ReadCloser) api.Comma
 }
 
 // Login validates user exists and returns api token
+// @description Login
+// @tags User Command API
+// @accept  json
+// @produce  json
+// @param body body LoginRequestBody true "Login"
+// @success 200 {object} api.CommandResponse
+// @success 400 {object} api.CommandResponse
+// @router /c/user/login [post]
 func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	opt := &LoginRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
