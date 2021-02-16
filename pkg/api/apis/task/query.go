@@ -16,6 +16,12 @@ type (
 )
 
 // List returns a list of tasks
+// @description Task
+// @tags RestAPI
+// @produce  json
+// @success 200 {array} task.Task
+// @router /api/task/ [get]
+// @Security ApiKeyAuth
 func (a *QueryAPI) List(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	res, err := a.Repo.List(task.ListOptions{UserID: u.Metadata.ID})
@@ -27,6 +33,13 @@ func (a *QueryAPI) List(c *gin.Context) {
 }
 
 // Get returns a one task
+// @description Task
+// @tags RestAPI
+// @produce  json
+// @Param id path string true "Task ID"
+// @success 200 {object} task.Task
+// @router /api/task/{id} [get]
+// @Security ApiKeyAuth
 func (a *QueryAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	t, err := a.Repo.Get(u.Metadata.ID, c.Param("id"))

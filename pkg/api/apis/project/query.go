@@ -16,6 +16,12 @@ type (
 )
 
 // List projects
+// @description Project
+// @tags RestAPI
+// @produce  json
+// @success 200 {array} project.Project
+// @router /api/project [get]
+// @Security ApiKeyAuth
 func (q *QueryAPI) List(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 
@@ -30,6 +36,13 @@ func (q *QueryAPI) List(c *gin.Context) {
 }
 
 // Get returns a one project
+// @description Project
+// @tags RestAPI
+// @produce  json
+// @Param id path string true "Project ID"
+// @success 200 {object} project.Project
+// @router /api/project/{id} [get]
+// @Security ApiKeyAuth
 func (q *QueryAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	p, err := q.Repo.Get(u.Metadata.ID, c.Param("id"))

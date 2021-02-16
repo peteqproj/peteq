@@ -29,16 +29,19 @@ type (
 		Source      string   `json:"source"`
 		Destination string   `json:"destination"`
 		TaskIDs     []string `json:"tasks" validate:"required"`
-	}
-
-	// AddTaskRequestBody passed from http client
-	AddTaskRequestBody struct {
-		Destination string `json:"destination"`
-		TaskID      string `json:"task"`
-	}
+	} //@name MoveTasksRequestBody
 )
 
 // MoveTasks move multiple tasks from one list to another
+// @Description Move tasks from source to destination list
+// @Tags List Command API
+// @Accept  json
+// @Produce  json
+// @Param body body MoveTasksRequestBody true "Move tasks from source to destination list"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/list/moveTasks [post]
+// @Security ApiKeyAuth
 func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	u := tenant.UserFromContext(ctx)
 	opt := &MoveTasksRequestBody{}

@@ -1,0 +1,778 @@
+definitions:
+  AddTasksRequestBody:
+    properties:
+      project:
+        type: string
+      tasks:
+        items:
+          type: string
+        type: array
+    required:
+    - project
+    - tasks
+    type: object
+  CommandResponse:
+    properties:
+      data:
+        description: Data to pass additional data
+        type: object
+      id:
+        description: ID the id of the related entity
+        type: string
+      reason:
+        description: Reason exist when command is rejected
+        type: string
+      status:
+        description: Status can be accepted or rejected
+        type: string
+      type:
+        description: Type the type of the related entity
+        type: string
+    type: object
+  CreateTaskResponse:
+    properties:
+      description:
+        type: string
+      list:
+        type: string
+      name:
+        type: string
+      project:
+        type: string
+    required:
+    - name
+    type: object
+  LoginRequestBody:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  MoveTasksRequestBody:
+    properties:
+      destination:
+        type: string
+      source:
+        type: string
+      tasks:
+        items:
+          type: string
+        type: array
+    required:
+    - tasks
+    type: object
+  RegistrationRequestBody:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  TriggerRunRequestBody:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  backlog.backlogTask:
+    properties:
+      id:
+        type: string
+      list:
+        $ref: '#/definitions/backlog.backlogTaskList'
+      metadata:
+        $ref: '#/definitions/task.Metadata'
+      project:
+        $ref: '#/definitions/backlog.backlogTaskProject'
+      spec:
+        $ref: '#/definitions/task.Spec'
+      status:
+        $ref: '#/definitions/task.Status'
+      type:
+        type: string
+    required:
+    - metadata
+    - spec
+    type: object
+  backlog.backlogTaskList:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  backlog.backlogTaskProject:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  backlog.backlogView:
+    properties:
+      lists:
+        items:
+          $ref: '#/definitions/backlog.backlogTaskList'
+        type: array
+      projects:
+        items:
+          $ref: '#/definitions/backlog.backlogTaskProject'
+        type: array
+      tasks:
+        items:
+          $ref: '#/definitions/backlog.backlogTask'
+        type: array
+    type: object
+  home.homeList:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/list.Metadata'
+      tasks:
+        items:
+          $ref: '#/definitions/home.homeTask'
+        type: array
+      type:
+        type: string
+    type: object
+  home.homeTask:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/task.Metadata'
+      project:
+        $ref: '#/definitions/project.Project'
+      spec:
+        $ref: '#/definitions/task.Spec'
+      status:
+        $ref: '#/definitions/task.Status'
+      type:
+        type: string
+    required:
+    - metadata
+    - spec
+    type: object
+  home.homeView:
+    properties:
+      lists:
+        items:
+          $ref: '#/definitions/home.homeList'
+        type: array
+    type: object
+  list.List:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/list.Metadata'
+      tasks:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  list.Metadata:
+    properties:
+      id:
+        type: string
+      index:
+        type: integer
+      name:
+        type: string
+    type: object
+  project.Metadata:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  project.Project:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/project.Metadata'
+      tasks:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  project.projectView:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/project.Metadata'
+      tasks:
+        items:
+          $ref: '#/definitions/task.Task'
+        type: array
+      type:
+        type: string
+    type: object
+  projects.populatedProject:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/project.Metadata'
+      tasks:
+        items:
+          $ref: '#/definitions/task.Task'
+        type: array
+      type:
+        type: string
+    type: object
+  projects.projectsView:
+    properties:
+      projects:
+        items:
+          $ref: '#/definitions/projects.populatedProject'
+        type: array
+    type: object
+  task.Metadata:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  task.Spec:
+    properties:
+      dueDate:
+        type: string
+    type: object
+  task.Status:
+    properties:
+      completed:
+        type: boolean
+    type: object
+  task.Task:
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/task.Metadata'
+      spec:
+        $ref: '#/definitions/task.Spec'
+      status:
+        $ref: '#/definitions/task.Status'
+      type:
+        type: string
+    required:
+    - metadata
+    - spec
+    type: object
+  task.completeReopenTaskRequestBody:
+    properties:
+      task:
+        type: string
+    type: object
+  task.deleteTaskRequestBody:
+    properties:
+      id:
+        type: string
+    type: object
+  triggers.triggerExecutionHistoryItem:
+    properties:
+      manual:
+        type: boolean
+      triggeredAt:
+        type: string
+    type: object
+  triggers.triggerViewItem:
+    properties:
+      description:
+        type: string
+      history:
+        items:
+          $ref: '#/definitions/triggers.triggerExecutionHistoryItem'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      spec:
+        type: object
+      type:
+        type: string
+    type: object
+  triggers.triggersView:
+    properties:
+      triggers:
+        items:
+          $ref: '#/definitions/triggers.triggerViewItem'
+        type: array
+    type: object
+host: localhost
+info:
+  contact:
+    name: Oleg Sucharevich
+  description: Peteq OpenAPI spec.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Peteq API
+  version: "1.0"
+paths:
+  /api/list:
+    get:
+      description: List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/list.List'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - RestAPI
+  /api/project:
+    get:
+      description: Project
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/project.Project'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - RestAPI
+  /api/project/{id}:
+    get:
+      description: Project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.Project'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - RestAPI
+  /api/task/:
+    get:
+      description: Task
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/task.Task'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - RestAPI
+  /api/task/{id}:
+    get:
+      description: Task
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.Task'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - RestAPI
+  /c/list/moveTasks:
+    post:
+      consumes:
+      - application/json
+      description: Move tasks from source to destination list
+      parameters:
+      - description: Move tasks from source to destination list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/MoveTasksRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - List Command API
+  /c/project/addTasks:
+    post:
+      consumes:
+      - application/json
+      description: Create project
+      parameters:
+      - description: Add tasks into project
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/AddTasksRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Project Command API
+  /c/task/complete:
+    post:
+      consumes:
+      - application/json
+      description: Complete task
+      parameters:
+      - description: Complete Task Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/task.completeReopenTaskRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Task Command API
+  /c/task/create:
+    post:
+      consumes:
+      - application/json
+      description: Create new task
+      parameters:
+      - description: Create Task Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateTaskResponse'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Task Command API
+  /c/task/delete:
+    post:
+      consumes:
+      - application/json
+      description: Delete task
+      parameters:
+      - description: Delete Task Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/task.deleteTaskRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Task Command API
+  /c/task/reopen:
+    post:
+      consumes:
+      - application/json
+      description: Reopen task
+      parameters:
+      - description: Reopen Task Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/task.completeReopenTaskRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Task Command API
+  /c/task/update:
+    post:
+      consumes:
+      - application/json
+      description: Update task
+      parameters:
+      - description: Update Task Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/task.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Task Command API
+  /c/trigger/run:
+    post:
+      consumes:
+      - application/json
+      description: Trigger run
+      parameters:
+      - description: Trigger run
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/TriggerRunRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Trigger Command API
+  /c/user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: Login
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/LoginRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      tags:
+      - User Command API
+  /c/user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register new user
+      parameters:
+      - description: Register new user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/RegistrationRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      tags:
+      - User Command API
+  /q/backlog:
+    get:
+      description: Backlog View
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/backlog.backlogView'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - View
+  /q/home:
+    get:
+      description: Home View
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/home.homeView'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - View
+  /q/project:
+    get:
+      description: Projects View
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/projects.projectsView'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - View
+  /q/project/{id}:
+    get:
+      description: Single Project View
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.projectView'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - View
+  /q/triggers:
+    get:
+      description: Triggers View
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/triggers.triggersView'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - View
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

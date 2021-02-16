@@ -14,6 +14,12 @@ type (
 )
 
 // List lists
+// @description List
+// @tags RestAPI
+// @produce  json
+// @success 200 {array} list.List
+// @router /api/list [get]
+// @Security ApiKeyAuth
 func (q *QueryAPI) List(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	res, err := q.Repo.List(list.QueryOptions{UserID: u.Metadata.ID})

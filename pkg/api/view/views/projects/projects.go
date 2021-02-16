@@ -37,6 +37,12 @@ type (
 )
 
 // Get build projects view
+// @description Projects View
+// @tags View
+// @produce  json
+// @success 200 {object} projectsView
+// @router /q/project [get]
+// @Security ApiKeyAuth
 func (b *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
 	view, err := b.DAL.load(c.Request.Context(), u.Metadata.ID)

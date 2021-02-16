@@ -4,8 +4,11 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/peteqproj/peteq/docs"
 	"github.com/peteqproj/peteq/pkg/api"
 	"github.com/peteqproj/peteq/pkg/config"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type (
@@ -45,6 +48,9 @@ func New(options Options) Server {
 		c.Next()
 
 	})
+	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	srv.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
 	s := &server{
 		srv:     srv,
 		cnf:     options.Config,
@@ -67,6 +73,7 @@ func New(options Options) Server {
 			},
 		},
 	})
+
 	return s
 }
 

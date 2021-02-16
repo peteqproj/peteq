@@ -43,10 +43,19 @@ type (
 		Description string `json:"description"`
 		Project     string `json:"project"`
 		List        string `json:"list"`
-	}
+	} //@name CreateTaskResponse
 )
 
 // Create creats tasks
+// @Description Create new task
+// @Tags Task Command API
+// @Accept  json
+// @Produce  json
+// @Param body body createTaskRequestBody true "Create Task Body"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/task/create [post]
+// @Security ApiKeyAuth
 func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	spec := createTaskRequestBody{}
 	err := api.UnmarshalInto(body, &spec)
@@ -86,6 +95,15 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 }
 
 // Update task
+// @Description Update task
+// @Tags Task Command API
+// @Accept  json
+// @Produce  json
+// @Param body body task.Task true "Update Task Body"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/task/update [post]
+// @Security ApiKeyAuth
 func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	t := &task.Task{}
 	err := api.UnmarshalInto(body, t)
@@ -103,6 +121,15 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 }
 
 // Delete store new task
+// @Description Delete task
+// @Tags Task Command API
+// @Accept  json
+// @Produce  json
+// @Param body body deleteTaskRequestBody true "Delete Task Body"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/task/delete [post]
+// @Security ApiKeyAuth
 func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	u := tenant.UserFromContext(ctx)
 	req := &deleteTaskRequestBody{}
@@ -119,6 +146,15 @@ func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.Command
 }
 
 // Complete task
+// @Description Complete task
+// @Tags Task Command API
+// @Accept  json
+// @Produce  json
+// @Param body body completeReopenTaskRequestBody true "Complete Task Body"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/task/complete [post]
+// @Security ApiKeyAuth
 func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	req := &completeReopenTaskRequestBody{}
 	if err := api.UnmarshalInto(body, req); err != nil {
@@ -131,6 +167,15 @@ func (c *CommandAPI) Complete(ctx context.Context, body io.ReadCloser) api.Comma
 }
 
 // Reopen task
+// @Description Reopen task
+// @Tags Task Command API
+// @Accept  json
+// @Produce  json
+// @Param body body completeReopenTaskRequestBody true "Reopen Task Body"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/task/reopen [post]
+// @Security ApiKeyAuth
 func (c *CommandAPI) Reopen(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	req := &completeReopenTaskRequestBody{}
 	if err := api.UnmarshalInto(body, req); err != nil {

@@ -24,10 +24,19 @@ type (
 
 	triggerRunRequestBody struct {
 		ID string `json:"id" validate:"required"`
-	}
+	} //@name TriggerRunRequestBody
 )
 
-// Run creats tasks
+// Run runs trigger
+// @Description Trigger run
+// @Tags Trigger Command API
+// @Accept  json
+// @Produce  json
+// @Param body body triggerRunRequestBody true "Trigger run"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/trigger/run [post]
+// @Security ApiKeyAuth
 func (c *CommandAPI) Run(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	spec := triggerRunRequestBody{}
 	err := api.UnmarshalInto(body, &spec)
