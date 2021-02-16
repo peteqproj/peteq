@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	_ "github.com/lib/pq"
-
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	projectDomain "github.com/peteqproj/peteq/domain/project"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
