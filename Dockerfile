@@ -12,7 +12,7 @@ COPY . .
 
 RUN make test
 
-RUN make build
+RUN make compile
 
 FROM alpine:3.12
 

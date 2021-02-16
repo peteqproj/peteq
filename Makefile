@@ -1,6 +1,10 @@
 .PHONY: build
 build:
-	make gen-openapi && go build -o ./dist/peteq main.go
+	make gen-openapi && make compile
+
+.PHONY: compile
+compile:
+	go build -o ./dist/peteq main.go
 
 @.PHONY: build-cron-watcher
 build-cron-watcher:
