@@ -1,11 +1,19 @@
 package cmd
 
 import (
+	"context"
+	"io/ioutil"
+	"net/url"
+	"os"
+	"path"
+
 	_ "github.com/lib/pq"
+	"github.com/peteqproj/peteq/pkg/client"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
+	"gopkg.in/yaml.v2"
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	automationCommands "github.com/peteqproj/peteq/domain/automation/command"
@@ -35,6 +43,13 @@ import (
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
+)
+
+type (
+	clientConfig struct {
+		URL   string `yaml:"url"`
+		Token string `yaml:"token"`
+	}
 )
 
 // DieOnError kills the process and prints a message
@@ -188,4 +203,53 @@ func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskR
 			eventbus.Subscribe(name, handler)
 		}
 	}
+}
+
+func createClientConfiguration() (*client.Configuration, context.Context, error) {
+	c := &clientConfig{}
+	data, err := ioutil.ReadFile(path.Join(os.Getenv("HOME"), ".peteq/config"))
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := yaml.Unmarshal(data, c); err != nil {
+		return nil, nil, err
+	}
+	u, err := url.Parse(c.URL)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cnf := &client.Configuration{
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "peteq-cli",
+		Debug:         false,
+		Scheme:        u.Scheme,
+		Servers: client.ServerConfigurations{
+			{
+				URL: u.Host,
+			},
+		},
+	}
+	ctx := context.WithValue(context.Background(), client.ContextAPIKeys, map[string]client.APIKey{
+		"ApiKeyAuth": {
+			Key: c.Token,
+		},
+	})
+	return cnf, ctx, nil
+}
+
+func storeClientConfiguration(url string, token string) error {
+	dir := path.Join(os.Getenv("HOME"), ".peteq")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.Mkdir(dir, os.ModePerm)
+	}
+	c := clientConfig{
+		URL:   url,
+		Token: token,
+	}
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path.Join(dir, "config"), data, os.ModePerm)
 }

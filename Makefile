@@ -34,3 +34,7 @@ gen-openapi:
 .PHONY: test
 test:
 	./hack/test.sh
+
+.PHONY: gen-openapi-client
+gen-openapi-client:
+	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -i /local/docs/swagger.yaml -g go -o /local/pkg/client -p=isGoSubmodule=true -p=packageName=client
