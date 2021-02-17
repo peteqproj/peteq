@@ -29,6 +29,19 @@ definitions:
         description: Type the type of the related entity
         type: string
     type: object
+  CreateProjectRequestBody:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   CreateTaskResponse:
     properties:
       description:
@@ -455,7 +468,7 @@ paths:
       - ApiKeyAuth: []
       tags:
       - List Command API
-  /c/project/addTasks:
+  /c/project/create:
     post:
       consumes:
       - application/json
@@ -466,7 +479,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/AddTasksRequestBody'
+          $ref: '#/definitions/CreateProjectRequestBody'
       produces:
       - application/json
       responses:

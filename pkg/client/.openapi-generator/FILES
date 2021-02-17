@@ -18,6 +18,7 @@ docs/BacklogBacklogTaskList.md
 docs/BacklogBacklogTaskProject.md
 docs/BacklogBacklogView.md
 docs/CommandResponse.md
+docs/CreateProjectRequestBody.md
 docs/CreateTaskResponse.md
 docs/HomeHomeList.md
 docs/HomeHomeTask.md
@@ -58,6 +59,7 @@ model_backlog_backlog_task_list.go
 model_backlog_backlog_task_project.go
 model_backlog_backlog_view.go
 model_command_response.go
+model_create_project_request_body.go
 model_create_task_response.go
 model_home_home_list.go
 model_home_home_task.go

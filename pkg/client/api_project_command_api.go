@@ -26,29 +26,29 @@ var (
 // ProjectCommandAPIApiService ProjectCommandAPIApi service
 type ProjectCommandAPIApiService service
 
-type ApiCProjectAddTasksPostRequest struct {
+type ApiCProjectCreatePostRequest struct {
 	ctx _context.Context
 	ApiService *ProjectCommandAPIApiService
-	body *AddTasksRequestBody
+	body *CreateProjectRequestBody
 }
 
-func (r ApiCProjectAddTasksPostRequest) Body(body AddTasksRequestBody) ApiCProjectAddTasksPostRequest {
+func (r ApiCProjectCreatePostRequest) Body(body CreateProjectRequestBody) ApiCProjectCreatePostRequest {
 	r.body = &body
 	return r
 }
 
-func (r ApiCProjectAddTasksPostRequest) Execute() (CommandResponse, *_nethttp.Response, error) {
-	return r.ApiService.CProjectAddTasksPostExecute(r)
+func (r ApiCProjectCreatePostRequest) Execute() (CommandResponse, *_nethttp.Response, error) {
+	return r.ApiService.CProjectCreatePostExecute(r)
 }
 
 /*
- * CProjectAddTasksPost Method for CProjectAddTasksPost
+ * CProjectCreatePost Method for CProjectCreatePost
  * Create project
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @return ApiCProjectAddTasksPostRequest
+ * @return ApiCProjectCreatePostRequest
  */
-func (a *ProjectCommandAPIApiService) CProjectAddTasksPost(ctx _context.Context) ApiCProjectAddTasksPostRequest {
-	return ApiCProjectAddTasksPostRequest{
+func (a *ProjectCommandAPIApiService) CProjectCreatePost(ctx _context.Context) ApiCProjectCreatePostRequest {
+	return ApiCProjectCreatePostRequest{
 		ApiService: a,
 		ctx: ctx,
 	}
@@ -58,7 +58,7 @@ func (a *ProjectCommandAPIApiService) CProjectAddTasksPost(ctx _context.Context)
  * Execute executes the request
  * @return CommandResponse
  */
-func (a *ProjectCommandAPIApiService) CProjectAddTasksPostExecute(r ApiCProjectAddTasksPostRequest) (CommandResponse, *_nethttp.Response, error) {
+func (a *ProjectCommandAPIApiService) CProjectCreatePostExecute(r ApiCProjectCreatePostRequest) (CommandResponse, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodPost
 		localVarPostBody     interface{}
@@ -68,12 +68,12 @@ func (a *ProjectCommandAPIApiService) CProjectAddTasksPostExecute(r ApiCProjectA
 		localVarReturnValue  CommandResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ProjectCommandAPIApiService.CProjectAddTasksPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ProjectCommandAPIApiService.CProjectCreatePost")
 	if err != nil {
 		return localVarReturnValue, nil, GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/c/project/addTasks"
+	localVarPath := localBasePath + "/c/project/create"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
