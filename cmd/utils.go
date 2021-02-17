@@ -253,3 +253,7 @@ func storeClientConfiguration(url string, token string) error {
 	}
 	return ioutil.WriteFile(path.Join(dir, "config"), data, os.ModePerm)
 }
+
+func createProject() (string, error) {
+	return "", nil
+}
