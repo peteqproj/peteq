@@ -14,6 +14,7 @@ var registerCmdFlags struct {
 	email     string
 	password  string
 	autoLogin bool
+	url       string
 }
 
 var registerCmd = &cobra.Command{
@@ -48,7 +49,7 @@ var registerCmd = &cobra.Command{
 		if res.Status != nil && *res.Status == "rejected" {
 			return fmt.Errorf("Failed to login: %s", *res.Reason)
 		}
-		return storeClientConfiguration("http://localhost", (*res.Data)["token"].(string))
+		return storeClientConfiguration(registerCmdFlags.url, (*res.Data)["token"].(string))
 	},
 }
 
@@ -58,6 +59,7 @@ func init() {
 	registerCmd.Flags().StringVar(&registerCmdFlags.email, "email", "", "Email")
 	registerCmd.Flags().StringVar(&registerCmdFlags.password, "password", "", "Password")
 	registerCmd.Flags().BoolVar(&registerCmdFlags.autoLogin, "login", true, "Also obtain authentication token after login")
+	registerCmd.Flags().StringVar(&registerCmdFlags.url, "url", "http://localhost", "Peteq API url")
 
 	registerCmd.MarkFlagRequired("email")
 	registerCmd.MarkFlagRequired("password")
