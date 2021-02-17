@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/peteqproj/peteq/pkg/client"
@@ -22,7 +23,18 @@ var registerCmd = &cobra.Command{
 	Short: "Register new user",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logr := logger.New(logger.Options{})
-		c := client.NewAPIClient(client.NewConfiguration())
+		u, err := url.Parse(registerCmdFlags.url)
+		if err != nil {
+			return err
+		}
+		c := client.NewAPIClient(&client.Configuration{
+			Scheme: u.Scheme,
+			Servers: client.ServerConfigurations{
+				{
+					URL: u.Host,
+				},
+			},
+		})
 		res, _, err := c.UserCommandAPIApi.CUserRegisterPost(context.Background()).Body(client.RegistrationRequestBody{
 			Email:    registerCmdFlags.email,
 			Password: registerCmdFlags.password,

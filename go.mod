@@ -5,8 +5,10 @@ go 1.14
 require (
 	cloud.google.com/go/pubsub v1.10.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/avast/retry-go v3.0.0+incompatible
+	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.10.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-logr/logr v0.2.1

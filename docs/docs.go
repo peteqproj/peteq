@@ -221,7 +221,7 @@ var doc = `{
                 }
             }
         },
-        "/c/project/addTasks": {
+        "/c/project/create": {
             "post": {
                 "security": [
                     {
@@ -245,7 +245,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/AddTasksRequestBody"
+                            "$ref": "#/definitions/CreateProjectRequestBody"
                         }
                     }
                 ],
@@ -777,6 +777,26 @@ var doc = `{
                 },
                 "type": {
                     "description": "Type the type of the related entity",
+                    "type": "string"
+                }
+            }
+        },
+        "CreateProjectRequestBody": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

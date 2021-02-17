@@ -43,10 +43,10 @@ type (
 // @Tags Project Command API
 // @Accept  json
 // @Produce  json
-// @Param body body AddTasksRequestBody true "Add tasks into project"
+// @Param body body CreateProjectRequestBody true "Add tasks into project"
 // @Success 200 {object} api.CommandResponse
 // @Success 400 {object} api.CommandResponse
-// @Router /c/project/addTasks [post]
+// @Router /c/project/create [post]
 // @Security ApiKeyAuth
 func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	u := tenant.UserFromContext(ctx)
