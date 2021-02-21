@@ -199,7 +199,7 @@ func (h *ViewAPI) handleTaskCreated(ctx context.Context, ev event.Event, view ba
 			Metadata: task.Metadata{
 				ID:          spec.ID,
 				Name:        spec.Name,
-				Description: "",
+				Description: spec.Description,
 			},
 		},
 	})
