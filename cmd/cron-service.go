@@ -70,7 +70,7 @@ var cronServiceCmd = &cobra.Command{
 		defer ebus.Stop()
 		logr.Info("Eventbus connected")
 
-		loop(userRepo, triggerRepo, ebus, logr)
+		go loop(userRepo, triggerRepo, ebus, logr)
 
 		s.SetReady()
 		err = s.Start()
