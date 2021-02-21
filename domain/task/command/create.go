@@ -21,8 +21,9 @@ type (
 
 	// CreateCommandOptions add new token to allow api calls
 	CreateCommandOptions struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
+		ID          string `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
 	}
 )
 
@@ -46,8 +47,9 @@ func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 			AggregatorID:   t.ID,
 		},
 		Spec: handler.CreatedSpec{
-			ID:   t.ID,
-			Name: t.Name,
+			ID:          t.ID,
+			Name:        t.Name,
+			Description: t.Description,
 		},
 	})
 	return err

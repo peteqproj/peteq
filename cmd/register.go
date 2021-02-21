@@ -28,7 +28,8 @@ var registerCmd = &cobra.Command{
 			return err
 		}
 		c := client.NewAPIClient(&client.Configuration{
-			Scheme: u.Scheme,
+			HTTPClient: createHTTPClient(),
+			Scheme:     u.Scheme,
 			Servers: client.ServerConfigurations{
 				{
 					URL: u.Host,
@@ -67,7 +68,6 @@ var registerCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(registerCmd)
-
 	registerCmd.Flags().StringVar(&registerCmdFlags.email, "email", "", "Email")
 	registerCmd.Flags().StringVar(&registerCmdFlags.password, "password", "", "Password")
 	registerCmd.Flags().BoolVar(&registerCmdFlags.autoLogin, "login", true, "Also obtain authentication token after login")
