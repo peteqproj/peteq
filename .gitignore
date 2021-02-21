@@ -32,3 +32,4 @@ dist
 .env
 
 ui/build
+telepresence.log
