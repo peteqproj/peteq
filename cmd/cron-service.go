@@ -72,6 +72,7 @@ var cronServiceCmd = &cobra.Command{
 
 		loop(userRepo, triggerRepo, ebus, logr)
 
+		s.SetReady()
 		err = s.Start()
 		return err
 	},
