@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -220,6 +222,7 @@ func createClientConfiguration() (*client.Configuration, context.Context, error)
 	}
 
 	cnf := &client.Configuration{
+		HTTPClient:    createHTTPClient(),
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "peteq-cli",
 		Debug:         false,
@@ -238,6 +241,15 @@ func createClientConfiguration() (*client.Configuration, context.Context, error)
 	return cnf, ctx, nil
 }
 
+func createHTTPClient() *http.Client {
+	customTransport := &(*http.DefaultTransport.(*http.Transport)) // make shallow copy
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	httpClient := &http.Client{
+		Transport: customTransport,
+	}
+	return httpClient
+}
+
 func storeClientConfiguration(url string, token string) error {
 	dir := path.Join(os.Getenv("HOME"), ".peteq")
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -252,8 +264,4 @@ func storeClientConfiguration(url string, token string) error {
 		return err
 	}
 	return ioutil.WriteFile(path.Join(dir, "config"), data, os.ModePerm)
-}
-
-func createProject() (string, error) {
-	return "", nil
 }
