@@ -16,8 +16,9 @@ type (
 
 	// CreatedSpec is the event.spec for this event
 	CreatedSpec struct {
-		Name string `json:"name" yaml:"name"`
-		ID   string `json:"id" yaml:"id"`
+		Name        string `json:"name" yaml:"name"`
+		ID          string `json:"id" yaml:"id"`
+		Description string `json:"description" yaml:"description"`
 	}
 )
 
@@ -32,7 +33,7 @@ func (c *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 		Metadata: task.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,
-			Description: "",
+			Description: opt.Description,
 		},
 		Spec: task.Spec{},
 		Status: task.Status{

@@ -67,8 +67,9 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "task.create", command.CreateCommandOptions{
-		ID:   tid,
-		Name: spec.Name,
+		ID:          tid,
+		Name:        spec.Name,
+		Description: spec.Description,
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
