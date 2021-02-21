@@ -29,7 +29,7 @@ async function start() {
         }
     }
     console.log(`Authentication token recieved: ${token}`);
-    await Bluebird.delay(2000);
+    await Bluebird.delay(5000);
     await getLists({url, token})
     const s = new Chance();
     try {
