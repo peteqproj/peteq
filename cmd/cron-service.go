@@ -67,6 +67,9 @@ var cronServiceCmd = &cobra.Command{
 			Logger: logr.Fork("repo", "trigger"),
 		}
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
+		if err := ebus.Start(); err != nil {
+			return err
+		}
 		defer ebus.Stop()
 		logr.Info("Eventbus connected")
 
