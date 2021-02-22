@@ -50,19 +50,12 @@ var registerCmd = &cobra.Command{
 		if !registerCmdFlags.autoLogin {
 			return nil
 		}
-		logr.Info("Requesting API token")
-		time.Sleep(time.Second * 5)
-		res, _, err = c.UserCommandAPIApi.CUserLoginPost(context.Background()).Body(client.LoginRequestBody{
-			Email:    registerCmdFlags.email,
-			Password: registerCmdFlags.password,
-		}).Execute()
+		token, err := login(c, 0, 10, logr)
 		if err != nil {
 			return err
 		}
-		if res.Status != nil && *res.Status == "rejected" {
-			return fmt.Errorf("Failed to login: %s", *res.Reason)
-		}
-		return storeClientConfiguration(registerCmdFlags.url, (*res.Data)["token"].(string))
+		fmt.Println(token)
+		return storeClientConfiguration(registerCmdFlags.url, token)
 	},
 }
 
@@ -75,4 +68,24 @@ func init() {
 
 	registerCmd.MarkFlagRequired("email")
 	registerCmd.MarkFlagRequired("password")
+}
+
+func login(c *client.APIClient, attempt int, maxTries int, logr logger.Logger) (string, error) {
+	time.Sleep(time.Second * 5)
+	logr.Info("Requesting API Token", "attempt", attempt, "max-retries", maxTries)
+	data, response, err := c.UserCommandAPIApi.CUserLoginPost(context.Background()).Body(client.LoginRequestBody{
+		Email:    registerCmdFlags.email,
+		Password: registerCmdFlags.password,
+	}).Execute()
+	if response != nil && response.StatusCode == 400 {
+		return login(c, attempt+1, maxTries, logr)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	if data.Status != nil && *data.Status == "rejected" {
+		return "", fmt.Errorf("Failed to login: %s", *data.Reason)
+	}
+	return (*data.Data)["token"].(string), nil
 }
