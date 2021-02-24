@@ -25,7 +25,7 @@ type MoveTasksRequestBody struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMoveTasksRequestBody(tasks []string, ) *MoveTasksRequestBody {
+func NewMoveTasksRequestBody(tasks []string) *MoveTasksRequestBody {
 	this := MoveTasksRequestBody{}
 	this.Tasks = tasks
 	return &this
@@ -105,7 +105,7 @@ func (o *MoveTasksRequestBody) SetSource(v string) {
 
 // GetTasks returns the Tasks field value
 func (o *MoveTasksRequestBody) GetTasks() []string {
-	if o == nil  {
+	if o == nil {
 		var ret []string
 		return ret
 	}

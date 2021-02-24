@@ -24,7 +24,7 @@ type AddTasksRequestBody struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAddTasksRequestBody(project string, tasks []string, ) *AddTasksRequestBody {
+func NewAddTasksRequestBody(project string, tasks []string) *AddTasksRequestBody {
 	this := AddTasksRequestBody{}
 	this.Project = project
 	this.Tasks = tasks
@@ -41,7 +41,7 @@ func NewAddTasksRequestBodyWithDefaults() *AddTasksRequestBody {
 
 // GetProject returns the Project field value
 func (o *AddTasksRequestBody) GetProject() string {
-	if o == nil  {
+	if o == nil {
 		var ret string
 		return ret
 	}
@@ -65,7 +65,7 @@ func (o *AddTasksRequestBody) SetProject(v string) {
 
 // GetTasks returns the Tasks field value
 func (o *AddTasksRequestBody) GetTasks() []string {
-	if o == nil  {
+	if o == nil {
 		var ret []string
 		return ret
 	}

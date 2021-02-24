@@ -27,7 +27,7 @@ type TaskTask struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTaskTask(metadata TaskMetadata, spec TaskSpec, ) *TaskTask {
+func NewTaskTask(metadata TaskMetadata, spec TaskSpec) *TaskTask {
 	this := TaskTask{}
 	this.Metadata = metadata
 	this.Spec = spec
@@ -76,7 +76,7 @@ func (o *TaskTask) SetId(v string) {
 
 // GetMetadata returns the Metadata field value
 func (o *TaskTask) GetMetadata() TaskMetadata {
-	if o == nil  {
+	if o == nil {
 		var ret TaskMetadata
 		return ret
 	}
@@ -100,7 +100,7 @@ func (o *TaskTask) SetMetadata(v TaskMetadata) {
 
 // GetSpec returns the Spec field value
 func (o *TaskTask) GetSpec() TaskSpec {
-	if o == nil  {
+	if o == nil {
 		var ret TaskSpec
 		return ret
 	}
