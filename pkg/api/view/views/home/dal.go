@@ -7,9 +7,9 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/db"
+	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 const dbTableName = "view_home"
@@ -25,7 +25,7 @@ type (
 	listTaskMovedHandler struct {
 		dal         *DAL
 		taskRepo    *task.Repo
-		projectRepo *project.Repo
+		projectRepo *repo.Repo
 	}
 	taskCreatedHandler struct {
 		dal *DAL
@@ -42,7 +42,7 @@ type (
 	}
 	projectTaskAddedHandler struct {
 		dal         *DAL
-		projectRepo *project.Repo
+		projectRepo *repo.Repo
 		taskRepo    *task.Repo
 	}
 )

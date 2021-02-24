@@ -13,6 +13,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/client"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
 	"gopkg.in/yaml.v2"
@@ -25,7 +26,6 @@ import (
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
 	listEventHandlers "github.com/peteqproj/peteq/domain/list/event/handler"
 	listEventTypes "github.com/peteqproj/peteq/domain/list/event/types"
-	projectDomain "github.com/peteqproj/peteq/domain/project"
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
 	projectEventHandlers "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
@@ -97,7 +97,7 @@ func registerUserEventHandlers(eventbus eventbus.Eventbus, repo *userDomain.Repo
 	})
 }
 
-func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *projectDomain.Repo) {
+func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *repo.Repo) {
 	// List related event handlers
 	eventbus.Subscribe(projectEventTypes.ProjectCreatedEvent, &projectEventHandlers.CreatedHandler{
 		Repo: repo,
@@ -175,6 +175,9 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 	cb.RegisterHandler("trigger.create", &triggerCommands.CreateCommand{
 		Eventbus: eventbus,
 	})
+	cb.RegisterHandler("trigger.run", &triggerCommands.RunCommand{
+		Eventbus: eventbus,
+	})
 
 	// Automation related commands
 	cb.RegisterHandler("automation.create", &automationCommands.CreateCommand{
@@ -190,7 +193,7 @@ func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
 	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
 }
 
-func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *taskDomain.Repo, listRepo *listDomain.Repo, projectRepo *projectDomain.Repo, logger logger.Logger) {
+func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *taskDomain.Repo, listRepo *listDomain.Repo, projectRepo *repo.Repo, logger logger.Logger) {
 	vb := viewBuilder.New(&viewBuilder.Options{
 		TaskRepo:    taskRepo,
 		ListRepo:    listRepo,

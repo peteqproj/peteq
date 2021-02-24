@@ -5,7 +5,6 @@ import (
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
-	projectDomain "github.com/peteqproj/peteq/domain/project"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
@@ -14,6 +13,7 @@ import (
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -29,7 +29,7 @@ type (
 		ListRepo       *listDomain.Repo
 		TaskRepo       *taskDomain.Repo
 		AutomationRepo *automationDomain.Repo
-		ProjectRepo    *projectDomain.Repo
+		ProjectRepo    *repo.Repo
 		TriggerRepo    *triggerDomain.Repo
 		UserRepo       *userDomain.Repo
 		CommandBus     commandbus.CommandBus
@@ -62,6 +62,8 @@ func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger
 			switch a.Spec.Type {
 			case "task-archiver":
 				return newTaskArchiver(e.CommandBus, e.TaskRepo, e.ListRepo, logger, ev.Tenant.ID).Run(ctx)
+			case "rss-importer":
+				return newRSSImporter(e.CommandBus, e.TaskRepo, e.ProjectRepo, ev, logger).Run(ctx)
 			}
 			logger.Info("Spec does not match to any known saga process", "type", a.Spec.Type)
 		}
@@ -81,5 +83,15 @@ func newTaskArchiver(cb commandbus.CommandBus, taskRepo *taskDomain.Repo, listRe
 		ListRepo:   listRepo,
 		Logger:     lgr,
 		User:       user,
+	}
+}
+
+func newRSSImporter(cb commandbus.CommandBus, taskRepo *taskDomain.Repo, projectRepo *repo.Repo, ev event.Event, lgr logger.Logger) Saga {
+	return &rssImporter{
+		Commandbus:  cb,
+		TaskRepo:    taskRepo,
+		ProjectRepo: projectRepo,
+		Logger:      lgr,
+		Event:       ev,
 	}
 }

@@ -17,9 +17,10 @@ type (
 
 	// Metadata of task
 	Metadata struct {
-		ID          string `json:"id" yaml:"id" validate:"required"`
-		Name        string `json:"name" yaml:"name" validate:"required"`
-		Description string `json:"description" yaml:"description"`
+		ID          string            `json:"id" yaml:"id" validate:"required"`
+		Name        string            `json:"name" yaml:"name" validate:"required"`
+		Description string            `json:"description" yaml:"description"`
+		Labels      map[string]string `json:"labels" yaml:"labels"`
 	}
 
 	// Spec of task

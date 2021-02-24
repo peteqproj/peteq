@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for lists
 	CommandAPI struct {
-		Repo        *project.Repo
+		Repo        *repo.Repo
 		Commandbus  commandbus.CommandBus
 		Logger      logger.Logger
 		IDGenerator utils.IDGenerator
@@ -49,7 +48,6 @@ type (
 // @Router /c/project/create [post]
 // @Security ApiKeyAuth
 func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	u := tenant.UserFromContext(ctx)
 	spec := CreateProjectRequestBody{}
 	if err := api.UnmarshalInto(body, &spec); err != nil {
 		return api.NewRejectedCommandResponse(err)
@@ -59,26 +57,18 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 		return api.NewRejectedCommandResponse(err)
 	}
 
-	proj := project.Project{
-		Tenant: tenant.Tenant{
-			ID:   u.Metadata.ID,
-			Type: "User",
-		},
-		Metadata: project.Metadata{
-			ID:          uid,
-			Name:        spec.Name,
-			Description: spec.Description,
-			Color:       spec.Color,
-			ImageURL:    spec.ImageURL,
-		},
-		Tasks: []string{},
-	}
-	err = ca.Commandbus.Execute(ctx, "project.create", proj)
+	err = ca.Commandbus.Execute(ctx, "project.create", command.CreateProjectCommandOptions{
+		ID:          uid,
+		Name:        spec.Name,
+		Description: spec.Description,
+		Color:       spec.Color,
+		ImageURL:    spec.ImageURL,
+	})
 	if err != nil {
 		ca.Logger.Info("Failed to execute project.create command", "error", err.Error())
 		return api.NewRejectedCommandResponse(fmt.Errorf("Failed to create project"))
 	}
-	return api.NewAcceptedCommandResponse("project", proj.Metadata.ID)
+	return api.NewAcceptedCommandResponse("project", uid)
 }
 
 // AddTasks assign tasks to project

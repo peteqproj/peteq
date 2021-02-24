@@ -23,7 +23,8 @@ type (
 	}
 
 	triggerRunRequestBody struct {
-		ID string `json:"id" validate:"required"`
+		ID   string      `json:"id" validate:"required"`
+		Data interface{} `json:"data"`
 	} //@name TriggerRunRequestBody
 )
 
@@ -44,7 +45,8 @@ func (c *CommandAPI) Run(ctx context.Context, body io.ReadCloser) api.CommandRes
 		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "trigger.run", command.TriggerRunCommandOptions{
-		ID: spec.ID,
+		ID:   spec.ID,
+		Data: spec.Data,
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}

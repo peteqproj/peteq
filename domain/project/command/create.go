@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -19,11 +18,21 @@ type (
 	CreateCommand struct {
 		Eventbus bus.EventPublisher
 	}
+
+	// CreateProjectCommandOptions to create new project
+	CreateProjectCommandOptions struct {
+		ID          string            `json:"id"`
+		Name        string            `json:"name"`
+		Description string            `json:"description"`
+		Labels      map[string]string `json:"labels"`
+		Color       string            `json:"color"`
+		ImageURL    string            `json:"imageUrl"`
+	}
 )
 
 // Handle runs CreateCommand to create task
 func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &project.Project{}
+	opt := &CreateProjectCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to Project object")
@@ -39,14 +48,14 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 			Name:           types.ProjectCreatedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "project",
-			AggregatorID:   opt.Metadata.ID,
+			AggregatorID:   opt.ID,
 		},
 		Spec: handler.CreatedSpec{
-			ID:          opt.Metadata.ID,
-			Name:        opt.Metadata.Name,
-			Description: opt.Metadata.Description,
-			Color:       opt.Metadata.Color,
-			ImageURL:    opt.Metadata.ImageURL,
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Description: opt.Description,
+			Color:       opt.Color,
+			ImageURL:    opt.ImageURL,
 		},
 	})
 	return err

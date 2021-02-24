@@ -15,6 +15,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -22,7 +23,7 @@ type (
 	// ViewAPI for projects view
 	ViewAPI struct {
 		TaskRepo    *task.Repo
-		ProjectRepo *project.Repo
+		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
 
@@ -31,8 +32,8 @@ type (
 	}
 
 	populatedProject struct {
-		project.Project
-		Tasks []task.Task `json:"tasks"`
+		Project repo.Resource
+		Tasks   []task.Task `json:"tasks"`
 	}
 )
 
@@ -137,7 +138,7 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	}
 	projectIndex := -1
 	for i, p := range view.Projects {
-		if p.Metadata.ID == spec.Project {
+		if p.Project.Metadata.ID == spec.Project {
 			projectIndex = i
 			break
 		}
@@ -146,7 +147,6 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 		return view, fmt.Errorf("Project not found")
 	}
 	view.Projects[projectIndex].Tasks = append(view.Projects[projectIndex].Tasks, newTask)
-	view.Projects[projectIndex].Project.Tasks = append(view.Projects[projectIndex].Project.Tasks, newTask.Metadata.ID)
 	return view, nil
 }
 func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, view projectsView, logger logger.Logger) (projectsView, error) {
@@ -155,17 +155,15 @@ func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, vie
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Project object: %v", err)
 	}
+	p := project.NewProject(spec.ID, spec.Name, spec.Description)
+	p.Spec = project.Spec{
+		Color:    spec.Color,
+		ImageURL: spec.ImageURL,
+		Tasks:    []string{},
+	}
 	view.Projects = append(view.Projects, populatedProject{
-		Project: project.Project{
-			Metadata: project.Metadata{
-				ID:          spec.ID,
-				Name:        spec.Name,
-				Description: spec.Description,
-				Color:       spec.Color,
-				ImageURL:    spec.ImageURL,
-			},
-		},
-		Tasks: make([]task.Task, 0),
+		Project: p,
+		Tasks:   make([]task.Task, 0),
 	})
 	return view, nil
 }

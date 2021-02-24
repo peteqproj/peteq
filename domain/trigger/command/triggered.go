@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/trigger/event/handler"
 	"github.com/peteqproj/peteq/domain/trigger/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
@@ -21,13 +20,14 @@ type (
 
 	// TriggerRunCommandOptions options to trigger the trigger
 	TriggerRunCommandOptions struct {
-		ID string `json:"id"`
+		ID   string      `json:"id"`
+		Data interface{} `json:"data"`
 	}
 )
 
 // Handle runs RunCommand to create task
 func (m *RunCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &TriggerCreateCommandOptions{}
+	opt := &TriggerRunCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to TriggerRunCommandOptions object")
@@ -45,14 +45,7 @@ func (m *RunCommand) Handle(ctx context.Context, arguments interface{}) error {
 			AggregatorRoot: "trigger",
 			AggregatorID:   opt.ID,
 		},
-		Spec: handler.CreatedSpec{
-			ID:              opt.ID,
-			Name:            opt.Name,
-			Description:     opt.Description,
-			Cron:            opt.Cron,
-			URL:             opt.URL,
-			RequiredHeaders: opt.RequiredHeaders,
-		},
+		Spec: opt.Data,
 	})
 	return err
 }

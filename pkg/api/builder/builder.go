@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
-	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/trigger"
 	"github.com/peteqproj/peteq/domain/user"
@@ -21,6 +20,7 @@ import (
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -29,7 +29,7 @@ type (
 	Builder struct {
 		UserRepo    *user.Repo
 		ListRpeo    *list.Repo
-		ProjectRepo *project.Repo
+		ProjectRepo *repo.Repo
 		TaskRepo    *task.Repo
 		Commandbus  commandbus.CommandBus
 		Logger      logger.Logger

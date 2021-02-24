@@ -2,7 +2,6 @@ package cmd
 
 import (
 	listDomain "github.com/peteqproj/peteq/domain/list"
-	projectDomain "github.com/peteqproj/peteq/domain/project"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/internal"
@@ -11,6 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
 
@@ -58,11 +58,12 @@ var commandServiceCmd = &cobra.Command{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
 		}
-
-		projectRepo := &projectDomain.Repo{
-			DB:     db,
-			Logger: logr.Fork("repo", "project"),
-		}
+		projectRepo, err := repo.New(repo.Options{
+			ResourceType: "project",
+			DB:           db,
+			Logger:       logr.Fork("repo", "project"),
+		})
+		utils.DieOnError(err, "Failed to init project repo")
 
 		userRepo := &userDomain.Repo{
 			DB:     db,
