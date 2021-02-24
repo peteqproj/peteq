@@ -9,9 +9,9 @@ type (
 
 	// Metadata is all resources common metadata
 	Metadata struct {
-		Type        string
-		Name        string
-		Description string
-		ID          string
+		Type        string `json:"type"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		ID          string `json:"id"`
 	}
 )
