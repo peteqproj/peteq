@@ -149,11 +149,11 @@ func (r *Repo) list(ctx context.Context, opt listOptions) ([]*Resource, error) {
 		return nil, errUserIsMissing
 	}
 	e := exp.Ex{
-		"userid": user,
+		"userid": user.Metadata.ID,
 	}
 	if len(opt.ids) > 0 {
 		e = exp.Ex{
-			"userid":     user,
+			"userid":     user.Metadata.ID,
 			"resourceid": opt.ids,
 		}
 	}
