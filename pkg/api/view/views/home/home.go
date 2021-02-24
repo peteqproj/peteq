@@ -43,7 +43,7 @@ type (
 
 	homeTask struct {
 		task.Task
-		Project repo.Resource `json:"project"`
+		Project *repo.Resource `json:"project,omitempty"`
 	}
 )
 
@@ -205,9 +205,9 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 		}
 
 	}
-	taskProject := repo.Resource{}
+	var taskProject *repo.Resource
 	if taskInProjectIndex != -1 {
-		taskProject = *projects[projectIndex]
+		taskProject = projects[projectIndex]
 	}
 
 	// If source found, remove task from source
@@ -279,7 +279,7 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 		// task not found in lists, not an error
 		return view, nil
 	}
-	view.Lists[listIndex].Tasks[taskIndex].Project = *newProject
+	view.Lists[listIndex].Tasks[taskIndex].Project = newProject
 	return view, nil
 }
 
