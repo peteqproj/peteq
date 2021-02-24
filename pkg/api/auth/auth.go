@@ -41,5 +41,5 @@ func IsAuthenticated(userRepo *user.Repo) func(c *gin.Context) {
 
 func hash(s string) string {
 	sh := sha256.Sum256([]byte(s))
-	return fmt.Sprintf("%x\n", sh)
+	return fmt.Sprintf("%x", sh)
 }
