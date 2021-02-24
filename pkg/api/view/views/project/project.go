@@ -27,8 +27,8 @@ type (
 	}
 
 	projectView struct {
-		Project repo.Resource
-		Tasks   []task.Task `json:"tasks"`
+		Project repo.Resource `json:"project"`
+		Tasks   []task.Task   `json:"tasks"`
 	}
 )
 
