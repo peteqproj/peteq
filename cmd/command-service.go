@@ -59,7 +59,7 @@ var commandServiceCmd = &cobra.Command{
 			Logger: logr.Fork("repo", "list"),
 		}
 		projectRepo, err := repo.New(repo.Options{
-			ResourceType: "project",
+			ResourceType: "projects",
 			DB:           db,
 			Logger:       logr.Fork("repo", "project"),
 		})
