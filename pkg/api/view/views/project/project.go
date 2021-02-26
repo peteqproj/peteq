@@ -21,14 +21,14 @@ import (
 type (
 	// ViewAPI for single project view
 	ViewAPI struct {
-		TaskRepo    *task.Repo
+		TaskRepo    *repo.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
 
 	projectView struct {
-		Project repo.Resource `json:"project"`
-		Tasks   []task.Task   `json:"tasks"`
+		Project repo.Resource   `json:"project"`
+		Tasks   []repo.Resource `json:"tasks"`
 	}
 )
 
@@ -167,7 +167,9 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	view.Tasks[taskIndex].Status.Completed = spec.Completed
+	tspec := view.Tasks[taskIndex].Spec.(task.Spec)
+	tspec.Completed = spec.Completed
+	view.Tasks[taskIndex].Spec = tspec
 	return view, nil
 }
 func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
@@ -194,7 +196,7 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	task, err := h.TaskRepo.Get(ev.Tenant.ID, spec.TaskID)
+	task, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
 	if err != nil {
 		return view, err
 	}
@@ -203,7 +205,7 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 		logger.Info("Task already belongs to this project")
 		return view, nil
 	}
-	view.Tasks = append(view.Tasks, task)
+	view.Tasks = append(view.Tasks, *task)
 	return view, nil
 }
 func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logger logger.Logger) (projectView, error) {
@@ -220,7 +222,7 @@ func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logg
 	}
 	view := projectView{
 		Project: p,
-		Tasks:   make([]task.Task, 0),
+		Tasks:   make([]repo.Resource, 0),
 	}
 	return view, nil
 }

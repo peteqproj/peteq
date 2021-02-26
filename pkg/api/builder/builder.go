@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
-	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/trigger"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/api"
@@ -30,7 +29,7 @@ type (
 		UserRepo    *user.Repo
 		ListRpeo    *list.Repo
 		ProjectRepo *repo.Repo
-		TaskRepo    *task.Repo
+		TaskRepo    *repo.Repo
 		Commandbus  commandbus.CommandBus
 		Logger      logger.Logger
 		DB          db.Database

@@ -4,14 +4,13 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/peteqproj/peteq/domain/task"
-	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
 	// QueryAPI for tasks
 	QueryAPI struct {
-		Repo *task.Repo
+		Repo *repo.Repo
 	}
 )
 
@@ -23,8 +22,7 @@ type (
 // @router /api/task/ [get]
 // @Security ApiKeyAuth
 func (a *QueryAPI) List(c *gin.Context) {
-	u := tenant.UserFromContext(c.Request.Context())
-	res, err := a.Repo.List(task.ListOptions{UserID: u.Metadata.ID})
+	res, err := a.Repo.List(c.Request.Context(), repo.ListOptions{})
 	if err != nil {
 		handleError(500, err, c)
 		return
@@ -41,8 +39,7 @@ func (a *QueryAPI) List(c *gin.Context) {
 // @router /api/task/{id} [get]
 // @Security ApiKeyAuth
 func (a *QueryAPI) Get(c *gin.Context) {
-	u := tenant.UserFromContext(c.Request.Context())
-	t, err := a.Repo.Get(u.Metadata.ID, c.Param("id"))
+	t, err := a.Repo.Get(c.Request.Context(), repo.GetOptions{ID: c.Param("id")})
 	if err != nil {
 		handleError(404, fmt.Errorf("Task not found"), c)
 		return

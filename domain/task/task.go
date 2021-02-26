@@ -3,33 +3,25 @@ package task
 import (
 	"time"
 
-	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
-	// Task entity
-	Task struct {
-		tenant.Tenant `json:"tenant" yaml:"tenant"`
-		Metadata      Metadata `json:"metadata" yaml:"metadata" validate:"required"`
-		Spec          Spec     `json:"spec" yaml:"spec" validate:"required"`
-		Status        Status   `json:"status" yaml:"status"`
-	}
-
-	// Metadata of task
-	Metadata struct {
-		ID          string            `json:"id" yaml:"id" validate:"required"`
-		Name        string            `json:"name" yaml:"name" validate:"required"`
-		Description string            `json:"description" yaml:"description"`
-		Labels      map[string]string `json:"labels" yaml:"labels"`
-	}
-
 	// Spec of task
 	Spec struct {
-		DueDate time.Time
-	}
-
-	// Status of task
-	Status struct {
-		Completed bool `json:"completed" yaml:"completed"`
+		DueDate   time.Time
+		Completed bool `json:"completed" `
 	}
 )
+
+// NewTask build repo.Resource
+func NewTask(id string, name string, description string) repo.Resource {
+	return repo.Resource{
+		Metadata: repo.Metadata{
+			Type:        "task",
+			ID:          id,
+			Name:        name,
+			Description: description,
+		},
+	}
+}

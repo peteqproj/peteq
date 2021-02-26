@@ -7,17 +7,18 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
 	// StatusChangedHandler to handle task.created event
 	StatusChangedHandler struct {
-		Repo *task.Repo
+		Repo *repo.Repo
 	}
 
 	// StatusChangedSpec is the event.spec for this event
 	StatusChangedSpec struct {
-		Completed bool `json:"completed" yaml:"completed"`
+		Completed bool `json:"completed"`
 	}
 )
 
@@ -28,12 +29,14 @@ func (c *StatusChangedHandler) Handle(ctx context.Context, ev event.Event, logge
 	if err != nil {
 		return err
 	}
-	task, err := c.Repo.Get(ev.Tenant.ID, ev.Metadata.AggregatorID)
+	t, err := c.Repo.Get(ctx, repo.GetOptions{ID: ev.Metadata.AggregatorID})
 	if err != nil {
 		return fmt.Errorf("Failed to get task %s: %v", ev.Metadata.AggregatorID, err)
 	}
-	task.Status.Completed = opt.Completed
-	return c.Repo.Update(ev.Tenant.ID, task)
+	spec := t.Spec.(task.Spec)
+	spec.Completed = opt.Completed
+	t.Spec = spec
+	return c.Repo.Update(ctx, *t)
 }
 
 func (c *StatusChangedHandler) Name() string {

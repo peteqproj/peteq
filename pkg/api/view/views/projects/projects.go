@@ -8,7 +8,6 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
-	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
@@ -22,7 +21,7 @@ import (
 type (
 	// ViewAPI for projects view
 	ViewAPI struct {
-		TaskRepo    *task.Repo
+		TaskRepo    *repo.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
@@ -32,8 +31,8 @@ type (
 	}
 
 	populatedProject struct {
-		Project repo.Resource `json:"project"`
-		Tasks   []task.Task   `json:"tasks"`
+		Project repo.Resource   `json:"project"`
+		Tasks   []repo.Resource `json:"tasks"`
 	}
 )
 
@@ -132,7 +131,7 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	newTask, err := h.TaskRepo.Get(ev.Tenant.ID, spec.TaskID)
+	newTask, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
 	if err != nil {
 		return view, err
 	}
@@ -146,7 +145,7 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	if projectIndex == -1 {
 		return view, fmt.Errorf("Project not found")
 	}
-	view.Projects[projectIndex].Tasks = append(view.Projects[projectIndex].Tasks, newTask)
+	view.Projects[projectIndex].Tasks = append(view.Projects[projectIndex].Tasks, *newTask)
 	return view, nil
 }
 func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, view projectsView, logger logger.Logger) (projectsView, error) {
@@ -163,7 +162,7 @@ func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, vie
 	}
 	view.Projects = append(view.Projects, populatedProject{
 		Project: p,
-		Tasks:   make([]task.Task, 0),
+		Tasks:   make([]repo.Resource, 0),
 	})
 	return view, nil
 }

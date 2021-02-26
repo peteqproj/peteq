@@ -7,7 +7,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/repo"
 )
@@ -24,7 +23,7 @@ type (
 	}
 	listTaskMovedHandler struct {
 		dal         *DAL
-		taskRepo    *task.Repo
+		taskRepo    *repo.Repo
 		projectRepo *repo.Repo
 	}
 	taskCreatedHandler struct {
@@ -35,7 +34,7 @@ type (
 	}
 	taskDeletedHandler struct {
 		dal      *DAL
-		taskRepo *task.Repo
+		taskRepo *repo.Repo
 	}
 	userRegistredHandler struct {
 		dal *DAL
@@ -43,7 +42,7 @@ type (
 	projectTaskAddedHandler struct {
 		dal         *DAL
 		projectRepo *repo.Repo
-		taskRepo    *task.Repo
+		taskRepo    *repo.Repo
 	}
 )
 
