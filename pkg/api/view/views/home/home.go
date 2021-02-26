@@ -291,7 +291,7 @@ func findTaskInView(view homeView, id string) (int, int) {
 	taskIndex := -1
 	for i, l := range view.Lists {
 		for j, t := range l.Tasks {
-			if t.Metadata.ID == id {
+			if t.Task.Metadata.ID == id {
 				listIndex = i
 				taskIndex = j
 				break
