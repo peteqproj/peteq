@@ -4,14 +4,13 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/peteqproj/peteq/domain/project"
-	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
 	// QueryAPI for projects
 	QueryAPI struct {
-		Repo *project.Repo
+		Repo *repo.Repo
 	}
 )
 
@@ -23,11 +22,7 @@ type (
 // @router /api/project [get]
 // @Security ApiKeyAuth
 func (q *QueryAPI) List(c *gin.Context) {
-	u := tenant.UserFromContext(c.Request.Context())
-
-	res, err := q.Repo.List(project.QueryOptions{
-		UserID: u.Metadata.ID,
-	})
+	res, err := q.Repo.List(c.Request.Context(), repo.ListOptions{})
 	if err != nil {
 		handleError(500, err, c)
 		return
@@ -44,8 +39,9 @@ func (q *QueryAPI) List(c *gin.Context) {
 // @router /api/project/{id} [get]
 // @Security ApiKeyAuth
 func (q *QueryAPI) Get(c *gin.Context) {
-	u := tenant.UserFromContext(c.Request.Context())
-	p, err := q.Repo.Get(u.Metadata.ID, c.Param("id"))
+	p, err := q.Repo.Get(c.Request.Context(), repo.GetOptions{
+		ID: c.Param("id"),
+	})
 	if err != nil {
 		handleError(404, fmt.Errorf("Project not found"), c)
 		return

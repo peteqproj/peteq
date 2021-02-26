@@ -19,6 +19,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -27,7 +28,7 @@ type (
 	ViewAPI struct {
 		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
-		ProjectRepo *project.Repo
+		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
 
@@ -42,7 +43,7 @@ type (
 
 	homeTask struct {
 		task.Task
-		Project project.Project `json:"project"`
+		Project *repo.Resource `json:"project,omitempty"`
 	}
 )
 
@@ -182,9 +183,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	}
 
 	// search if there is reference for task in any project
-	projects, err := h.ProjectRepo.List(project.QueryOptions{
-		UserID: ev.Tenant.ID,
-	})
+	projects, err := h.ProjectRepo.List(ctx, repo.ListOptions{})
 	if err != nil {
 		return view, err
 	}
@@ -195,15 +194,18 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 		if taskInProjectIndex != -1 {
 			break
 		}
-		for j, t := range p.Tasks {
-			if t == spec.TaskID {
-				projectIndex = i
-				taskInProjectIndex = j
-				break
+		if pspec, ok := p.Spec.(project.Spec); ok {
+			for j, t := range pspec.Tasks {
+				if t == spec.TaskID {
+					projectIndex = i
+					taskInProjectIndex = j
+					break
+				}
 			}
 		}
+
 	}
-	taskProject := project.Project{}
+	var taskProject *repo.Resource
 	if taskInProjectIndex != -1 {
 		taskProject = projects[projectIndex]
 	}
@@ -266,7 +268,9 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	newProject, err := h.ProjectRepo.Get(ev.Tenant.ID, spec.Project)
+	newProject, err := h.ProjectRepo.Get(ctx, repo.GetOptions{
+		ID: spec.Project,
+	})
 	if err != nil {
 		return view, err
 	}
@@ -287,7 +291,7 @@ func findTaskInView(view homeView, id string) (int, int) {
 	taskIndex := -1
 	for i, l := range view.Lists {
 		for j, t := range l.Tasks {
-			if t.Metadata.ID == id {
+			if t.Task.Metadata.ID == id {
 				listIndex = i
 				taskIndex = j
 				break

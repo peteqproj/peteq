@@ -9,7 +9,6 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	listEvents "github.com/peteqproj/peteq/domain/list/event/handler"
 	listEventTypes "github.com/peteqproj/peteq/domain/list/event/types"
-	"github.com/peteqproj/peteq/domain/project"
 	projectEvents "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/domain/task"
@@ -19,6 +18,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -27,7 +27,7 @@ type (
 	ViewAPI struct {
 		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
-		ProjectRepo *project.Repo
+		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
 
@@ -260,7 +260,9 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	}
 	newProject := backlogTaskProject{}
 	if spec.Project != "" {
-		prj, err := h.ProjectRepo.Get(ev.Tenant.ID, spec.Project)
+		prj, err := h.ProjectRepo.Get(ctx, repo.GetOptions{
+			ID: spec.Project,
+		})
 		if err != nil {
 			return view, err
 		}

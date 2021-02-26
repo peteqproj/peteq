@@ -73,21 +73,19 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
-
-	if spec.Project != "" {
-		if err := c.Commandbus.Execute(ctx, "project.add-task", projectCommand.AddTasksCommandOptions{
-			Project: spec.Project,
-			TaskID:  tid,
-		}); err != nil {
-			return api.NewRejectedCommandResponse(err)
-		}
-	}
-
 	if spec.List != "" {
 		if err := c.Commandbus.Execute(ctx, "list.move-task", listCommand.MoveTaskArguments{
 			Source:      "",
 			Destination: spec.List,
 			TaskID:      tid,
+		}); err != nil {
+			return api.NewRejectedCommandResponse(err)
+		}
+	}
+	if spec.Project != "" {
+		if err := c.Commandbus.Execute(ctx, "project.add-task", projectCommand.AddTasksCommandOptions{
+			Project: spec.Project,
+			TaskID:  tid,
 		}); err != nil {
 			return api.NewRejectedCommandResponse(err)
 		}

@@ -100,5 +100,5 @@ func (c *CommandAPI) Login(ctx context.Context, body io.ReadCloser) api.CommandR
 
 func hash(s string) string {
 	sh := sha256.Sum256([]byte(s))
-	return fmt.Sprintf("%x\n", sh)
+	return fmt.Sprintf("%x", sh)
 }

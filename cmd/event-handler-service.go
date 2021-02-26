@@ -3,7 +3,6 @@ package cmd
 import (
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
-	projectDomain "github.com/peteqproj/peteq/domain/project"
 	taskDomain "github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
@@ -12,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
@@ -60,11 +60,12 @@ var eventHandlerServiceCmd = &cobra.Command{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
 		}
-
-		projectRepo := &projectDomain.Repo{
-			DB:     db,
-			Logger: logr.Fork("repo", "project"),
-		}
+		projectRepo, err := repo.New(repo.Options{
+			ResourceType: "projects",
+			DB:           db,
+			Logger:       logr.Fork("repo", "project"),
+		})
+		utils.DieOnError(err, "Failed to init project repo")
 
 		userRepo := &userDomain.Repo{
 			DB:     db,

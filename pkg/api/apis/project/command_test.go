@@ -6,11 +6,11 @@ import (
 	"io"
 	"testing"
 
-	"github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/pkg/utils/tests"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ import (
 
 func TestCommandAPI_AddTasks(t *testing.T) {
 	type fields struct {
-		Repo        func() *project.Repo
+		Repo        func() *repo.Repo
 		Commandbus  func() commandbus.CommandBus
 		Logger      func() logger.Logger
 		IDGenerator func() utils.IDGenerator
@@ -86,7 +86,7 @@ func TestCommandAPI_AddTasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var repo *project.Repo
+			var repo *repo.Repo
 			var cm commandbus.CommandBus
 			var logger logger.Logger
 			var idGenerator utils.IDGenerator
@@ -116,7 +116,7 @@ func TestCommandAPI_AddTasks(t *testing.T) {
 
 func TestCommandAPI_Create(t *testing.T) {
 	type fields struct {
-		Repo        func() *project.Repo
+		Repo        func() *repo.Repo
 		Commandbus  func() commandbus.CommandBus
 		Logger      func() logger.Logger
 		IDGenerator func() utils.IDGenerator
@@ -181,21 +181,11 @@ func TestCommandAPI_Create(t *testing.T) {
 				},
 				Commandbus: func() commandbus.CommandBus {
 					cb := &commandbus.MockCommandBus{}
-					p := project.Project{
-						Tenant: tenant.Tenant{
-							ID:   "user-id",
-							Type: tenant.User.String(),
-						},
-						Metadata: project.Metadata{
-							ID:          "project-id",
-							Name:        "project",
-							Description: "",
-							Color:       "",
-							ImageURL:    "",
-						},
-						Tasks: []string{},
+					opt := command.CreateProjectCommandOptions{
+						ID:   "project-id",
+						Name: "project",
 					}
-					cb.On("Execute", mock.Anything, "project.create", p).Return(nil)
+					cb.On("Execute", mock.Anything, "project.create", opt).Return(nil)
 					return cb
 				},
 				IDGenerator: func() utils.IDGenerator {
@@ -209,7 +199,7 @@ func TestCommandAPI_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var repo *project.Repo
+			var repo *repo.Repo
 			var cm commandbus.CommandBus
 			var logger logger.Logger
 			var idGenerator utils.IDGenerator

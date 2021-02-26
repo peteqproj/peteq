@@ -29,7 +29,7 @@ type BacklogBacklogTask struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewBacklogBacklogTask(metadata TaskMetadata, spec TaskSpec, ) *BacklogBacklogTask {
+func NewBacklogBacklogTask(metadata TaskMetadata, spec TaskSpec) *BacklogBacklogTask {
 	this := BacklogBacklogTask{}
 	this.Metadata = metadata
 	this.Spec = spec
@@ -110,7 +110,7 @@ func (o *BacklogBacklogTask) SetList(v BacklogBacklogTaskList) {
 
 // GetMetadata returns the Metadata field value
 func (o *BacklogBacklogTask) GetMetadata() TaskMetadata {
-	if o == nil  {
+	if o == nil {
 		var ret TaskMetadata
 		return ret
 	}
@@ -166,7 +166,7 @@ func (o *BacklogBacklogTask) SetProject(v BacklogBacklogTaskProject) {
 
 // GetSpec returns the Spec field value
 func (o *BacklogBacklogTask) GetSpec() TaskSpec {
-	if o == nil  {
+	if o == nil {
 		var ret TaskSpec
 		return ret
 	}

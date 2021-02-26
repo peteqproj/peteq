@@ -14,6 +14,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -21,13 +22,13 @@ type (
 	// ViewAPI for single project view
 	ViewAPI struct {
 		TaskRepo    *task.Repo
-		ProjectRepo *project.Repo
+		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
 
 	projectView struct {
-		project.Project
-		Tasks []task.Task `json:"tasks"`
+		Project repo.Resource `json:"project"`
+		Tasks   []task.Task   `json:"tasks"`
 	}
 )
 
@@ -120,17 +121,17 @@ func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view p
 
 func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, logger logger.Logger) (string, error) {
 	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged || ev.Metadata.Name == taskEventTypes.TaskUpdatedEvent {
-		projects, err := h.ProjectRepo.List(project.QueryOptions{
-			UserID: ev.Tenant.ID,
-		})
+		projects, err := h.ProjectRepo.List(ctx, repo.ListOptions{})
 		if err != nil {
 			return "", err
 		}
 		projectID := ""
 		for _, p := range projects {
-			for _, t := range p.Tasks {
-				if t == ev.Metadata.AggregatorID {
-					projectID = p.Metadata.ID
+			if spec, ok := p.Spec.(project.Spec); ok {
+				for _, t := range spec.Tasks {
+					if t == ev.Metadata.AggregatorID {
+						projectID = p.Metadata.ID
+					}
 				}
 			}
 		}
@@ -154,11 +155,6 @@ func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view pr
 		return view, fmt.Errorf("Task not found")
 	}
 	view.Tasks = append(view.Tasks[:taskIndex], view.Tasks[taskIndex+1:]...)
-	tasks := []string{}
-	for _, t := range view.Tasks {
-		tasks = append(tasks, t.Metadata.ID)
-	}
-	view.Project.Tasks = tasks
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
@@ -208,7 +204,6 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 		return view, nil
 	}
 	view.Tasks = append(view.Tasks, task)
-	view.Project.Tasks = append(view.Project.Tasks, task.Metadata.ID)
 	return view, nil
 }
 func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logger logger.Logger) (projectView, error) {
@@ -217,17 +212,15 @@ func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logg
 	if err != nil {
 		return projectView{}, fmt.Errorf("Failed to convert event.spec to Project object: %v", err)
 	}
+	p := project.NewProject(spec.ID, spec.Name, spec.Description)
+	p.Spec = project.Spec{
+		Color:    spec.Color,
+		ImageURL: spec.ImageURL,
+		Tasks:    []string{},
+	}
 	view := projectView{
-		Project: project.Project{
-			Metadata: project.Metadata{
-				ID:          spec.ID,
-				Name:        spec.Name,
-				Description: spec.Description,
-				Color:       spec.Color,
-				ImageURL:    spec.ImageURL,
-			},
-		},
-		Tasks: make([]task.Task, 0),
+		Project: p,
+		Tasks:   make([]task.Task, 0),
 	}
 	return view, nil
 }

@@ -24,7 +24,7 @@ type RegistrationRequestBody struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegistrationRequestBody(email string, password string, ) *RegistrationRequestBody {
+func NewRegistrationRequestBody(email string, password string) *RegistrationRequestBody {
 	this := RegistrationRequestBody{}
 	this.Email = email
 	this.Password = password
@@ -41,7 +41,7 @@ func NewRegistrationRequestBodyWithDefaults() *RegistrationRequestBody {
 
 // GetEmail returns the Email field value
 func (o *RegistrationRequestBody) GetEmail() string {
-	if o == nil  {
+	if o == nil {
 		var ret string
 		return ret
 	}
@@ -65,7 +65,7 @@ func (o *RegistrationRequestBody) SetEmail(v string) {
 
 // GetPassword returns the Password field value
 func (o *RegistrationRequestBody) GetPassword() string {
-	if o == nil  {
+	if o == nil {
 		var ret string
 		return ret
 	}

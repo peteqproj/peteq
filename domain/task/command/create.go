@@ -21,9 +21,10 @@ type (
 
 	// CreateCommandOptions add new token to allow api calls
 	CreateCommandOptions struct {
-		ID          string `json:"id"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
+		ID          string            `json:"id"`
+		Name        string            `json:"name"`
+		Description string            `json:"description"`
+		Labels      map[string]string `json:"labels"`
 	}
 )
 
@@ -50,6 +51,7 @@ func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 			ID:          t.ID,
 			Name:        t.Name,
 			Description: t.Description,
+			Labels:      t.Labels,
 		},
 	})
 	return err

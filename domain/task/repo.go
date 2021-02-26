@@ -27,17 +27,24 @@ type (
 	// ListOptions to get task list
 	ListOptions struct {
 		UserID string
+		Labels map[string]string
+	}
+
+	findOptions struct {
+		user   string
+		ids    []string
+		labels map[string]string
 	}
 )
 
 // List returns list of tasks
 func (r *Repo) List(options ListOptions) ([]Task, error) {
-	return r.find(context.Background(), options.UserID)
+	return r.find(context.Background(), findOptions{user: options.UserID, labels: options.Labels})
 }
 
 // Get returns task given task id
 func (r *Repo) Get(userID string, id string) (Task, error) {
-	tasks, err := r.find(context.Background(), userID, id)
+	tasks, err := r.find(context.Background(), findOptions{user: userID, ids: []string{id}})
 	if err != nil {
 		return Task{}, err
 	}
@@ -88,14 +95,14 @@ func (r *Repo) create(ctx context.Context, user string, task Task) error {
 	}
 	return nil
 }
-func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]Task, error) {
+func (r *Repo) find(ctx context.Context, opt findOptions) ([]Task, error) {
 	e := exp.Ex{
-		"userid": user,
+		"userid": opt.user,
 	}
-	if len(ids) > 0 {
+	if len(opt.ids) > 0 {
 		e = exp.Ex{
-			"userid": user,
-			"taskid": ids,
+			"userid": opt.user,
+			"taskid": opt.ids,
 		}
 	}
 	q, _, err := goqu.
@@ -123,6 +130,7 @@ func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]Task, er
 	}
 	return set, rows.Close()
 }
+
 func (r *Repo) delete(ctx context.Context, user string, ids ...string) error {
 	q, _, err := goqu.
 		Delete(dbName).
