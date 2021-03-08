@@ -19,7 +19,7 @@ require (
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/imdario/mergo v0.3.11
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.9.0
+	github.com/lib/pq v1.10.0
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mmcdole/gofeed v1.1.0
 	github.com/pkg/errors v0.9.1 // indirect
