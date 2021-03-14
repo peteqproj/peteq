@@ -29,13 +29,14 @@ func (t *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 		return err
 	}
 	return t.Repo.Create(ev.Tenant.ID, list.List{
-		Tenant: ev.Tenant,
 		Metadata: list.Metadata{
-			ID:    opt.ID,
-			Name:  opt.Name,
-			Index: opt.Index,
+			ID:   opt.ID,
+			Name: opt.Name,
 		},
-		Tasks: []string{},
+		Spec: list.Spec{
+			Index: float64(opt.Index),
+			Tasks: []string{},
+		},
 	})
 }
 

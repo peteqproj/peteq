@@ -146,13 +146,14 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 
 	view.Lists = append(view.Lists, homeList{
 		List: list.List{
-			Tasks: []string{},
 			Metadata: list.Metadata{
-				ID:    spec.ID,
-				Name:  spec.Name,
-				Index: spec.Index,
+				ID:   spec.ID,
+				Name: spec.Name,
 			},
-			Tenant: ev.Tenant,
+			Spec: list.Spec{
+				Index: float64(spec.Index),
+				Tasks: []string{},
+			},
 		},
 		Tasks: []homeTask{},
 	})
@@ -227,7 +228,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 		})
 	}
 	sort.Slice(view.Lists, func(i, j int) bool {
-		return view.Lists[i].Metadata.Index < view.Lists[j].Metadata.Index
+		return view.Lists[i].Spec.Index < view.Lists[j].Spec.Index
 	})
 	return view, nil
 }

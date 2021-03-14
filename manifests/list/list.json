@@ -1,0 +1,51 @@
+{
+  "id": "http://json-schema.org/geo",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "description": "List aggregate",
+  "type": "object",
+  "properties": {
+    "metadata": {
+        "type": "object",
+        "required": [
+            "id",
+            "name"
+        ],
+        "properties": {
+            "id": {
+                "type": "string"
+            },
+            "name": {
+                "type": "string"
+            },
+            "description": {
+                "type": "string"
+            },
+            "labels": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "spec": {
+        "type": "object",
+        "required": [
+            "tasks",
+            "index"
+        ],
+        "properties": {
+            "tasks": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "index": {
+                "type":"number"
+            }
+        }
+    }
+  },
+  "required": ["metadata", "spec"]
+}

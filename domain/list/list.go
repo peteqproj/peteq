@@ -1,19 +1,37 @@
+// This file was generated from JSON Schema using quicktype, do not modify it directly.
+// To parse and unparse this JSON data, add this code to your project and do:
+//
+//    list, err := UnmarshalList(bytes)
+//    bytes, err = list.Marshal()
+
 package list
 
-import "github.com/peteqproj/peteq/pkg/tenant"
+import "encoding/json"
 
-type (
-	// List holds set of tasks
-	List struct {
-		tenant.Tenant `json:"tenant" yaml:"tenant"`
-		Metadata      Metadata `json:"metadata" yaml:"metadata"`
-		Tasks         []string `json:"tasks" yaml:"tasks"`
-	}
+func UnmarshalList(data []byte) (List, error) {
+	var r List
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
 
-	// Metadata of list
-	Metadata struct {
-		ID    string `json:"id" yaml:"id"`
-		Name  string `json:"name" yaml:"name"`
-		Index int    `json:"index" yaml:"index"`
-	}
-)
+func (r *List) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+// user
+type List struct {
+	Metadata Metadata `json:"metadata"`
+	Spec     Spec     `json:"spec"`    
+}
+
+type Metadata struct {
+	Description *string           `json:"description,omitempty"`
+	ID          string            `json:"id"`                   
+	Labels      map[string]string `json:"labels,omitempty"`     
+	Name        string            `json:"name"`                 
+}
+
+type Spec struct {
+	Index float64  `json:"index"`
+	Tasks []string `json:"tasks"`
+}

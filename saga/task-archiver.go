@@ -33,7 +33,7 @@ func (a *archiver) Run(ctx context.Context) error {
 		if l.Metadata.Name != "Done" {
 			continue
 		}
-		candidates = l.Tasks
+		candidates = l.Spec.Tasks
 	}
 
 	for _, c := range candidates {

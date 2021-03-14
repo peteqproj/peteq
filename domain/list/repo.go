@@ -107,9 +107,9 @@ func (r *Repo) MoveTask(userID string, sourceID string, destinationID string, ta
 
 	// If source found, remove task from source
 	if source != nil {
-		for i, tid := range source.Tasks {
+		for i, tid := range source.Spec.Tasks {
 			if tid == task {
-				source.Tasks = remove(source.Tasks, i)
+				source.Spec.Tasks = remove(source.Spec.Tasks, i)
 				break
 			}
 		}
@@ -120,7 +120,7 @@ func (r *Repo) MoveTask(userID string, sourceID string, destinationID string, ta
 
 	// If destination found add it to destination
 	if destination != nil {
-		destination.Tasks = append(destination.Tasks, task)
+		destination.Spec.Tasks = append(destination.Spec.Tasks, task)
 		if err := r.update(context.Background(), userID, *destination); err != nil {
 			return err
 		}
