@@ -40,8 +40,8 @@ func (t *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 			ID:   opt.ID,
 		},
 		Spec: project.Spec{
-			Color:    opt.Color,
-			ImageURL: opt.ImageURL,
+			Color:    &opt.Color,
+			ImageURL: &opt.ImageURL,
 			Tasks:    []string{},
 		},
 	})

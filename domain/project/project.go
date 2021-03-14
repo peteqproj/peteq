@@ -1,25 +1,38 @@
+// This file was generated from JSON Schema using quicktype, do not modify it directly.
+// To parse and unparse this JSON data, add this code to your project and do:
+//
+//    project, err := UnmarshalProject(bytes)
+//    bytes, err = project.Marshal()
+
 package project
 
-import "github.com/peteqproj/peteq/pkg/repo"
+import "encoding/json"
 
-type (
-	// Spec of a project
-	Spec struct {
-		Color    string   `json:"color" yaml:"color"`
-		ImageURL string   `json:"imageUrl" yaml:"imageUrl"`
-		Tasks    []string `json:"tasks" yaml:"tasks"`
-	}
-)
+func UnmarshalProject(data []byte) (Project, error) {
+	var r Project
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
 
-// NewProject build project resource
-func NewProject(id string, name string, description string) repo.Resource {
-	return repo.Resource{
-		Metadata: repo.Metadata{
-			Type:        "project",
-			Name:        name,
-			ID:          id,
-			Description: description,
-		},
-		Spec: Spec{},
-	}
+func (r *Project) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+// project
+type Project struct {
+	Metadata Metadata `json:"metadata"`
+	Spec     Spec     `json:"spec"`    
+}
+
+type Metadata struct {
+	Description *string           `json:"description,omitempty"`
+	ID          string            `json:"id"`                   
+	Labels      map[string]string `json:"labels,omitempty"`     
+	Name        string            `json:"name"`                 
+}
+
+type Spec struct {
+	Color    *string  `json:"color,omitempty"`   
+	ImageURL *string  `json:"imageUrl,omitempty"`
+	Tasks    []string `json:"tasks,omitempty"`   
 }

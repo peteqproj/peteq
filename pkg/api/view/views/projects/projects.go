@@ -31,7 +31,7 @@ type (
 	}
 
 	populatedProject struct {
-		Project repo.Resource   `json:"project"`
+		Project project.Project `json:"project"`
 		Tasks   []repo.Resource `json:"tasks"`
 	}
 )
@@ -154,11 +154,17 @@ func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, vie
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Project object: %v", err)
 	}
-	p := project.NewProject(spec.ID, spec.Name, spec.Description)
-	p.Spec = project.Spec{
-		Color:    spec.Color,
-		ImageURL: spec.ImageURL,
-		Tasks:    []string{},
+	p := project.Project{
+		Metadata: project.Metadata{
+			ID:          spec.ID,
+			Name:        spec.Name,
+			Description: &spec.Description,
+		},
+		Spec: project.Spec{
+			Color:    &spec.Color,
+			ImageURL: &spec.ImageURL,
+			Tasks:    []string{},
+		},
 	}
 	view.Projects = append(view.Projects, populatedProject{
 		Project: p,

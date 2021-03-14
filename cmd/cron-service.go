@@ -100,7 +100,7 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 					if _, found := l[u.Metadata.ID]; found {
 						continue
 					}
-					lgr.Info("New user added", "email", u.Metadata.Email, "id", u.Metadata.ID)
+					lgr.Info("New user added", "email", u.Spec.Email, "id", u.Metadata.ID)
 					l[u.Metadata.ID] = userTriggerPair{
 						user:     u,
 						triggers: map[string]triggerDomain.Trigger{},
