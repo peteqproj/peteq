@@ -18,6 +18,6 @@ FROM alpine:3.12
 
 RUN apk update && apk add ca-certificates
 
-COPY --from=dev /peteq/dist/peteq /usr/local/bin/peteq
+COPY --from=dev /peteq/dist /usr/local/bin
 
-ENTRYPOINT [ "peteq" ]
+ENTRYPOINT [ "peteq-server" ]
