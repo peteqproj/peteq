@@ -1,43 +1,37 @@
+// This file was generated from JSON Schema using quicktype, do not modify it directly.
+// To parse and unparse this JSON data, add this code to your project and do:
+//
+//    automation, err := UnmarshalAutomation(bytes)
+//    bytes, err = automation.Marshal()
+
 package automation
 
-import "github.com/peteqproj/peteq/pkg/tenant"
+import "encoding/json"
 
-type (
-	// Automation that start some logical workflow
-	Automation struct {
-		tenant.Tenant `json:"tenant" yaml:"tenant"`
-		Metadata      Metadata `json:"metadata" yaml:"metadata"`
-		Spec          Spec     `json:"spec" yaml:"spec"`
-	}
+func UnmarshalAutomation(data []byte) (Automation, error) {
+	var r Automation
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
 
-	// Metadata of automation
-	Metadata struct {
-		ID          string `json:"id" yaml:"id"`
-		Name        string `json:"name" yaml:"name"`
-		Description string `json:"description" yaml:"description"`
-	}
+func (r *Automation) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
 
-	// Spec for automation
-	// can be have on of types crontab or url
-	Spec struct {
-		Type            string `json:"type"` // automation type task.archiver
-		JSONInputSchema string `json:"jsonInputSchema"`
-	}
+// Automation aggregate
+type Automation struct {
+	Metadata Metadata `json:"metadata"`
+	Spec     Spec     `json:"spec"`    
+}
 
-	// TriggerBinding trigger->automation
-	TriggerBinding struct {
-		tenant.Tenant `json:"tenant" yaml:"tenant"`
-		Metadata      TriggerBindingMetadata `json:"metadata" yaml:"metadata"`
-		Spec          TriggerBindingSpec     `json:"spec" yaml:"spec"`
-	}
+type Metadata struct {
+	Description *string           `json:"description,omitempty"`
+	ID          string            `json:"id"`                   
+	Labels      map[string]string `json:"labels,omitempty"`     
+	Name        string            `json:"name"`                 
+}
 
-	TriggerBindingMetadata struct {
-		ID   string `json:"id" yaml:"id"`
-		Name string `json:"name" yaml:"name"`
-	}
-
-	TriggerBindingSpec struct {
-		Automation string `json:"automation" yaml:"automation"`
-		Trigger    string `json:"trigger" yaml:"trigger"`
-	}
-)
+type Spec struct {
+	JSONInputSchema string `json:"jsonInputSchema"`
+	Type            string `json:"type"`           
+}
