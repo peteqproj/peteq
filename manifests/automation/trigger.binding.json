@@ -1,31 +1,27 @@
 {
   "id": "http://json-schema.org/geo",
   "$schema": "http://json-schema.org/draft-06/schema#",
-  "description": "user",
+  "description": "Trigger binding aggregate",
   "type": "object",
   "properties": {
     "metadata": {
        "$ref": "../metadata.json#/properties/metadata" 
     },
-    "spec": {
+    "triggerBindingSpec": {
         "type": "object",
         "required": [
-            "email",
-            "passwordHash",
-            "tokenHash"
+            "automation",
+            "trigger"
         ],
         "properties": {
-            "email": {
+            "automation": {
                 "type": "string"
             },
-            "tokenHash": {
-                "type": "string"
-            },
-            "passwordHash": {
+            "trigger": {
                 "type": "string"
             }
         }
     }
   },
-  "required": ["metadata", "spec"]
+  "required": ["metadata", "triggerBindingSpec"]
 }

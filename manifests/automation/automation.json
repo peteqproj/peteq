@@ -1,7 +1,7 @@
 {
   "id": "http://json-schema.org/geo",
   "$schema": "http://json-schema.org/draft-06/schema#",
-  "description": "user",
+  "description": "Automation aggregate",
   "type": "object",
   "properties": {
     "metadata": {
@@ -10,18 +10,14 @@
     "spec": {
         "type": "object",
         "required": [
-            "email",
-            "passwordHash",
-            "tokenHash"
+            "type",
+            "jsonInputSchema"
         ],
         "properties": {
-            "email": {
+            "type": {
                 "type": "string"
             },
-            "tokenHash": {
-                "type": "string"
-            },
-            "passwordHash": {
+            "jsonInputSchema": {
                 "type": "string"
             }
         }

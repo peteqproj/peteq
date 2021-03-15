@@ -5,28 +5,7 @@
   "type": "object",
   "properties": {
     "metadata": {
-        "type": "object",
-        "required": [
-            "id",
-            "name"
-        ],
-        "properties": {
-            "id": {
-                "type": "string"
-            },
-            "name": {
-                "type": "string"
-            },
-            "description": {
-                "type": "string"
-            },
-            "labels": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                }
-            }
-        }
+       "$ref": "../metadata.json#/properties/metadata" 
     },
     "spec": {
         "type": "object",

@@ -1,31 +1,33 @@
 {
   "id": "http://json-schema.org/geo",
   "$schema": "http://json-schema.org/draft-06/schema#",
-  "description": "user",
+  "description": "metadata",
   "type": "object",
   "properties": {
     "metadata": {
-       "$ref": "../metadata.json#/properties/metadata" 
-    },
-    "spec": {
         "type": "object",
         "required": [
-            "email",
-            "passwordHash",
-            "tokenHash"
+            "id",
+            "name"
         ],
         "properties": {
-            "email": {
+            "id": {
                 "type": "string"
             },
-            "tokenHash": {
+            "name": {
                 "type": "string"
             },
-            "passwordHash": {
+            "description": {
                 "type": "string"
+            },
+            "labels": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                }
             }
         }
     }
   },
-  "required": ["metadata", "spec"]
+  "required": ["metadata"]
 }
