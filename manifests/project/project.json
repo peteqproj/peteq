@@ -1,0 +1,31 @@
+{
+  "id": "http://json-schema.org/geo",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "description": "project",
+  "type": "object",
+  "properties": {
+    "metadata": {
+       "$ref": "../metadata.json#/properties/metadata" 
+    },
+    "spec": {
+        "type": "object",
+        "required": [
+        ],
+        "properties": {
+            "color": {
+                "type": "string"
+            },
+            "imageUrl": {
+                "type": "string"
+            },
+            "tasks": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+  },
+  "required": ["metadata", "spec"]
+}

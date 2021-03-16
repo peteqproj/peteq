@@ -25,7 +25,7 @@ import (
 type (
 	// ViewAPI for backlog view
 	ViewAPI struct {
-		TaskRepo    *task.Repo
+		TaskRepo    *repo.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL
@@ -38,7 +38,7 @@ type (
 	}
 
 	backlogTask struct {
-		task.Task
+		Task    task.Task          `json:"task"`
 		List    backlogTaskList    `json:"list"`
 		Project backlogTaskProject `json:"project"`
 	}
@@ -194,14 +194,15 @@ func (h *ViewAPI) handleTaskCreated(ctx context.Context, ev event.Event, view ba
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
-	view.Tasks = append(view.Tasks, backlogTask{
-		Task: task.Task{
-			Metadata: task.Metadata{
-				ID:          spec.ID,
-				Name:        spec.Name,
-				Description: spec.Description,
-			},
+	t := task.Task{
+		Metadata: task.Metadata{
+			ID:          spec.ID,
+			Name:        spec.Name,
+			Description: &spec.Description,
 		},
+	}
+	view.Tasks = append(view.Tasks, backlogTask{
+		Task: t,
 	})
 	return view, nil
 }
@@ -216,7 +217,7 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view ba
 		return view, fmt.Errorf("Task not found")
 	}
 	view.Tasks[index].Task.Metadata.Name = spec.Name
-	view.Tasks[index].Task.Metadata.Description = spec.Description
+	view.Tasks[index].Task.Metadata.Description = &spec.Description
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {
@@ -229,7 +230,7 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 	if index == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	view.Tasks[index].Task.Status.Completed = spec.Completed
+	view.Tasks[index].Task.Spec.Completed = true
 	return view, nil
 }
 func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {
@@ -241,7 +242,7 @@ func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view ba
 
 	taskIndex := -1
 	for i, t := range view.Tasks {
-		if t.Metadata.ID == spec.ID {
+		if t.Task.Metadata.ID == spec.ID {
 			taskIndex = i
 			break
 		}
@@ -273,7 +274,7 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	}
 	taskIndex := -1
 	for i, t := range view.Tasks {
-		if t.Metadata.ID == spec.TaskID {
+		if t.Task.Metadata.ID == spec.TaskID {
 			taskIndex = i
 		}
 	}
@@ -299,7 +300,7 @@ func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, view
 func findTask(view backlogView, task string) int {
 	taskindex := -1
 	for i, t := range view.Tasks {
-		if t.Metadata.ID == task {
+		if t.Task.Metadata.ID == task {
 			taskindex = i
 			break
 		}

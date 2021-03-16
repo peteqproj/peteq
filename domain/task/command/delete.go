@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -19,11 +18,16 @@ type (
 	DeleteCommand struct {
 		Eventbus bus.EventPublisher
 	}
+
+	// DeleteCommandOptions add new token to allow api calls
+	DeleteCommandOptions struct {
+		ID string `json:"id"`
+	}
 )
 
 // Handle runs DeleteCommand to create task
 func (c *DeleteCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &task.Task{}
+	opt := &DeleteCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to Task object")
@@ -38,10 +42,10 @@ func (c *DeleteCommand) Handle(ctx context.Context, arguments interface{}) error
 			Name:           types.TaskDeletedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "task",
-			AggregatorID:   opt.Metadata.ID,
+			AggregatorID:   opt.ID,
 		},
 		Spec: handler.DeletedSpec{
-			ID: opt.Metadata.ID,
+			ID: opt.ID,
 		},
 	})
 	return err

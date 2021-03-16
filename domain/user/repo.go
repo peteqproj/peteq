@@ -88,7 +88,7 @@ func (r *Repo) create(ctx context.Context, user User) error {
 	q, _, err := goqu.
 		Insert(dbName).
 		Cols("userid", "email", "info").
-		Vals(goqu.Vals{user.Metadata.ID, user.Metadata.Email, string(u)}).
+		Vals(goqu.Vals{user.Metadata.ID, user.Spec.Email, string(u)}).
 		ToSQL()
 	if err != nil {
 		return err

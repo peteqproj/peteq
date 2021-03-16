@@ -8,19 +8,18 @@ import (
 	"github.com/go-playground/validator"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
-	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for tasks
 	CommandAPI struct {
-		Repo        *task.Repo
+		Repo        *repo.Repo
 		Commandbus  commandbus.CommandBus
 		Logger      logger.Logger
 		IDGenerator utils.IDGenerator
@@ -104,7 +103,7 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 // @Router /c/task/update [post]
 // @Security ApiKeyAuth
 func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	t := &task.Task{}
+	t := &repo.Resource{}
 	err := api.UnmarshalInto(body, t)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
@@ -130,15 +129,16 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 // @Router /c/task/delete [post]
 // @Security ApiKeyAuth
 func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	u := tenant.UserFromContext(ctx)
 	req := &deleteTaskRequestBody{}
 	err := api.UnmarshalInto(body, req)
-	t, err := c.Repo.Get(u.Metadata.ID, req.ID)
+	t, err := c.Repo.Get(ctx, repo.GetOptions{ID: req.ID})
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
 
-	if err := c.Commandbus.Execute(ctx, "task.delete", t); err != nil {
+	if err := c.Commandbus.Execute(ctx, "task.delete", command.DeleteCommandOptions{
+		ID: req.ID,
+	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("task", t.Metadata.ID)

@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -18,8 +20,7 @@ const description = `Uses quicktype (https://quicktype.io/) to generate Golang s
 Make sure quicktype is installed on your machine: npm install -g quicktype`
 
 var aggregateCmdFlags struct {
-	schemaPath string
-	name       string
+	schemaPath []string
 	pkg        string
 }
 
@@ -37,7 +38,7 @@ var aggregateCmd = &cobra.Command{
 		dir := path.Join(wd, "domain", aggregateCmdFlags.pkg)
 		err = os.MkdirAll(dir, os.ModePerm)
 		utils.DieOnError(err, fmt.Sprintf("Failed to create directory: %s", dir))
-		output := path.Join(dir, fmt.Sprintf("%s.go", aggregateCmdFlags.name))
+		output := path.Join(dir, "aggregate.go")
 		logr.Info("Creating aggregate", "output", output)
 		err = run(output, aggregateCmdFlags.pkg, aggregateCmdFlags.schemaPath, logr)
 		utils.DieOnError(err, "Failed to run quicktype command")
@@ -47,11 +48,9 @@ var aggregateCmd = &cobra.Command{
 
 func init() {
 	createCmd.AddCommand(aggregateCmd)
-	aggregateCmd.Flags().StringVar(&aggregateCmdFlags.name, "name", "", "Aggregate name")
 	aggregateCmd.Flags().StringVar(&aggregateCmdFlags.pkg, "package", "", "Package Name")
-	aggregateCmd.Flags().StringVar(&aggregateCmdFlags.schemaPath, "schema", "", "Path to JSON-Schema")
+	aggregateCmd.Flags().StringArrayVar(&aggregateCmdFlags.schemaPath, "schema", []string{}, "Path to JSON-Schema")
 
-	aggregateCmd.MarkFlagRequired("name")
 	aggregateCmd.MarkFlagRequired("package")
 	aggregateCmd.MarkFlagRequired("schema")
 
@@ -62,21 +61,24 @@ func init() {
 	})
 }
 
-func run(output string, pkg string, schema string, lgr logger.Logger) error {
+func run(output string, pkg string, schema []string, lgr logger.Logger) error {
 	args := []string{
 		"quicktype",
 		"--lang", "go",
 		"--src-lang", "schema",
-		"-o", output,
 		"--package", pkg,
-		schema,
 	}
+	args = append(args, schema...)
 	lgr.Info("Running quicktype", "cmd", strings.Join(args, " "))
 	c := exec.Command("sh", "-c", strings.Join(args, " "))
-	c.Stdout = os.Stdout
+	o := &bytes.Buffer{}
+	c.Stdout = o
 	c.Stderr = os.Stderr
 	if err := c.Start(); err != nil {
 		return fmt.Errorf("Failed to run quicktype: %w", err)
 	}
-	return c.Wait()
+	if err := c.Wait(); err != nil {
+		return fmt.Errorf("Failed to run quicktype: %w", err)
+	}
+	return ioutil.WriteFile(output, o.Bytes(), os.ModePerm)
 }

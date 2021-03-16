@@ -12,7 +12,6 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
-	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
@@ -26,7 +25,7 @@ import (
 type (
 	// ViewAPI for backlog view
 	ViewAPI struct {
-		TaskRepo    *task.Repo
+		TaskRepo    *repo.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL
@@ -42,7 +41,7 @@ type (
 	}
 
 	homeTask struct {
-		task.Task
+		Task    repo.Resource  `json:"task"`
 		Project *repo.Resource `json:"project,omitempty"`
 	}
 )
@@ -147,13 +146,14 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 
 	view.Lists = append(view.Lists, homeList{
 		List: list.List{
-			Tasks: []string{},
 			Metadata: list.Metadata{
-				ID:    spec.ID,
-				Name:  spec.Name,
-				Index: spec.Index,
+				ID:   spec.ID,
+				Name: spec.Name,
 			},
-			Tenant: ev.Tenant,
+			Spec: list.Spec{
+				Index: float64(spec.Index),
+				Tasks: []string{},
+			},
 		},
 		Tasks: []homeTask{},
 	})
@@ -164,7 +164,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
-	task, err := h.TaskRepo.Get(ev.Tenant.ID, spec.TaskID)
+	task, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
 	if err != nil {
 		return view, err
 	}
@@ -223,12 +223,12 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	// If destination found add it to destination
 	if destinationIndex != -1 {
 		view.Lists[destinationIndex].Tasks = append(view.Lists[destinationIndex].Tasks, homeTask{
-			Task:    task,
+			Task:    *task,
 			Project: taskProject,
 		})
 	}
 	sort.Slice(view.Lists, func(i, j int) bool {
-		return view.Lists[i].Metadata.Index < view.Lists[j].Metadata.Index
+		return view.Lists[i].Spec.Index < view.Lists[j].Spec.Index
 	})
 	return view, nil
 }

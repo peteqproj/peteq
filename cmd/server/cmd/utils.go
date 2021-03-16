@@ -19,7 +19,6 @@ import (
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
 	projectEventHandlers "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
-	taskDomain "github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
 	taskEventHandlers "github.com/peteqproj/peteq/domain/task/event/handler"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
@@ -42,7 +41,7 @@ func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
 }
 
-func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *taskDomain.Repo) {
+func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *repo.Repo) {
 	// Task related event handlers
 	eventbus.Subscribe(taskEventTypes.TaskCreatedEvent, &taskEventHandlers.CreatedHandler{
 		Repo: repo,
@@ -176,7 +175,7 @@ func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
 	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
 }
 
-func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *taskDomain.Repo, listRepo *listDomain.Repo, projectRepo *repo.Repo, logger logger.Logger) {
+func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *repo.Repo, listRepo *listDomain.Repo, projectRepo *repo.Repo, logger logger.Logger) {
 	vb := viewBuilder.New(&viewBuilder.Options{
 		TaskRepo:    taskRepo,
 		ListRepo:    listRepo,

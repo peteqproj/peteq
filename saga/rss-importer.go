@@ -7,7 +7,6 @@ import (
 
 	"github.com/mmcdole/gofeed"
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
-	taskDomain "github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/command"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -20,7 +19,7 @@ import (
 type (
 	rssImporter struct {
 		Commandbus  commandbus.CommandBus
-		TaskRepo    *taskDomain.Repo
+		TaskRepo    *repo.Repo
 		ProjectRepo *repo.Repo
 		Logger      logger.Logger
 		Event       event.Event

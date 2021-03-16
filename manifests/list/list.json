@@ -1,0 +1,30 @@
+{
+  "id": "http://json-schema.org/geo",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "description": "List aggregate",
+  "type": "object",
+  "properties": {
+    "metadata": {
+       "$ref": "../metadata.json#/properties/metadata" 
+    },
+    "spec": {
+        "type": "object",
+        "required": [
+            "tasks",
+            "index"
+        ],
+        "properties": {
+            "tasks": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "index": {
+                "type":"number"
+            }
+        }
+    }
+  },
+  "required": ["metadata", "spec"]
+}

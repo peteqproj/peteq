@@ -50,7 +50,10 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 	}
 	ectx := tenant.ContextWithUser(ctx, user.User{
 		Metadata: user.Metadata{
-			ID:    opt.UserID,
+			ID:   opt.UserID,
+			Name: opt.Email,
+		},
+		Spec: user.Spec{
 			Email: opt.Email,
 		},
 	})

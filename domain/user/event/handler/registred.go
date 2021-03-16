@@ -31,11 +31,12 @@ func (c *RegistredHandler) Handle(ctx context.Context, ev event.Event, logger lo
 	}
 	return c.Repo.Create(user.User{
 		Metadata: user.Metadata{
-			ID:    opt.ID,
-			Email: opt.Email,
+			ID:   opt.ID,
+			Name: opt.Email,
 		},
 		Spec: user.Spec{
 			PasswordHash: opt.PasswordHash,
+			Email:        opt.Email,
 		},
 	})
 }

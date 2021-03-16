@@ -22,8 +22,10 @@ func AuthenticatedContext() context.Context {
 	ctx := context.Background()
 	return context.WithValue(ctx, tenant.User, user.User{
 		Metadata: user.Metadata{
+			ID: "user-id",
+		},
+		Spec: user.Spec{
 			Email: "some@email.com",
-			ID:    "user-id",
 		},
 	})
 }

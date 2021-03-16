@@ -5,15 +5,15 @@ import (
 	"fmt"
 
 	listDomain "github.com/peteqproj/peteq/domain/list"
-	taskDomain "github.com/peteqproj/peteq/domain/task"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
 	archiver struct {
 		Commandbus commandbus.CommandBus
-		TaskRepo   *taskDomain.Repo
+		TaskRepo   *repo.Repo
 		ListRepo   *listDomain.Repo
 		Logger     logger.Logger
 		User       string // TODO: use from context tenant
@@ -33,11 +33,11 @@ func (a *archiver) Run(ctx context.Context) error {
 		if l.Metadata.Name != "Done" {
 			continue
 		}
-		candidates = l.Tasks
+		candidates = l.Spec.Tasks
 	}
 
 	for _, c := range candidates {
-		t, err := a.TaskRepo.Get(a.User, c)
+		t, err := a.TaskRepo.Get(ctx, repo.GetOptions{ID: c})
 		if err != nil {
 			a.Logger.Info("Failed to request task", "id", c, "error", err.Error())
 			continue

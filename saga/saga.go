@@ -5,7 +5,6 @@ import (
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
-	taskDomain "github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
@@ -27,7 +26,7 @@ type (
 	// EventHandler handle all the events that starts saga process
 	EventHandler struct {
 		ListRepo       *listDomain.Repo
-		TaskRepo       *taskDomain.Repo
+		TaskRepo       *repo.Repo
 		AutomationRepo *automationDomain.Repo
 		ProjectRepo    *repo.Repo
 		TriggerRepo    *triggerDomain.Repo
@@ -76,7 +75,7 @@ func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger
 func (e *EventHandler) Name() string {
 	return "saga_event_handler"
 }
-func newTaskArchiver(cb commandbus.CommandBus, taskRepo *taskDomain.Repo, listRepo *listDomain.Repo, lgr logger.Logger, user string) Saga {
+func newTaskArchiver(cb commandbus.CommandBus, taskRepo *repo.Repo, listRepo *listDomain.Repo, lgr logger.Logger, user string) Saga {
 	return &archiver{
 		Commandbus: cb,
 		TaskRepo:   taskRepo,
@@ -86,7 +85,7 @@ func newTaskArchiver(cb commandbus.CommandBus, taskRepo *taskDomain.Repo, listRe
 	}
 }
 
-func newRSSImporter(cb commandbus.CommandBus, taskRepo *taskDomain.Repo, projectRepo *repo.Repo, ev event.Event, lgr logger.Logger) Saga {
+func newRSSImporter(cb commandbus.CommandBus, taskRepo *repo.Repo, projectRepo *repo.Repo, ev event.Event, lgr logger.Logger) Saga {
 	return &rssImporter{
 		Commandbus:  cb,
 		TaskRepo:    taskRepo,

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	listDomain "github.com/peteqproj/peteq/domain/list"
-	taskDomain "github.com/peteqproj/peteq/domain/task"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/internal"
 	"github.com/peteqproj/peteq/pkg/api/builder"
@@ -48,12 +47,12 @@ var commandServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-
-		taskRepo := &taskDomain.Repo{
-			DB:     db,
-			Logger: logr.Fork("repo", "task"),
-		}
-
+		taskRepo, err := repo.New(repo.Options{
+			ResourceType: "tasks",
+			DB:           db,
+			Logger:       logr.Fork("repo", "task"),
+		})
+		utils.DieOnError(err, "Failed to init task repo")
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),

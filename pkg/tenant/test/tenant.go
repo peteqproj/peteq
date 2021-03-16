@@ -11,7 +11,9 @@ func BuildAuthenticationContextWithUser() context.Context {
 	ctx := context.Background()
 	return tenant.ContextWithUser(ctx, user.User{
 		Metadata: user.Metadata{
-			ID:    "fake-user-id",
+			ID: "fake-user-id",
+		},
+		Spec: user.Spec{
 			Email: "test@test.com",
 		},
 	})

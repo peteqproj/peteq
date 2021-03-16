@@ -1,0 +1,27 @@
+{
+  "id": "http://json-schema.org/geo",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "description": "Trigger binding aggregate",
+  "type": "object",
+  "properties": {
+    "metadata": {
+       "$ref": "../metadata.json#/properties/metadata" 
+    },
+    "spec": {
+        "type": "object",
+        "required": [
+            "automation",
+            "trigger"
+        ],
+        "properties": {
+            "automation": {
+                "type": "string"
+            },
+            "trigger": {
+                "type": "string"
+            }
+        }
+    }
+  },
+  "required": ["metadata", "spec"]
+}
