@@ -27,7 +27,13 @@ func (c *DeleteHandler) Handle(ctx context.Context, ev event.Event, logger logge
 	if err != nil {
 		return err
 	}
-	return c.Repo.Delete(ctx, task.NewTask(opt.ID, "", ""))
+	return c.Repo.Delete(ctx, repo.Resource{
+		Metadata: repo.Metadata{
+			Type: "task",
+			ID:   ev.ID,
+		},
+		Spec: task.Spec{},
+	})
 }
 
 func (c *DeleteHandler) Name() string {

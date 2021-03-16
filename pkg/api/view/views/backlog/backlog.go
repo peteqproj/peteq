@@ -38,7 +38,7 @@ type (
 	}
 
 	backlogTask struct {
-		Task    repo.Resource      `json:"task"`
+		Task    task.Task          `json:"task"`
 		List    backlogTaskList    `json:"list"`
 		Project backlogTaskProject `json:"project"`
 	}
@@ -194,7 +194,13 @@ func (h *ViewAPI) handleTaskCreated(ctx context.Context, ev event.Event, view ba
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
-	t := task.NewTask(spec.ID, spec.Name, spec.Description)
+	t := task.Task{
+		Metadata: task.Metadata{
+			ID:          spec.ID,
+			Name:        spec.Name,
+			Description: &spec.Description,
+		},
+	}
 	view.Tasks = append(view.Tasks, backlogTask{
 		Task: t,
 	})
@@ -211,7 +217,7 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view ba
 		return view, fmt.Errorf("Task not found")
 	}
 	view.Tasks[index].Task.Metadata.Name = spec.Name
-	view.Tasks[index].Task.Metadata.Description = spec.Description
+	view.Tasks[index].Task.Metadata.Description = &spec.Description
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {
@@ -224,9 +230,7 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 	if index == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	tspec := view.Tasks[index].Task.Spec.(task.Spec)
-	tspec.Completed = true
-	view.Tasks[index].Task.Spec = tspec
+	view.Tasks[index].Task.Spec.Completed = true
 	return view, nil
 }
 func (h *ViewAPI) handleTaskDeleted(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {

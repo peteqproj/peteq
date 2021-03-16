@@ -5,9 +5,11 @@ build:
 .PHONY: compile
 compile:
 	go build -o ./dist/peteq-dev cmd/dev-cli/main.go
+	./dist/peteq-dev create aggregate --package task --schema manifests/task/task.json
 	./dist/peteq-dev create aggregate --package user --schema manifests/user/user.json
 	./dist/peteq-dev create aggregate --package list --schema manifests/list/list.json
 	./dist/peteq-dev create aggregate --package project --schema manifests/project/project.json
+	./dist/peteq-dev create aggregate --package trigger --schema manifests/trigger/trigger.json
 	./dist/peteq-dev create aggregate --package automation --schema manifests/automation/automation.json --schema manifests/automation/trigger.binding.json
 	go build -o ./dist/peteq-server cmd/server/main.go
 	go build -o ./dist/peteq cmd/peteq-cli/main.go

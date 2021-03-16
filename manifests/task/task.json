@@ -1,0 +1,21 @@
+{
+  "id": "http://json-schema.org/geo",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "description": "task",
+  "type": "object",
+  "properties": {
+    "metadata": {
+       "$ref": "../metadata.json#/properties/metadata" 
+    },
+    "spec": {
+        "type": "object",
+        "properties": {
+            "completed": {
+                "type": "boolean"
+            }
+        },
+        "required": [ "completed" ]
+    }
+  },
+  "required": ["metadata", "spec"]
+}

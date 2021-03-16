@@ -1,0 +1,20 @@
+{
+  "id": "http://json-schema.org/geo",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "description": "trigger",
+  "type": "object",
+  "properties": {
+    "metadata": {
+       "$ref": "../metadata.json#/properties/metadata" 
+    },
+    "spec": {
+        "type": "object",
+        "properties": {
+            "cron": {
+                "type": "string"
+            }
+        }
+    }
+  },
+  "required": ["metadata", "spec"]
+}

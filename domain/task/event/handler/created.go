@@ -31,10 +31,18 @@ func (c *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 	if err != nil {
 		return err
 	}
-	t := task.NewTask(opt.ID, opt.Name, opt.Description)
-	t.Metadata.Labels = opt.Labels
-	t.Spec = task.Spec{Completed: false}
-	return c.Repo.Create(ctx, t)
+	return c.Repo.Create(ctx, repo.Resource{
+		Metadata: repo.Metadata{
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Labels:      opt.Labels,
+			Description: opt.Description,
+			Type:        "task",
+		},
+		Spec: task.Spec{
+			Completed: false,
+		},
+	})
 }
 
 func (c *CreatedHandler) Name() string {
