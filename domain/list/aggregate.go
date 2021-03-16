@@ -1,25 +1,25 @@
 // This file was generated from JSON Schema using quicktype, do not modify it directly.
 // To parse and unparse this JSON data, add this code to your project and do:
 //
-//    automation, err := UnmarshalAutomation(bytes)
-//    bytes, err = automation.Marshal()
+//    list, err := UnmarshalList(bytes)
+//    bytes, err = list.Marshal()
 
-package automation
+package list
 
 import "encoding/json"
 
-func UnmarshalAutomation(data []byte) (Automation, error) {
-	var r Automation
+func UnmarshalList(data []byte) (List, error) {
+	var r List
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *Automation) Marshal() ([]byte, error) {
+func (r *List) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-// Automation aggregate
-type Automation struct {
+// List aggregate
+type List struct {
 	Metadata Metadata `json:"metadata"`
 	Spec     Spec     `json:"spec"`    
 }
@@ -32,6 +32,6 @@ type Metadata struct {
 }
 
 type Spec struct {
-	JSONInputSchema string `json:"jsonInputSchema"`
-	Type            string `json:"type"`           
+	Index float64  `json:"index"`
+	Tasks []string `json:"tasks"`
 }

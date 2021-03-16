@@ -31,17 +31,16 @@ func (t *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 	if err != nil {
 		return err
 	}
-	spec := automation.Spec{
+	spec := automation.AutomationSpec{
 		Type:            opt.Type,
 		JSONInputSchema: opt.JSONInputSchema,
 	}
 
 	return t.Repo.Create(ev.Tenant.ID, automation.Automation{
-		Tenant: ev.Tenant,
 		Metadata: automation.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,
-			Description: opt.Description,
+			Description: &opt.Description,
 		},
 		Spec: spec,
 	})

@@ -36,8 +36,7 @@ func (t *TriggerBindingCreatedHandler) Handle(ctx context.Context, ev event.Even
 	}
 
 	return t.Repo.CreateTriggerBinding(ev.Tenant.ID, automation.TriggerBinding{
-		Tenant: ev.Tenant,
-		Metadata: automation.TriggerBindingMetadata{
+		Metadata: automation.Metadata{
 			ID:   opt.ID,
 			Name: opt.Name,
 		},

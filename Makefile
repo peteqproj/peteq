@@ -4,23 +4,18 @@ build:
 
 .PHONY: compile
 compile:
-	go build -o ./dist/peteq main.go
-
-@.PHONY: build-cron-watcher
-build-cron-watcher:
-	go build -o ./dist/peteq-cron-wacher ./cmd/cron
+	go build -o ./dist/peteq-dev cmd/dev-cli/main.go
+	./dist/peteq-dev create aggregate --package user --schema manifests/user/user.json
+	./dist/peteq-dev create aggregate --package list --schema manifests/list/list.json
+	./dist/peteq-dev create aggregate --package project --schema manifests/project/project.json
+	./dist/peteq-dev create aggregate --package automation --schema manifests/automation/automation.json --schema manifests/automation/trigger.binding.json
+	go build -o ./dist/peteq-server cmd/server/main.go
+	go build -o ./dist/peteq cmd/peteq-cli/main.go
 
 .PHONY: dependency-update
 dependency-update:
 	go mod download
 
-.PHONY: run
-run:
-	./dist/peteq
-
-.PHONY: run-cron-watcher
-run-cron-watcher:
-	PORT=8082 ./dist/peteq-cron-wacher
 
 .PHONY: mock-all
 mock-all:
@@ -29,7 +24,7 @@ mock-all:
 
 .PHONY: gen-openapi
 gen-openapi:
-	docker run --workdir=/app -v $(PWD):/app peteqproj/openapi swag init -g pkg/server/openapi.go
+	docker run --workdir=/app -v $(PWD):/app peteqproj/openapi swag init -g package/server/openapi.go
 
 .PHONY: test
 test:
@@ -37,5 +32,5 @@ test:
 
 .PHONY: gen-openapi-client
 gen-openapi-client:
-	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -i /local/docs/swagger.yaml -g go -o /local/pkg/client -p=isGoSubmodule=true -p=packageName=client
-	rm -rf pkg/client/api pkg/client/docs pkg/client/go.* pkg/client/git_push.sh pkg/client/README.md pkg/client/.openapi-generator pkg/client/.gitignore pkg/client/.openapi-generator-ignore pkg/client/.travis.yml
+	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -i /local/docs/swagger.yaml -g go -o /local/package/client -p=isGoSubmodule=true -p=packageName=client
+	rm -rf package/client/api package/client/docs package/client/go.* package/client/git_push.sh package/client/README.md package/client/.openapi-generator package/client/.gitignore package/client/.openapi-generator-ignore package/client/.travis.yml

@@ -64,7 +64,7 @@ func (r *Repo) CreateTriggerBinding(user string, tb TriggerBinding) error {
 	q, _, err := goqu.
 		Insert(triggerBindingDbName).
 		Cols("userid", "tbid", "triggerid", "info").
-		Vals(goqu.Vals{user, tb.TriggerBindingMetadata.ID, tb.TriggerBindingSpec.Trigger, string(t)}).
+		Vals(goqu.Vals{user, tb.Metadata.ID, tb.Spec.Trigger, string(t)}).
 		ToSQL()
 	if err != nil {
 		return err
