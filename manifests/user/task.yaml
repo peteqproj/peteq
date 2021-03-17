@@ -1,0 +1,16 @@
+name: task
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+    - name: email
+      type: text
+    - name: info
+      type: text
+    indexs:
+      - id
+      - email
+rootAggregate:
+  resource: Task
+    
