@@ -1,0 +1,16 @@
+name: user 
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+    - name: email
+      type: text
+    - name: info
+      type: json
+    uniqueIndexes:
+      - [email]
+    primeryKey: [id]
+rootAggregate:
+  resource: User 
+    
