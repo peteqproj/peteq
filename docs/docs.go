@@ -877,6 +877,9 @@ var doc = `{
                 "id"
             ],
             "properties": {
+                "data": {
+                    "type": "object"
+                },
                 "id": {
                     "type": "string"
                 }
@@ -884,31 +887,15 @@ var doc = `{
         },
         "backlog.backlogTask": {
             "type": "object",
-            "required": [
-                "metadata",
-                "spec"
-            ],
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "list": {
                     "$ref": "#/definitions/backlog.backlogTaskList"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/task.Metadata"
                 },
                 "project": {
                     "$ref": "#/definitions/backlog.backlogTaskProject"
                 },
-                "spec": {
-                    "$ref": "#/definitions/task.Spec"
-                },
-                "status": {
-                    "$ref": "#/definitions/task.Status"
-                },
-                "type": {
-                    "type": "string"
+                "task": {
+                    "$ref": "#/definitions/task.Task"
                 }
             }
         },
@@ -960,47 +947,28 @@ var doc = `{
         "home.homeList": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "metadata": {
                     "$ref": "#/definitions/list.Metadata"
+                },
+                "spec": {
+                    "$ref": "#/definitions/list.Spec"
                 },
                 "tasks": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/home.homeTask"
                     }
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
         "home.homeTask": {
             "type": "object",
-            "required": [
-                "metadata",
-                "spec"
-            ],
             "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/task.Metadata"
-                },
                 "project": {
-                    "$ref": "#/definitions/project.Project"
+                    "$ref": "#/definitions/repo.Resource"
                 },
-                "spec": {
-                    "$ref": "#/definitions/task.Spec"
-                },
-                "status": {
-                    "$ref": "#/definitions/task.Status"
-                },
-                "type": {
-                    "type": "string"
+                "task": {
+                    "$ref": "#/definitions/repo.Resource"
                 }
             }
         },
@@ -1018,51 +986,62 @@ var doc = `{
         "list.List": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "metadata": {
                     "$ref": "#/definitions/list.Metadata"
                 },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "type": {
-                    "type": "string"
+                "spec": {
+                    "$ref": "#/definitions/list.Spec"
                 }
             }
         },
         "list.Metadata": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "index": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "project.Metadata": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "imageUrl": {
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
                     "type": "string"
+                }
+            }
+        },
+        "list.Spec": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "number"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "project.Metadata": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -1072,60 +1051,56 @@ var doc = `{
         "project.Project": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "metadata": {
                     "$ref": "#/definitions/project.Metadata"
+                },
+                "spec": {
+                    "$ref": "#/definitions/project.Spec"
+                }
+            }
+        },
+        "project.Spec": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
                 },
                 "tasks": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
         "project.projectView": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/project.Metadata"
+                "project": {
+                    "$ref": "#/definitions/project.Project"
                 },
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/task.Task"
+                        "$ref": "#/definitions/repo.Resource"
                     }
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
         "projects.populatedProject": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/project.Metadata"
+                "project": {
+                    "$ref": "#/definitions/project.Project"
                 },
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/task.Task"
+                        "$ref": "#/definitions/repo.Resource"
                     }
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
@@ -1140,18 +1115,54 @@ var doc = `{
                 }
             }
         },
-        "task.Metadata": {
+        "repo.Metadata": {
             "type": "object",
-            "required": [
-                "id",
-                "name"
-            ],
             "properties": {
                 "description": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.Resource": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "$ref": "#/definitions/repo.Metadata"
+                },
+                "spec": {
+                    "type": "object"
+                }
+            }
+        },
+        "task.Metadata": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -1161,14 +1172,6 @@ var doc = `{
         "task.Spec": {
             "type": "object",
             "properties": {
-                "dueDate": {
-                    "type": "string"
-                }
-            }
-        },
-        "task.Status": {
-            "type": "object",
-            "properties": {
                 "completed": {
                     "type": "boolean"
                 }
@@ -1176,25 +1179,12 @@ var doc = `{
         },
         "task.Task": {
             "type": "object",
-            "required": [
-                "metadata",
-                "spec"
-            ],
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "metadata": {
                     "$ref": "#/definitions/task.Metadata"
                 },
                 "spec": {
                     "$ref": "#/definitions/task.Spec"
-                },
-                "status": {
-                    "$ref": "#/definitions/task.Status"
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },

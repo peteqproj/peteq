@@ -90,6 +90,8 @@ definitions:
     type: object
   TriggerRunRequestBody:
     properties:
+      data:
+        type: object
       id:
         type: string
     required:
@@ -97,23 +99,12 @@ definitions:
     type: object
   backlog.backlogTask:
     properties:
-      id:
-        type: string
       list:
         $ref: '#/definitions/backlog.backlogTaskList'
-      metadata:
-        $ref: '#/definitions/task.Metadata'
       project:
         $ref: '#/definitions/backlog.backlogTaskProject'
-      spec:
-        $ref: '#/definitions/task.Spec'
-      status:
-        $ref: '#/definitions/task.Status'
-      type:
-        type: string
-    required:
-    - metadata
-    - spec
+      task:
+        $ref: '#/definitions/task.Task'
     type: object
   backlog.backlogTaskList:
     properties:
@@ -146,34 +137,21 @@ definitions:
     type: object
   home.homeList:
     properties:
-      id:
-        type: string
       metadata:
         $ref: '#/definitions/list.Metadata'
+      spec:
+        $ref: '#/definitions/list.Spec'
       tasks:
         items:
           $ref: '#/definitions/home.homeTask'
         type: array
-      type:
-        type: string
     type: object
   home.homeTask:
     properties:
-      id:
-        type: string
-      metadata:
-        $ref: '#/definitions/task.Metadata'
       project:
-        $ref: '#/definitions/project.Project'
-      spec:
-        $ref: '#/definitions/task.Spec'
-      status:
-        $ref: '#/definitions/task.Status'
-      type:
-        type: string
-    required:
-    - metadata
-    - spec
+        $ref: '#/definitions/repo.Resource'
+      task:
+        $ref: '#/definitions/repo.Resource'
     type: object
   home.homeView:
     properties:
@@ -184,77 +162,81 @@ definitions:
     type: object
   list.List:
     properties:
-      id:
-        type: string
       metadata:
         $ref: '#/definitions/list.Metadata'
-      tasks:
-        items:
-          type: string
-        type: array
-      type:
-        type: string
+      spec:
+        $ref: '#/definitions/list.Spec'
     type: object
   list.Metadata:
     properties:
-      id:
-        type: string
-      index:
-        type: integer
-      name:
-        type: string
-    type: object
-  project.Metadata:
-    properties:
-      color:
-        type: string
       description:
         type: string
       id:
         type: string
-      imageUrl:
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
         type: string
+    type: object
+  list.Spec:
+    properties:
+      index:
+        type: number
+      tasks:
+        items:
+          type: string
+        type: array
+    type: object
+  project.Metadata:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
       name:
         type: string
     type: object
   project.Project:
     properties:
-      id:
-        type: string
       metadata:
         $ref: '#/definitions/project.Metadata'
+      spec:
+        $ref: '#/definitions/project.Spec'
+    type: object
+  project.Spec:
+    properties:
+      color:
+        type: string
+      imageUrl:
+        type: string
       tasks:
         items:
           type: string
         type: array
-      type:
-        type: string
     type: object
   project.projectView:
     properties:
-      id:
-        type: string
-      metadata:
-        $ref: '#/definitions/project.Metadata'
+      project:
+        $ref: '#/definitions/project.Project'
       tasks:
         items:
-          $ref: '#/definitions/task.Task'
+          $ref: '#/definitions/repo.Resource'
         type: array
-      type:
-        type: string
     type: object
   projects.populatedProject:
     properties:
-      id:
-        type: string
-      metadata:
-        $ref: '#/definitions/project.Metadata'
+      project:
+        $ref: '#/definitions/project.Project'
       tasks:
         items:
-          $ref: '#/definitions/task.Task'
+          $ref: '#/definitions/repo.Resource'
         type: array
-      type:
-        type: string
     type: object
   projects.projectsView:
     properties:
@@ -263,43 +245,52 @@ definitions:
           $ref: '#/definitions/projects.populatedProject'
         type: array
     type: object
+  repo.Metadata:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  repo.Resource:
+    properties:
+      metadata:
+        $ref: '#/definitions/repo.Metadata'
+      spec:
+        type: object
+    type: object
   task.Metadata:
     properties:
       description:
         type: string
       id:
         type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
       name:
         type: string
-    required:
-    - id
-    - name
     type: object
   task.Spec:
-    properties:
-      dueDate:
-        type: string
-    type: object
-  task.Status:
     properties:
       completed:
         type: boolean
     type: object
   task.Task:
     properties:
-      id:
-        type: string
       metadata:
         $ref: '#/definitions/task.Metadata'
       spec:
         $ref: '#/definitions/task.Spec'
-      status:
-        $ref: '#/definitions/task.Status'
-      type:
-        type: string
-    required:
-    - metadata
-    - spec
     type: object
   task.completeReopenTaskRequestBody:
     properties:
