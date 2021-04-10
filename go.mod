@@ -10,7 +10,7 @@ require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.11.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.1
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/go-openapi/spec v0.20.3 // indirect
