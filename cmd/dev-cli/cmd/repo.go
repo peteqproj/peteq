@@ -2,12 +2,17 @@ package cmd
 
 import (
 	"bytes"
-	"html/template"
+	_ "embed"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
+	"text/template"
 
+	"github.com/hairyhenderson/gomplate"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -15,17 +20,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type (
-	repo struct {
-		Name          string      `yaml:"name"`
-		RootAggregate Aggregate   `yaml:"rootAggregate"`
-		Aggregates    []Aggregate `yaml:"aggregates"`
-	}
-	Aggregate struct {
-		Resource string `yaml:"resource"`
-	}
-)
-
+//go:embed templates/repo
+var tmpl string
 var repoCmdFlags struct {
 	repo string
 }
@@ -41,14 +37,20 @@ var repoCmd = &cobra.Command{
 		d, err := ioutil.ReadFile(repoCmdFlags.repo)
 		utils.DieOnError(err, "Failed to read file")
 
-		r := &repo{}
+		r := &repo.RepoDef{}
 		err = yaml.Unmarshal(d, r)
 		utils.DieOnError(err, "")
 
 		dir := path.Join(wd, "domain", r.Name)
 		err = os.MkdirAll(dir, os.ModePerm)
 		logr.Info("Creating repo")
-		res, err := templateRepo(r)
+		funcs := gomplate.Funcs(nil)
+		funcs["BuildInitQueries"] = buildInitQueries
+		funcs["BuildDBName"] = buildDBName
+		funcs["BuildIndexesFunction"] = buildIndexesFunction(r)
+		funcs["BuildIndexesArgumentList"] = buildIndexesArgumentList(r)
+		funcs["BuildColumnVar"] = buildColumnVar(r)
+		res, err := templateRepo(funcs, r)
 		utils.DieOnError(err, "Failed to template repositry")
 		err = ioutil.WriteFile(path.Join(dir, "repo.go"), res, os.ModePerm)
 		utils.DieOnError(err, "Failed to write repo to file")
@@ -66,9 +68,11 @@ func init() {
 	})
 }
 
-func templateRepo(data interface{}) ([]byte, error) {
+func templateRepo(funcs template.FuncMap, data interface{}) ([]byte, error) {
 	out := new(bytes.Buffer)
-	t, err := template.New("").Parse(tmpl)
+	t := template.New("")
+	t = t.Funcs(funcs)
+	t, err := t.Parse(tmpl)
 	if err != nil {
 		return nil, err
 	}
@@ -78,55 +82,121 @@ func templateRepo(data interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-var tmpl = `
-package {{ .Name }}
+func buildIndexesFunction(r *repo.RepoDef) func([]string) string {
+	return func(indexes []string) string {
+		fn := strings.Builder{}
+		for _, i := range indexes {
+			fn.WriteString(strings.Title(i))
+		}
+		return fn.String()
+	}
+}
 
-import (
-	"context"
-	"errors"
-	"encoding/json"
+func buildIndexesArgumentList(r *repo.RepoDef) func([]string) string {
+	return func(indexes []string) string {
+		list := []string{
+			"ctx context.Context",
+		}
+		for _, i := range indexes {
+			var col *repo.Column
+			for _, c := range r.Database.Postgres.Columns {
+				if c.Name == i {
+					col = &c
+				}
+				if col != nil {
+					break
+				}
+			}
+			if col == nil {
+				panic("Column not found")
+			}
+			list = append(list, fmt.Sprintf("%s %s", i, postgresTypeToGolangType(col.Type)))
+		}
+		return strings.Join(list, ", ")
+	}
+}
 
-	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/imdario/mergo"
-	"github.com/peteqproj/peteq/pkg/db"
-	"github.com/peteqproj/peteq/pkg/logger"
-)
+func postgresTypeToGolangType(t string) string {
+	switch t {
+	case "string", "json":
+		return "string"
+	default:
+		return "string"
+	}
+}
 
-const db_name = "repo_{{.Name}}"
-
-var errNotFound = errors.New("Resource not found")
-
-type (
-	Repo struct {
-		DB db.Database 
-		Logger logger.Logger
+func buildInitQueries(r repo.RepoDef) string {
+	queries := []string{}
+	queries = append(queries, createTableString(r))
+	for _, idx := range r.Database.Postgres.Indexes {
+		queries = append(queries, createIndexString(idx, false, buildDBName(r)))
 	}
 
-	ListOptions struct {}
-	GetOptions struct {
-		ID    string
-		Query string
+	for _, idx := range r.Database.Postgres.UniqueIndexes {
+		queries = append(queries, createIndexString(idx, true, buildDBName(r)))
 	}
-)
-
-func (r *Repo) List(ctx context.Context, options ListOptions) ([]*{{ .RootAggregate.Resource }}, error) {
-	return nil, nil
+	res := strings.Builder{}
+	res.WriteString("var queries = []string{\n")
+	for _, q := range queries {
+		res.WriteString(fmt.Sprintf("\t\"%s\",\n", q))
+	}
+	res.WriteString("}")
+	return res.String()
 }
 
-func (r *Repo) Get(ctx context.Context, options GetOptions) (*{{ .RootAggregate.Resource }}, error) {
-	return nil, nil
+func createTableString(r repo.RepoDef) string {
+	q := strings.Builder{}
+	q.WriteString("CREATE TABLE IF NOT EXISTS ")
+	q.WriteString(fmt.Sprintf("%s ", buildDBName(r)))
+	q.WriteString("( ")
+	col := []string{}
+	for _, c := range r.Database.Postgres.Columns {
+		col = append(col, fmt.Sprintf("%s %s not null", c.Name, c.Type))
+	}
+	pks := []string{}
+	for _, p := range r.Database.Postgres.PrimeryKey {
+		pks = append(pks, p)
+	}
+	col = append(col, fmt.Sprintf("PRIMERY KEY (%s)", strings.Join(pks, ",")))
+	q.WriteString(strings.Join(col, ","))
+	q.WriteString(");")
+	return q.String()
 }
 
-func (r *Repo) Create(ctx context.Context, resource *{{ .RootAggregate.Resource }}) (error) {
-	return nil
+func createIndexString(idx []string, unique bool, db string) string {
+	q := strings.Builder{}
+	if unique {
+		q.WriteString("CREATE UNIQUE INDEX ")
+	} else {
+		q.WriteString("CREATE INDEX ")
+	}
+	q.WriteString(fmt.Sprintf("%s ON %s ", strings.Join(idx, "_"), db))
+	q.WriteString("( ")
+	index := []string{}
+	for _, i := range idx {
+		index = append(index, i)
+	}
+	q.WriteString(strings.Join(index, ","))
+	q.WriteString(");")
+	return q.String()
 }
 
-func (r *Repo) Delete(ctx context.Context, id string) (error) {
-	return nil
+func buildDBName(r repo.RepoDef) string {
+	return fmt.Sprintf("repo_%s", r.Name)
 }
 
-func (r *Repo) Update(ctx context.Context, resource *{{ .RootAggregate.Resource }}) (error) {
-	return nil
+func buildColumnVar(r *repo.RepoDef) func(repo.Column) string {
+	return func(c repo.Column) string {
+		switch c.From.Type {
+		case "resource":
+			if c.From.Path == "." {
+				return fmt.Sprintf("table_column_%s, err := json.Marshal(resource)\n if err != nil {\n return err\n}", c.Name)
+			}
+			return fmt.Sprintf("table_column_%s := resource.%s", c.Name, c.From.Path)
+		case "tenant":
+			return fmt.Sprintf("table_column_%s := user.%s", c.Name, c.From.Path)
+		default:
+			return "...."
+		}
+	}
 }
-`

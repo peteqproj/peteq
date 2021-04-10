@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	make gen-openapi && make gen-domain && make compile
+	make gen-openapi && make gen-domain && make gen-repo && make compile
 
 .PHONY: compile
 compile:
@@ -17,6 +17,10 @@ gen-domain:
 	./dist/peteq-dev create aggregate --package trigger --schema manifests/trigger/trigger.json
 	./dist/peteq-dev create aggregate --package automation --schema manifests/automation/automation.json --schema manifests/automation/trigger.binding.json
 
+.PHONY: gen-repo
+gen-repo:
+	./dist/peteq-dev create repo --repo manifests/task/repo.yaml
+
 
 .PHONY: dependency-update
 dependency-update:
@@ -30,7 +34,7 @@ mock-all:
 
 .PHONY: gen-openapi
 gen-openapi:
-	docker run --workdir=/app -v $(PWD):/app peteqproj/openapi swag init -g package/server/openapi.go
+	docker run --workdir=/app -v $(PWD):/app peteqproj/openapi swag init -g pkg/server/openapi.go
 
 .PHONY: test
 test:
