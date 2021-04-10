@@ -15,7 +15,7 @@ require (
 	github.com/go-logr/zapr v0.4.0
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-playground/validator/v10 v10.4.1
+	github.com/go-playground/validator/v10 v10.5.0
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/imdario/mergo v0.3.12
