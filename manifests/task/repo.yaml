@@ -1,0 +1,26 @@
+name: task 
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+      from:
+        type: resource
+        path: Metadata.ID
+    - name: user 
+      type: text
+      from:
+        type: tenant
+        path: Metadata.ID
+    - name: info
+      type: json
+      from:
+        type: resource
+        path: .
+    indexes:
+      - [user]
+    primeryKey: [id]
+tenant: user
+rootAggregate:
+  resource: Task 
+    
