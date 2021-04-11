@@ -33,7 +33,7 @@ database:
       from:
         type: resource
         path: Metadata.ID
-    - name: user
+    - name: userid
       type: text
       from:
         type: tenant
@@ -44,15 +44,15 @@ database:
         type: resource
         path: .
     indexes:
-    - - user
+    - - userid
     uniqueIndexes: []
     primeryKey:
     - id
 tenant: user
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS repo_task ( id text not null,user text not null,info json not null,PRIMERY KEY (id));",
-	"CREATE INDEX user ON repo_task ( user);",
+	"CREATE TABLE IF NOT EXISTS repo_task ( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON repo_task ( userid);",
 }
 
 type (
@@ -103,7 +103,7 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 	}
 
 	table_column_id := resource.Metadata.ID
-	table_column_user := user.Metadata.ID
+	table_column_userid := user.Metadata.ID
 	table_column_info, err := json.Marshal(resource)
 	if err != nil {
 		return err
@@ -112,12 +112,12 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 		Insert(db_name).
 		Cols(
 		"id",
-		"user",
+		"userid",
 		"info",
 		).
 		Vals(goqu.Vals{
 		string(table_column_id),
-		string(table_column_user),
+		string(table_column_userid),
 		string(table_column_info),
 		}).
 		ToSQL()
@@ -153,12 +153,12 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 		return nil, err
 	}
 	var table_id string
-	var table_user string
+	var table_userid string
 	var table_info string
 	
 	if err := row.Scan(
 		&table_id,
-		&table_user,
+		&table_userid,
 		&table_info,
 		); err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
 	}
 
 	table_column_id := resource.Metadata.ID
-	table_column_user := user.Metadata.ID
+	table_column_userid := user.Metadata.ID
 	table_column_info, err := json.Marshal(resource)
 	if err != nil {
 		return err
@@ -197,7 +197,7 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
 		}).
 		Set(goqu.Record{
 		"id": string(table_column_id),
-		"user": string(table_column_user),
+		"userid": string(table_column_userid),
 		"info": string(table_column_info),
 		}).
 		ToSQL()
@@ -237,12 +237,12 @@ func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
 
 /*Index functions*/
 
-func (r *Repo) ListByUser(ctx context.Context, user string) ( []*Task, error) {
+func (r *Repo) ListByUserid(ctx context.Context, userid string) ( []*Task, error) {
 	if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
-	e["user"] = user
+	e["userid"] = userid
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
@@ -261,12 +261,12 @@ func (r *Repo) ListByUser(ctx context.Context, user string) ( []*Task, error) {
 	res := []*Task{}
 	for rows.Next() {
 		var table_id string
-		var table_user string
+		var table_userid string
 		var table_info string
 		
 		if err := rows.Scan(
 			&table_id,
-			&table_user,
+			&table_userid,
 			&table_info,
 			); err != nil {
 			return nil, err

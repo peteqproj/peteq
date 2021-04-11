@@ -29,7 +29,7 @@ func (a *QueryAPI) List(c *gin.Context) {
 		auth.UnauthorizedResponse(c)
 		return
 	}
-	res, err := a.Repo.ListByUser(c.Request.Context(), u.Metadata.ID)
+	res, err := a.Repo.ListByUserid(c.Request.Context(), u.Metadata.ID)
 	if err != nil {
 		handleError(500, err, c)
 		return

@@ -7,7 +7,7 @@ database:
       from:
         type: resource
         path: Metadata.ID
-    - name: user 
+    - name: userid
       type: text
       from:
         type: tenant
@@ -18,7 +18,7 @@ database:
         type: resource
         path: .
     indexes:
-      - [user]
+      - [userid]
     primeryKey: [id]
 tenant: user
 rootAggregate:

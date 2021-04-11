@@ -158,7 +158,7 @@ func createTableString(r repo.RepoDef) string {
 	for _, p := range r.Database.Postgres.PrimeryKey {
 		pks = append(pks, p)
 	}
-	col = append(col, fmt.Sprintf("PRIMERY KEY (%s)", strings.Join(pks, ",")))
+	col = append(col, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(pks, ",")))
 	q.WriteString(strings.Join(col, ","))
 	q.WriteString(");")
 	return q.String()
@@ -167,9 +167,9 @@ func createTableString(r repo.RepoDef) string {
 func createIndexString(idx []string, unique bool, db string) string {
 	q := strings.Builder{}
 	if unique {
-		q.WriteString("CREATE UNIQUE INDEX ")
+		q.WriteString("CREATE UNIQUE INDEX IF NOT EXISTS ")
 	} else {
-		q.WriteString("CREATE INDEX ")
+		q.WriteString("CREATE INDEX IF NOT EXISTS ")
 	}
 	q.WriteString(fmt.Sprintf("%s ON %s ", strings.Join(idx, "_"), db))
 	q.WriteString("( ")
