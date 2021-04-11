@@ -25,7 +25,7 @@ import (
 type (
 	// ViewAPI for backlog view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL

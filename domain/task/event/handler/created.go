@@ -6,13 +6,13 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CreatedHandler to handle task.created event
 	CreatedHandler struct {
-		Repo *repo.Repo
+		Repo *task.Repo
 	}
 
 	// CreatedSpec is the event.spec for this event
@@ -31,13 +31,12 @@ func (c *CreatedHandler) Handle(ctx context.Context, ev event.Event, logger logg
 	if err != nil {
 		return err
 	}
-	return c.Repo.Create(ctx, repo.Resource{
-		Metadata: repo.Metadata{
+	return c.Repo.Create(ctx, &task.Task{
+		Metadata: task.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,
 			Labels:      opt.Labels,
-			Description: opt.Description,
-			Type:        "task",
+			Description: utils.PtrString(opt.Description),
 		},
 		Spec: task.Spec{
 			Completed: false,

@@ -33,10 +33,14 @@ func IsAuthenticated(userRepo *user.Repo) func(c *gin.Context) {
 				return
 			}
 		}
-		c.AbortWithStatusJSON(401, map[string]interface{}{
-			"error": "unauthorized",
-		})
+		UnauthorizedResponse(c)
 	}
+}
+
+func UnauthorizedResponse(c *gin.Context) {
+	c.JSON(401, gin.H{
+		"error": "unauthorized",
+	})
 }
 
 func hash(s string) string {

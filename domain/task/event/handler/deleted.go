@@ -6,13 +6,12 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
 	// DeleteHandler to handle task.deleted event
 	DeleteHandler struct {
-		Repo *repo.Repo
+		Repo *task.Repo
 	}
 	// DeletedSpec is the event.spec for this event
 	DeletedSpec struct {
@@ -27,13 +26,7 @@ func (c *DeleteHandler) Handle(ctx context.Context, ev event.Event, logger logge
 	if err != nil {
 		return err
 	}
-	return c.Repo.Delete(ctx, repo.Resource{
-		Metadata: repo.Metadata{
-			Type: "task",
-			ID:   ev.ID,
-		},
-		Spec: task.Spec{},
-	})
+	return c.Repo.DeleteById(ctx, opt.ID)
 }
 
 func (c *DeleteHandler) Name() string {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/peteqproj/peteq/domain/user"
 	
+	"gopkg.in/yaml.v2"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/peteqproj/peteq/pkg/db"
@@ -20,6 +21,35 @@ const db_name = "repo_task"
 var errNotFound = errors.New("Task not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
 var errNoTenantInContext = errors.New("No tenant in context")
+var repoDefEmbed = `name: task
+rootAggregate:
+  resource: Task
+aggregates: []
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+      from:
+        type: resource
+        path: Metadata.ID
+    - name: user
+      type: text
+      from:
+        type: tenant
+        path: Metadata.ID
+    - name: info
+      type: json
+      from:
+        type: resource
+        path: .
+    indexes:
+    - - user
+    uniqueIndexes: []
+    primeryKey:
+    - id
+tenant: user
+`
 var queries = []string{
 	"CREATE TABLE IF NOT EXISTS repo_task ( id text not null,user text not null,info json not null,PRIMERY KEY (id));",
 	"CREATE INDEX user ON repo_task ( user);",
@@ -29,8 +59,8 @@ type (
 	Repo struct {
 		DB        db.Database 
 		Logger    logger.Logger
-		Initiated bool
-		Def       repo.RepoDef
+		initiated bool
+		def       *repo.RepoDef
 	}
 
 	ListOptions struct {}
@@ -46,18 +76,25 @@ func (r *Repo) Initiate(ctx context.Context) error {
 			return err
 		}
 	}
-	r.Initiated = true
+	
+	def := &repo.RepoDef{}
+	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
+		return err
+	}
+	r.def = def
+
+	r.initiated = true
 	return nil
 }
 /* PrimeryKey functions*/
 
 func (r *Repo) Create(ctx context.Context, resource *Task) error {
-    if !r.Initiated {
+    if !r.initiated {
 		return errNotInitiated
 	}
 	var user *user.User 
 	
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return errNoTenantInContext
@@ -95,12 +132,12 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 }
 
 func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
-    if !r.Initiated {
+    if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
 	e["id"] = id
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return nil, errNoTenantInContext
@@ -134,12 +171,12 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 	return resource, nil
 }
 func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
-    if !r.Initiated {
+    if !r.initiated {
 		return errNotInitiated
 	}
 	var user *user.User 
 	
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return errNoTenantInContext
@@ -174,12 +211,12 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
 	return nil
 }
 func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
-	if !r.Initiated {
+	if !r.initiated {
 		return errNotInitiated
 	}
 	e := exp.Ex{}
 	e["id"] = id
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return errNoTenantInContext
@@ -201,12 +238,12 @@ func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
 /*Index functions*/
 
 func (r *Repo) ListByUser(ctx context.Context, user string) ( []*Task, error) {
-	if !r.Initiated {
+	if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
 	e["user"] = user
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return nil, errNoTenantInContext

@@ -4,13 +4,15 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/peteqproj/peteq/pkg/repo"
+	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/pkg/api/auth"
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
 	// QueryAPI for tasks
 	QueryAPI struct {
-		Repo *repo.Repo
+		Repo *task.Repo
 	}
 )
 
@@ -22,7 +24,12 @@ type (
 // @router /api/task/ [get]
 // @Security ApiKeyAuth
 func (a *QueryAPI) List(c *gin.Context) {
-	res, err := a.Repo.List(c.Request.Context(), repo.ListOptions{})
+	u := tenant.UserFromContext(c.Request.Context())
+	if u == nil {
+		auth.UnauthorizedResponse(c)
+		return
+	}
+	res, err := a.Repo.ListByUser(c.Request.Context(), u.Metadata.ID)
 	if err != nil {
 		handleError(500, err, c)
 		return
@@ -39,7 +46,12 @@ func (a *QueryAPI) List(c *gin.Context) {
 // @router /api/task/{id} [get]
 // @Security ApiKeyAuth
 func (a *QueryAPI) Get(c *gin.Context) {
-	t, err := a.Repo.Get(c.Request.Context(), repo.GetOptions{ID: c.Param("id")})
+	u := tenant.UserFromContext(c.Request.Context())
+	if u == nil {
+		auth.UnauthorizedResponse(c)
+		return
+	}
+	t, err := a.Repo.GetById(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		handleError(404, fmt.Errorf("Task not found"), c)
 		return

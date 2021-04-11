@@ -12,6 +12,7 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
+	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
@@ -20,12 +21,13 @@ import (
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// ViewAPI for backlog view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL
@@ -41,7 +43,7 @@ type (
 	}
 
 	homeTask struct {
-		Task    repo.Resource  `json:"task"`
+		Task    task.Task      `json:"task"`
 		Project *repo.Resource `json:"project,omitempty"`
 	}
 )
@@ -164,7 +166,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
-	task, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
+	task, err := h.TaskRepo.GetById(ctx, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
@@ -243,7 +245,7 @@ func (h *ViewAPI) handlerTaskUpdated(ctx context.Context, ev event.Event, view h
 		// task not in lists, no action to do
 		return view, nil
 	}
-	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = spec.Description
+	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = utils.PtrString(spec.Description)
 	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Name = spec.Name
 	return view, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
@@ -19,7 +20,7 @@ import (
 type (
 	// CommandAPI for tasks
 	CommandAPI struct {
-		Repo        *repo.Repo
+		Repo        *task.Repo
 		Commandbus  commandbus.CommandBus
 		Logger      logger.Logger
 		IDGenerator utils.IDGenerator
@@ -131,7 +132,7 @@ func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.Command
 func (c *CommandAPI) Delete(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	req := &deleteTaskRequestBody{}
 	err := api.UnmarshalInto(body, req)
-	t, err := c.Repo.Get(ctx, repo.GetOptions{ID: req.ID})
+	t, err := c.Repo.GetById(ctx, req.ID)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/repo"
 
 	"github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/api/view/views/backlog"
 	"github.com/peteqproj/peteq/pkg/api/view/views/home"
 	proj "github.com/peteqproj/peteq/pkg/api/view/views/project"
@@ -16,7 +17,7 @@ import (
 
 type (
 	Builder struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *repo.Repo
 		Logger      logger.Logger
@@ -24,7 +25,7 @@ type (
 	}
 
 	Options struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
 		ProjectRepo *repo.Repo
 		Logger      logger.Logger

@@ -50,6 +50,7 @@ var repoCmd = &cobra.Command{
 		funcs["BuildIndexesFunction"] = buildIndexesFunction(r)
 		funcs["BuildIndexesArgumentList"] = buildIndexesArgumentList(r)
 		funcs["BuildColumnVar"] = buildColumnVar(r)
+		funcs["EmbedRepoDef"] = embedRepoDef
 		res, err := templateRepo(funcs, r)
 		utils.DieOnError(err, "Failed to template repositry")
 		err = ioutil.WriteFile(path.Join(dir, "repo.go"), res, os.ModePerm)
@@ -199,4 +200,12 @@ func buildColumnVar(r *repo.RepoDef) func(repo.Column) string {
 			return "...."
 		}
 	}
+}
+
+func embedRepoDef(r *repo.RepoDef) string {
+	b, err := yaml.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("`%s`", string(b))
 }

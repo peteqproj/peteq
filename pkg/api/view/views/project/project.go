@@ -16,19 +16,20 @@ import (
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
+	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// ViewAPI for single project view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ProjectRepo *repo.Repo
 		DAL         *DAL
 	}
 
 	projectView struct {
 		Project project.Project `json:"project"`
-		Tasks   []repo.Resource `json:"tasks"`
+		Tasks   []task.Task     `json:"tasks"`
 	}
 )
 
@@ -167,9 +168,7 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	tspec := view.Tasks[taskIndex].Spec.(task.Spec)
-	tspec.Completed = spec.Completed
-	view.Tasks[taskIndex].Spec = tspec
+	view.Tasks[taskIndex].Spec.Completed = spec.Completed
 	return view, nil
 }
 func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
@@ -183,7 +182,7 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view pr
 		return view, fmt.Errorf("Task not found")
 	}
 	if spec.Description != "" {
-		view.Tasks[taskIndex].Metadata.Description = spec.Description
+		view.Tasks[taskIndex].Metadata.Description = utils.PtrString(spec.Description)
 	}
 	if spec.Name != "" {
 		view.Tasks[taskIndex].Metadata.Name = spec.Name
@@ -196,7 +195,7 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	task, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
+	task, err := h.TaskRepo.GetById(ctx, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
@@ -228,7 +227,7 @@ func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logg
 	}
 	view := projectView{
 		Project: p,
-		Tasks:   make([]repo.Resource, 0),
+		Tasks:   make([]task.Task, 0),
 	}
 	return view, nil
 }

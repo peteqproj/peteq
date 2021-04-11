@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"context"
+
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/internal"
@@ -49,12 +52,13 @@ var eventHandlerServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		taskRepo, err := repo.New(repo.Options{
-			ResourceType: "tasks",
-			DB:           db,
-			Logger:       logr.Fork("repo", "task"),
-		})
-		utils.DieOnError(err, "Failed to init task repo")
+		taskRepo := task.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "task"),
+		}
+		if err := taskRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init task repo")
+		}
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
@@ -88,15 +92,15 @@ var eventHandlerServiceCmd = &cobra.Command{
 		registerCommandHandlers(cb, ebus, userRepo)
 
 		registerUserEventHandlers(ebus, userRepo)
-		registerTaskEventHandlers(ebus, taskRepo)
+		registerTaskEventHandlers(ebus, &taskRepo)
 		registerListEventHandlers(ebus, listRepo)
 		registerProjectEventHandlers(ebus, projectRepo)
 		registerTriggerEventHandlers(ebus, triggerRepo)
 		registerAutomationEventHandlers(ebus, automationRepo)
-		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
+		registerViewEventHandlers(ebus, db, &taskRepo, listRepo, projectRepo, logr)
 		sagaEventHandler := &saga.EventHandler{
 			CommandBus:     cb,
-			TaskRepo:       taskRepo,
+			TaskRepo:       &taskRepo,
 			ListRepo:       listRepo,
 			AutomationRepo: automationRepo,
 			ProjectRepo:    projectRepo,

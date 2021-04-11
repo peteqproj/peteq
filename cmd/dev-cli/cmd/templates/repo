@@ -8,6 +8,7 @@ import (
 	{{ if eq .Tenant "user" -}}
 	"github.com/peteqproj/peteq/domain/user"
 	{{ end }}
+	"gopkg.in/yaml.v2"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/peteqproj/peteq/pkg/db"
@@ -21,14 +22,15 @@ const db_name = "{{ BuildDBName . }}"
 var errNotFound = errors.New("{{.RootAggregate.Resource}} not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
 var errNoTenantInContext = errors.New("No tenant in context")
+var repoDefEmbed = {{ EmbedRepoDef . }}
 {{ BuildInitQueries . }}
 
 type (
 	Repo struct {
 		DB        db.Database 
 		Logger    logger.Logger
-		Initiated bool
-		Def       repo.RepoDef
+		initiated bool
+		def       *repo.RepoDef
 	}
 
 	ListOptions struct {}
@@ -44,19 +46,26 @@ func (r *Repo) Initiate(ctx context.Context) error {
 			return err
 		}
 	}
-	r.Initiated = true
+	
+	def := &repo.RepoDef{}
+	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
+		return err
+	}
+	r.def = def
+
+	r.initiated = true
 	return nil
 }
 /* PrimeryKey functions*/
 
 func (r *Repo) Create(ctx context.Context, resource *{{ .RootAggregate.Resource}}) error {
-    if !r.Initiated {
+    if !r.initiated {
 		return errNotInitiated
 	}
 	{{ if eq .Tenant "user" -}}
 	var user *user.User 
 	{{ end }}
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return errNoTenantInContext
@@ -111,7 +120,7 @@ func (r *Repo) Create(ctx context.Context, resource *{{ .RootAggregate.Resource}
 }
 
 func (r *Repo) GetBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{ BuildIndexesArgumentList  .Database.Postgres.PrimeryKey }}) (*{{.RootAggregate.Resource}}, error) {
-    if !r.Initiated {
+    if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
@@ -119,7 +128,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{
 	e["{{ . }}"] = {{ . }}
 	{{ end -}}
 
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return nil, errNoTenantInContext
@@ -152,13 +161,13 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{
 	return resource, nil
 }
 func (r *Repo) Update{{ .RootAggregate.Resource }}(ctx context.Context, resource *{{ .RootAggregate.Resource}}) (error) {
-    if !r.Initiated {
+    if !r.initiated {
 		return errNotInitiated
 	}
 	{{ if eq .Tenant "user" -}}
 	var user *user.User 
 	{{ end }}
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return errNoTenantInContext
@@ -210,7 +219,7 @@ func (r *Repo) Update{{ .RootAggregate.Resource }}(ctx context.Context, resource
 	return nil
 }
 func (r *Repo) DeleteBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{ BuildIndexesArgumentList  .Database.Postgres.PrimeryKey }}) (error) {
-	if !r.Initiated {
+	if !r.initiated {
 		return errNotInitiated
 	}
 	e := exp.Ex{}
@@ -218,7 +227,7 @@ func (r *Repo) DeleteBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}
 	e["{{ . }}"] = {{ . }}
 	{{ end -}}
 
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return errNoTenantInContext
@@ -240,7 +249,7 @@ func (r *Repo) DeleteBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}
 /*Index functions*/
 {{ range .Database.Postgres.Indexes }}
 func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . }}) ( []*{{$.RootAggregate.Resource}}, error) {
-	if !r.Initiated {
+	if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
@@ -248,7 +257,7 @@ func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList .
 	e["{{ . }}"] = {{ . }}
 	{{ end -}}
 
-	if r.Def.Tenant != "" {
+	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
 			return nil, errNoTenantInContext
