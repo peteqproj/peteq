@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// CreateCommand to create task
 	CreateCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *task.Repo
 	}
 
 	// CreateCommandOptions add new token to allow api calls
@@ -39,6 +41,19 @@ func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 		ID:   u.Metadata.ID,
 		Type: tenant.User.String(),
 	}
+	if err := c.Repo.Create(ctx, &task.Task{
+		Metadata: task.Metadata{
+			ID:          t.ID,
+			Name:        t.Name,
+			Description: utils.PtrString(t.Description),
+			Labels:      t.Labels,
+		},
+		Spec: task.Spec{
+			Completed: false,
+		},
+	}); err != nil {
+		return err
+	}
 	_, err := c.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant,
 		Metadata: event.Metadata{
@@ -48,10 +63,8 @@ func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 			AggregatorID:   t.ID,
 		},
 		Spec: handler.CreatedSpec{
-			ID:          t.ID,
-			Name:        t.Name,
-			Description: t.Description,
-			Labels:      t.Labels,
+			ID:   t.ID,
+			Name: t.Name,
 		},
 	})
 	return err

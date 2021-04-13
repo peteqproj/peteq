@@ -21,7 +21,6 @@ import (
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
-	taskEventHandlers "github.com/peteqproj/peteq/domain/task/event/handler"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	triggerCommands "github.com/peteqproj/peteq/domain/trigger/command"
 	triggerEventHandlers "github.com/peteqproj/peteq/domain/trigger/event/handler"
@@ -33,8 +32,6 @@ import (
 	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
-
-	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 )
 
 // DieOnError kills the process and prints a message
@@ -42,24 +39,6 @@ func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
 }
 
-func registerTaskEventHandlers(eventbus eventbus.Eventbus, repo *task.Repo) {
-	// Task related event handlers
-	eventbus.Subscribe(taskEventTypes.TaskCreatedEvent, &taskEventHandlers.CreatedHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(taskEventTypes.TaskDeletedEvent, &taskEventHandlers.DeleteHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(taskEventTypes.TaskUpdatedEvent, &taskEventHandlers.UpdatedHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(taskEventTypes.TaskStatusChanged, &taskEventHandlers.StatusChangedHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(taskEventTypes.TaskStatusChanged, &taskEventHandlers.StatusChangedHandler{
-		Repo: repo,
-	})
-}
 func registerListEventHandlers(eventbus eventbus.Eventbus, repo *listDomain.Repo) {
 	// List related event handlers
 	eventbus.Subscribe(listEventTypes.TaskMovedIntoListEvent, &listEventHandlers.TaskMovedHandler{
@@ -108,22 +87,27 @@ func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automatio
 	})
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
+		Repo:     taskRepo,
 	})
 	cb.RegisterHandler("task.delete", &taskCommands.DeleteCommand{
 		Eventbus: eventbus,
+		Repo:     taskRepo,
 	})
 	cb.RegisterHandler("task.update", &taskCommands.UpdateCommand{
 		Eventbus: eventbus,
+		Repo:     taskRepo,
 	})
 	cb.RegisterHandler("task.complete", &taskCommands.CompleteCommand{
 		Eventbus: eventbus,
+		Repo:     taskRepo,
 	})
 	cb.RegisterHandler("task.reopen", &taskCommands.ReopenCommand{
 		Eventbus: eventbus,
+		Repo:     taskRepo,
 	})
 
 	// List related command

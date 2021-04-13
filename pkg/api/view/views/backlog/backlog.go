@@ -196,9 +196,9 @@ func (h *ViewAPI) handleTaskCreated(ctx context.Context, ev event.Event, view ba
 	}
 	t := task.Task{
 		Metadata: task.Metadata{
-			ID:          spec.ID,
-			Name:        spec.Name,
-			Description: &spec.Description,
+			ID:   spec.ID,
+			Name: spec.Name,
+			// Description: &spec.Description,
 		},
 	}
 	view.Tasks = append(view.Tasks, backlogTask{
@@ -217,7 +217,7 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view ba
 		return view, fmt.Errorf("Task not found")
 	}
 	view.Tasks[index].Task.Metadata.Name = spec.Name
-	view.Tasks[index].Task.Metadata.Description = &spec.Description
+	// view.Tasks[index].Task.Metadata.Description = &spec.Description
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {

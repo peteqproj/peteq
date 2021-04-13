@@ -21,7 +21,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
-	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -245,7 +244,7 @@ func (h *ViewAPI) handlerTaskUpdated(ctx context.Context, ev event.Event, view h
 		// task not in lists, no action to do
 		return view, nil
 	}
-	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = utils.PtrString(spec.Description)
+	// view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = utils.PtrString(spec.Description)
 	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Name = spec.Name
 	return view, nil
 }

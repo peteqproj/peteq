@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
@@ -18,15 +18,19 @@ type (
 	// UpdateCommand to create task
 	UpdateCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *task.Repo
 	}
 )
 
 // Handle runs UpdateCommand to create task
 func (u *UpdateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &repo.Resource{}
+	opt := &task.Task{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to Task object")
+	}
+	if err := u.Repo.UpdateTask(ctx, opt); err != nil {
+		return err
 	}
 	user := tenant.UserFromContext(ctx)
 	_, err = u.Eventbus.Publish(ctx, event.Event{
@@ -41,9 +45,8 @@ func (u *UpdateCommand) Handle(ctx context.Context, arguments interface{}) error
 			AggregatorID:   opt.Metadata.ID,
 		},
 		Spec: handler.UpdatedSpec{
-			ID:          opt.Metadata.ID,
-			Name:        opt.Metadata.Name,
-			Description: opt.Metadata.Description,
+			ID:   opt.Metadata.ID,
+			Name: opt.Metadata.Name,
 		},
 	})
 	return err

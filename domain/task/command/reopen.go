@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// ReopenCommand to create task
 	ReopenCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *task.Repo
 	}
 
 	ReopenTaskArguments struct {
@@ -32,6 +34,14 @@ func (r *ReopenCommand) Handle(ctx context.Context, arguments interface{}) error
 		return fmt.Errorf("Failed to convert arguments to ReopenTaskArguments object")
 	}
 	u := tenant.UserFromContext(ctx)
+	t, err := r.Repo.GetById(ctx, opt.TaskID)
+	if err != nil {
+		return err
+	}
+	t.Spec.Completed = false
+	if err := r.Repo.UpdateTask(ctx, t); err != nil {
+		return err
+	}
 	_, err = r.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,

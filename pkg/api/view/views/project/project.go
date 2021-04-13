@@ -16,7 +16,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
-	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
@@ -181,9 +180,9 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view pr
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	if spec.Description != "" {
-		view.Tasks[taskIndex].Metadata.Description = utils.PtrString(spec.Description)
-	}
+	// if spec.Description != "" {
+	// view.Tasks[taskIndex].Metadata.Description = utils.PtrString(spec.Description)
+	// }
 	if spec.Name != "" {
 		view.Tasks[taskIndex].Metadata.Name = spec.Name
 	}

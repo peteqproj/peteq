@@ -13,7 +13,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -104,7 +103,7 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 // @Router /c/task/update [post]
 // @Security ApiKeyAuth
 func (c *CommandAPI) Update(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	t := &repo.Resource{}
+	t := &task.Task{}
 	err := api.UnmarshalInto(body, t)
 	if err != nil {
 		return api.NewRejectedCommandResponse(err)
