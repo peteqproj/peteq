@@ -1,12 +1,21 @@
 .PHONY: build
 build:
-	make gen-openapi && make gen-domain && make gen-repo && gofmt -w -s . && make compile
+	make gen-openapi
+	make build-dev-cli
+	make gen-domain
+	make gen-repo 
+	gofmt -w -s .
+	make compile
 
 .PHONY: compile
 compile:
-	go build -o ./dist/peteq-dev cmd/dev-cli/main.go
+	make build-dev-cli
 	go build -o ./dist/peteq-server cmd/server/main.go
 	go build -o ./dist/peteq cmd/peteq-cli/main.go
+
+.PHONY: build-dev-cli
+build-dev-cli:
+	go build -o ./dist/peteq-dev cmd/dev-cli/main.go
 
 .PHONY: gen-domain
 gen-domain:
@@ -21,6 +30,7 @@ gen-domain:
 gen-repo:
 	./dist/peteq-dev create repo --repo manifests/task/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/user/repo.yaml
+	./dist/peteq-dev create repo --repo manifests/list/repo.yaml
 
 
 .PHONY: dependency-update

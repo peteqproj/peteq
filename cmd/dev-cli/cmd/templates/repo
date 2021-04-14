@@ -140,7 +140,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{
 	}
 	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
-		return nil, err
+		return nil, row.Err() 
 	}
 	{{range $.Database.Postgres.Columns -}}
 	var table_{{ .Name }} string
@@ -329,7 +329,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . 
 	}
 	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
-		return nil, err
+		return nil, row.Err() 
 	}
 	{{range $.Database.Postgres.Columns -}}
 	var table_{{ .Name }} string

@@ -163,9 +163,9 @@ func (h *ViewAPI) handleTaskMovedToList(ctx context.Context, ev event.Event, vie
 	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
-	newList := list.List{}
+	var newList *list.List
 	if spec.Destination != "" {
-		list, err := h.ListRepo.Get(ev.Tenant.ID, spec.Destination)
+		list, err := h.ListRepo.GetById(ctx, spec.Destination)
 		if err != nil {
 			return view, err
 		}

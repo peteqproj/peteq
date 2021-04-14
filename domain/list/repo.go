@@ -2,145 +2,121 @@ package list
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
-	"fmt"
+	"errors"
+
+	"github.com/peteqproj/peteq/domain/user"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/imdario/mergo"
 	"github.com/peteqproj/peteq/pkg/db"
-	"github.com/peteqproj/peteq/pkg/errors"
 	"github.com/peteqproj/peteq/pkg/logger"
+	repo "github.com/peteqproj/peteq/pkg/repo/def"
+	"gopkg.in/yaml.v2"
+
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
-const dbName = "repo_lists"
+const db_name = "repo_list"
+
+var ErrNotFound = errors.New("List not found")
+var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
+var errNoTenantInContext = errors.New("No tenant in context")
+var repoDefEmbed = `name: list
+rootAggregate:
+  resource: List
+aggregates: []
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+      from:
+        type: resource
+        path: Metadata.ID
+    - name: userid
+      type: text
+      from:
+        type: tenant
+        path: Metadata.ID
+    - name: info
+      type: json
+      from:
+        type: resource
+        path: .
+    indexes:
+    - - userid
+    uniqueIndexes: []
+    primeryKey:
+    - id
+tenant: user
+`
+var queries = []string{
+	"CREATE TABLE IF NOT EXISTS repo_list ( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON repo_list ( userid);",
+}
 
 type (
-	// Repo is list repository
-	// it works on the view db to read/write from it
 	Repo struct {
-		DB     db.Database
-		Logger logger.Logger
-	}
-
-	// QueryOptions to get task list
-	QueryOptions struct {
-		UserID string
+		DB        db.Database
+		Logger    logger.Logger
+		initiated bool
+		def       *repo.RepoDef
 	}
 )
 
-// List returns set of list
-func (r *Repo) List(options QueryOptions) ([]List, error) {
-	return r.find(context.Background(), options.UserID)
-}
-
-// Get returns list given list id
-func (r *Repo) Get(userID string, id string) (List, error) {
-	lists, err := r.find(context.Background(), userID, id)
-	if err != nil {
-		return List{}, err
-	}
-	if len(lists) == 0 {
-		return List{}, errors.NewNotFoundError("List", id)
-	}
-	return lists[0], nil
-}
-
-// GetListByName returns list given list name
-func (r *Repo) GetListByName(userID string, name string) (List, error) {
-	lists, err := r.List(QueryOptions{
-		UserID: userID,
-	})
-	if err != nil {
-		return List{}, err
-	}
-	for _, l := range lists {
-		if l.Metadata.Name == name {
-			return l, nil
+func (r *Repo) Initiate(ctx context.Context) error {
+	for _, q := range queries {
+		r.Logger.Info("Running db init query", "query", q)
+		if _, err := r.DB.ExecContext(ctx, q); err != nil {
+			return err
 		}
 	}
-	return List{}, errors.NewNotFoundError("List", name)
 
-}
-
-// Create will save new task into db
-func (r *Repo) Create(user string, l List) error {
-	return r.create(context.Background(), user, l)
-}
-
-// Delete will remove task from db
-func (r *Repo) Delete(userID string, id string) error {
-	return r.delete(context.Background(), userID, id)
-}
-
-// Update will update given task
-func (r *Repo) Update(user string, l List) error {
-	list, err := r.Get(user, l.Metadata.ID)
-	if err != nil {
-		return fmt.Errorf("Failed to read previous task: %w", err)
-	}
-	if err := mergo.Merge(&list, l, mergo.WithOverwriteWithEmptyValue); err != nil {
+	def := &repo.RepoDef{}
+	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
 		return err
 	}
-	return r.update(context.Background(), user, list)
-}
+	r.def = def
 
-// MoveTask will move tasks from one list to another one
-// TODO: Validation source and destination are exists
-func (r *Repo) MoveTask(userID string, sourceID string, destinationID string, task string) error {
-	var source *List
-	var destination *List
-	if sourceID != "" {
-		s, err := r.Get(userID, sourceID)
-		if err != nil {
-			return err
-		}
-		source = &s
-	}
-	if destinationID != "" {
-		d, err := r.Get(userID, destinationID)
-		if err != nil {
-			return err
-		}
-		destination = &d
-	}
-
-	// If source found, remove task from source
-	if source != nil {
-		for i, tid := range source.Spec.Tasks {
-			if tid == task {
-				source.Spec.Tasks = remove(source.Spec.Tasks, i)
-				break
-			}
-		}
-		if err := r.update(context.Background(), userID, *source); err != nil {
-			return err
-		}
-	}
-
-	// If destination found add it to destination
-	if destination != nil {
-		destination.Spec.Tasks = append(destination.Spec.Tasks, task)
-		if err := r.update(context.Background(), userID, *destination); err != nil {
-			return err
-		}
-	}
+	r.initiated = true
 	return nil
 }
 
-func remove(slice []string, s int) []string {
-	return append(slice[:s], slice[s+1:]...)
-}
+/* PrimeryKey functions*/
 
-func (r *Repo) create(ctx context.Context, user string, list List) error {
-	l, err := json.Marshal(list)
+func (r *Repo) Create(ctx context.Context, resource *List) error {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	var user *user.User
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+
+	table_column_id := resource.Metadata.ID
+	table_column_userid := user.Metadata.ID
+	table_column_info, err := json.Marshal(resource)
 	if err != nil {
 		return err
 	}
 	q, _, err := goqu.
-		Insert(dbName).
-		Cols("userid", "listid", "info").
-		Vals(goqu.Vals{user, list.Metadata.ID, string(l)}).
+		Insert(db_name).
+		Cols(
+			"id",
+			"userid",
+			"info",
+		).
+		Vals(goqu.Vals{
+			string(table_column_id),
+			string(table_column_userid),
+			string(table_column_info),
+		}).
 		ToSQL()
 	if err != nil {
 		return err
@@ -151,71 +127,164 @@ func (r *Repo) create(ctx context.Context, user string, list List) error {
 	}
 	return nil
 }
-func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]List, error) {
-	e := exp.Ex{
-		"userid": user,
+func (r *Repo) GetById(ctx context.Context, id string) (*List, error) {
+	if !r.initiated {
+		return nil, errNotInitiated
 	}
-	if len(ids) > 0 {
-		e = exp.Ex{
-			"userid": user,
-			"listid": ids,
+	e := exp.Ex{}
+	e["id"] = id
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
 		}
+		e["userid"] = u.Metadata.ID
+	}
+
+	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+	var table_id string
+	var table_userid string
+	var table_info string
+
+	if err := row.Scan(
+		&table_id,
+		&table_userid,
+		&table_info,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	resource := &List{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}
+	return resource, nil
+}
+func (r *Repo) UpdateList(ctx context.Context, resource *List) error {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	var user *user.User
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+
+	table_column_id := resource.Metadata.ID
+	table_column_userid := user.Metadata.ID
+	table_column_info, err := json.Marshal(resource)
+	if err != nil {
+		return err
 	}
 	q, _, err := goqu.
-		From(dbName).
+		Update(db_name).
+		Where(exp.Ex{
+			"id": resource.Metadata.ID,
+		}).
+		Set(goqu.Record{
+			"id":     string(table_column_id),
+			"userid": string(table_column_userid),
+			"info":   string(table_column_info),
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo) DeleteById(ctx context.Context, id string) error {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	e := exp.Ex{}
+	e["id"] = id
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+
+	q, _, err := goqu.
+		Delete(db_name).
 		Where(e).
 		ToSQL()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	rows, err := r.DB.QueryContext(ctx, q)
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+
+/*End of PrimeryKey functions*/
+
+/*Index functions*/
+
+func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*List, error) {
+	if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	e["userid"] = userid
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+
+	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	set := []List{}
+	rows, err := r.DB.QueryContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+	res := []*List{}
 	for rows.Next() {
-		uid := ""
-		lid := ""
-		l := ""
-		if err := rows.Scan(&uid, &lid, &l); err != nil {
+		var table_id string
+		var table_userid string
+		var table_info string
+
+		if err := rows.Scan(
+			&table_id,
+			&table_userid,
+			&table_info,
+		); err != nil {
 			return nil, err
 		}
-		prj := List{}
-		json.Unmarshal([]byte(l), &prj)
-		set = append(set, prj)
+		resource := &List{}
+		// info column must exist
+		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+			return nil, err
+		}
+		res = append(res, resource)
 	}
-	return set, rows.Close()
+	return res, rows.Close()
+
 }
-func (r *Repo) delete(ctx context.Context, user string, ids ...string) error {
-	q, _, err := goqu.
-		Delete(dbName).
-		Where(exp.Ex{
-			"userid": user,
-			"listid": ids,
-		}).
-		ToSQL()
-	if err != nil {
-		return err
-	}
-	_, err = r.DB.ExecContext(ctx, q)
-	return err
-}
-func (r *Repo) update(ctx context.Context, user string, list List) error {
-	l, err := json.Marshal(list)
-	if err != nil {
-		return err
-	}
-	q, _, err := goqu.
-		Update(dbName).
-		Where(exp.Ex{
-			"userid": user,
-			"listid": list.Metadata.ID,
-		}).
-		Set(goqu.Record{"info": string(l)}).
-		ToSQL()
-	if err != nil {
-		return err
-	}
-	_, err = r.DB.ExecContext(ctx, q)
-	return err
-}
+
+/*End of index function'*/
+
+/*UniqueIndex functions*/
+/*End of UniqueIndex functions*/

@@ -147,7 +147,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 	}
 	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
-		return nil, err
+		return nil, row.Err()
 	}
 	var table_id string
 	var table_userid string

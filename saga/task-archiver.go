@@ -22,9 +22,8 @@ type (
 
 func (a *archiver) Run(ctx context.Context) error {
 	a.Logger.Info("Running task archiver")
-	lists, err := a.ListRepo.List(listDomain.QueryOptions{
-		UserID: a.User,
-	})
+	// TODO: make sure the context is authenticated and remove a.User
+	lists, err := a.ListRepo.ListByUserid(ctx, a.User)
 	if err != nil {
 		return fmt.Errorf("Failed to get lists: %w", err)
 	}

@@ -50,7 +50,7 @@ var commandServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		taskRepo := task.Repo{
+		taskRepo := &task.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "task"),
 		}
@@ -61,6 +61,9 @@ var commandServiceCmd = &cobra.Command{
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
+		}
+		if err := listRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init list repo")
 		}
 		projectRepo, err := repo.New(repo.Options{
 			ResourceType: "projects",
@@ -83,13 +86,13 @@ var commandServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo, &taskRepo)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo)
 
 		apiBuilder := builder.Builder{
 			UserRepo:    userRepo,
 			ListRpeo:    listRepo,
 			ProjectRepo: projectRepo,
-			TaskRepo:    &taskRepo,
+			TaskRepo:    taskRepo,
 			Commandbus:  cb,
 			DB:          db,
 			Logger:      logr,

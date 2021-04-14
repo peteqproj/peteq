@@ -11,7 +11,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -33,6 +32,8 @@ type (
 )
 
 // MoveTasks move multiple tasks from one list to another
+// Complete task that moved into done list and opens task that moved from done list
+// this should be done in different place
 // @Description Move tasks from source to destination list
 // @Tags List Command API
 // @Accept  json
@@ -43,7 +44,6 @@ type (
 // @Router /c/list/moveTasks [post]
 // @Security ApiKeyAuth
 func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.CommandResponse {
-	u := tenant.UserFromContext(ctx)
 	opt := &MoveTasksRequestBody{}
 	if err := api.UnmarshalInto(body, opt); err != nil {
 		return api.NewRejectedCommandResponse(err)
@@ -51,18 +51,18 @@ func (ca *CommandAPI) MoveTasks(ctx context.Context, body io.ReadCloser) api.Com
 	var source *list.List
 	var destination *list.List
 	if opt.Source != "" {
-		src, err := ca.Repo.Get(u.Metadata.ID, opt.Source)
+		src, err := ca.Repo.GetById(ctx, opt.Source)
 		if err != nil {
 			return api.NewRejectedCommandResponse(fmt.Errorf("Source list: %v", err))
 		}
-		source = &src
+		source = src
 	}
 	if opt.Destination != "" {
-		dst, err := ca.Repo.Get(u.Metadata.ID, opt.Destination)
+		dst, err := ca.Repo.GetById(ctx, opt.Destination)
 		if err != nil {
 			return api.NewRejectedCommandResponse(fmt.Errorf("Destination list: %v", err))
 		}
-		destination = &dst
+		destination = dst
 	}
 	for _, t := range opt.TaskIDs {
 		ca.Logger.Info("Moving task", "source", opt.Source, "destination", opt.Destination, "task", t)

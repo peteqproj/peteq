@@ -52,7 +52,7 @@ var eventHandlerServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		taskRepo := task.Repo{
+		taskRepo := &task.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "task"),
 		}
@@ -62,6 +62,9 @@ var eventHandlerServiceCmd = &cobra.Command{
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
+		}
+		if err := listRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init list repo")
 		}
 		projectRepo, err := repo.New(repo.Options{
 			ResourceType: "projects",
@@ -92,16 +95,15 @@ var eventHandlerServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo, &taskRepo)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo)
 
-		registerListEventHandlers(ebus, listRepo)
 		registerProjectEventHandlers(ebus, projectRepo)
 		registerTriggerEventHandlers(ebus, triggerRepo)
 		registerAutomationEventHandlers(ebus, automationRepo)
-		registerViewEventHandlers(ebus, db, &taskRepo, listRepo, projectRepo, logr)
+		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
 		sagaEventHandler := &saga.EventHandler{
 			CommandBus:     cb,
-			TaskRepo:       &taskRepo,
+			TaskRepo:       taskRepo,
 			ListRepo:       listRepo,
 			AutomationRepo: automationRepo,
 			ProjectRepo:    projectRepo,

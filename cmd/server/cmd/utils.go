@@ -12,10 +12,9 @@ import (
 	automationCommands "github.com/peteqproj/peteq/domain/automation/command"
 	automationEventHandlers "github.com/peteqproj/peteq/domain/automation/event/handler"
 	automationEventTypes "github.com/peteqproj/peteq/domain/automation/event/types"
+	"github.com/peteqproj/peteq/domain/list"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
-	listEventHandlers "github.com/peteqproj/peteq/domain/list/event/handler"
-	listEventTypes "github.com/peteqproj/peteq/domain/list/event/types"
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
 	projectEventHandlers "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
@@ -36,16 +35,6 @@ import (
 // DieOnError kills the process and prints a message
 func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
-}
-
-func registerListEventHandlers(eventbus eventbus.Eventbus, repo *listDomain.Repo) {
-	// List related event handlers
-	eventbus.Subscribe(listEventTypes.TaskMovedIntoListEvent, &listEventHandlers.TaskMovedHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(listEventTypes.ListCreatedEvent, &listEventHandlers.CreatedHandler{
-		Repo: repo,
-	})
 }
 
 func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *repo.Repo) {
@@ -76,7 +65,7 @@ func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automatio
 	})
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
@@ -102,9 +91,11 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 	// List related command
 	cb.RegisterHandler("list.move-task", &listCommands.MoveTaskCommand{
 		Eventbus: eventbus,
+		Repo:     listRepo,
 	})
 	cb.RegisterHandler("list.create", &listCommands.Create{
 		Eventbus: eventbus,
+		Repo:     listRepo,
 	})
 
 	// Project related commands

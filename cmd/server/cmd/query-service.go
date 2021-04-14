@@ -49,7 +49,7 @@ var queryServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		taskRepo := task.Repo{
+		taskRepo := &task.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "task"),
 		}
@@ -60,6 +60,9 @@ var queryServiceCmd = &cobra.Command{
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
+		}
+		if err := taskRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init list repo")
 		}
 		projectRepo, err := repo.New(repo.Options{
 			ResourceType: "projects",
@@ -79,7 +82,7 @@ var queryServiceCmd = &cobra.Command{
 			UserRepo:    userRepo,
 			ListRpeo:    listRepo,
 			ProjectRepo: projectRepo,
-			TaskRepo:    &taskRepo,
+			TaskRepo:    taskRepo,
 			DB:          db,
 			Logger:      logr,
 		}

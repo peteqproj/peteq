@@ -138,7 +138,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*User, error) {
 	}
 	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
-		return nil, err
+		return nil, row.Err()
 	}
 	var table_id string
 	var table_email string
@@ -234,7 +234,7 @@ func (r *Repo) GetByEmail(ctx context.Context, email string) (*User, error) {
 	}
 	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
-		return nil, err
+		return nil, row.Err()
 	}
 	var table_id string
 	var table_email string
@@ -272,7 +272,7 @@ func (r *Repo) GetByToken(ctx context.Context, token string) (*User, error) {
 	}
 	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
-		return nil, err
+		return nil, row.Err()
 	}
 	var table_id string
 	var table_email string
