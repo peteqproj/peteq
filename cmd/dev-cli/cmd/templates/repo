@@ -133,7 +133,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{
 		if u == nil {
 			return nil, errNoTenantInContext
 		}
-		e["user"] = u.Metadata.ID
+		e["userid"] = u.Metadata.ID
 	}
 	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
@@ -232,7 +232,7 @@ func (r *Repo) DeleteBy{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}
 		if u == nil {
 			return errNoTenantInContext
 		}
-		e["user"] = u.Metadata.ID
+		e["userid"] = u.Metadata.ID
 	}
 	q, _, err := goqu.
 		Delete(db_name).
@@ -262,7 +262,7 @@ func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList .
 		if u == nil {
 			return nil, errNoTenantInContext
 		}
-		e["user"] = u.Metadata.ID
+		e["userid"] = u.Metadata.ID
 	}
 	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {

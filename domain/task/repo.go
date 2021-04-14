@@ -142,7 +142,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 		if u == nil {
 			return nil, errNoTenantInContext
 		}
-		e["user"] = u.Metadata.ID
+		e["userid"] = u.Metadata.ID
 	}
 	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
@@ -221,7 +221,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
 		if u == nil {
 			return errNoTenantInContext
 		}
-		e["user"] = u.Metadata.ID
+		e["userid"] = u.Metadata.ID
 	}
 	q, _, err := goqu.
 		Delete(db_name).
@@ -248,7 +248,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ( []*Task, error
 		if u == nil {
 			return nil, errNoTenantInContext
 		}
-		e["user"] = u.Metadata.ID
+		e["userid"] = u.Metadata.ID
 	}
 	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
