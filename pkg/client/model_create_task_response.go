@@ -17,9 +17,9 @@ import (
 // CreateTaskResponse struct for CreateTaskResponse
 type CreateTaskResponse struct {
 	Description *string `json:"description,omitempty"`
-	List *string `json:"list,omitempty"`
-	Name string `json:"name"`
-	Project *string `json:"project,omitempty"`
+	List        *string `json:"list,omitempty"`
+	Name        string  `json:"name"`
+	Project     *string `json:"project,omitempty"`
 }
 
 // NewCreateTaskResponse instantiates a new CreateTaskResponse object
@@ -117,7 +117,7 @@ func (o *CreateTaskResponse) GetName() string {
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *CreateTaskResponse) GetNameOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Name, true
@@ -212,5 +212,3 @@ func (v *NullableCreateTaskResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

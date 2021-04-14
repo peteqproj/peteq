@@ -16,9 +16,9 @@ import (
 
 // BacklogBacklogView struct for BacklogBacklogView
 type BacklogBacklogView struct {
-	Lists *[]BacklogBacklogTaskList `json:"lists,omitempty"`
+	Lists    *[]BacklogBacklogTaskList    `json:"lists,omitempty"`
 	Projects *[]BacklogBacklogTaskProject `json:"projects,omitempty"`
-	Tasks *[]BacklogBacklogTask `json:"tasks,omitempty"`
+	Tasks    *[]BacklogBacklogTask        `json:"tasks,omitempty"`
 }
 
 // NewBacklogBacklogView instantiates a new BacklogBacklogView object
@@ -183,5 +183,3 @@ func (v *NullableBacklogBacklogView) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -16,10 +16,10 @@ import (
 
 // ProjectsPopulatedProject struct for ProjectsPopulatedProject
 type ProjectsPopulatedProject struct {
-	Id *string `json:"id,omitempty"`
+	Id       *string          `json:"id,omitempty"`
 	Metadata *ProjectMetadata `json:"metadata,omitempty"`
-	Tasks *[]TaskTask `json:"tasks,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Tasks    *[]TaskTask      `json:"tasks,omitempty"`
+	Type     *string          `json:"type,omitempty"`
 }
 
 // NewProjectsPopulatedProject instantiates a new ProjectsPopulatedProject object
@@ -219,5 +219,3 @@ func (v *NullableProjectsPopulatedProject) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

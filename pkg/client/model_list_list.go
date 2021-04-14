@@ -16,10 +16,10 @@ import (
 
 // ListList struct for ListList
 type ListList struct {
-	Id *string `json:"id,omitempty"`
+	Id       *string       `json:"id,omitempty"`
 	Metadata *ListMetadata `json:"metadata,omitempty"`
-	Tasks *[]string `json:"tasks,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Tasks    *[]string     `json:"tasks,omitempty"`
+	Type     *string       `json:"type,omitempty"`
 }
 
 // NewListList instantiates a new ListList object
@@ -219,5 +219,3 @@ func (v *NullableListList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

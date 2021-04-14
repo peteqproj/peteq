@@ -17,8 +17,8 @@ import (
 // TaskMetadata struct for TaskMetadata
 type TaskMetadata struct {
 	Description *string `json:"description,omitempty"`
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
 }
 
 // NewTaskMetadata instantiates a new TaskMetadata object
@@ -85,7 +85,7 @@ func (o *TaskMetadata) GetId() string {
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
 func (o *TaskMetadata) GetIdOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Id, true
@@ -109,7 +109,7 @@ func (o *TaskMetadata) GetName() string {
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *TaskMetadata) GetNameOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Name, true
@@ -169,5 +169,3 @@ func (v *NullableTaskMetadata) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

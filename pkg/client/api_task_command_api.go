@@ -27,9 +27,9 @@ var (
 type TaskCommandAPIApiService service
 
 type ApiCTaskCompletePostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *TaskCommandAPIApiService
-	body *TaskCompleteReopenTaskRequestBody
+	body       *TaskCompleteReopenTaskRequestBody
 }
 
 func (r ApiCTaskCompletePostRequest) Body(body TaskCompleteReopenTaskRequestBody) ApiCTaskCompletePostRequest {
@@ -50,7 +50,7 @@ func (r ApiCTaskCompletePostRequest) Execute() (CommandResponse, *_nethttp.Respo
 func (a *TaskCommandAPIApiService) CTaskCompletePost(ctx _context.Context) ApiCTaskCompletePostRequest {
 	return ApiCTaskCompletePostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -162,9 +162,9 @@ func (a *TaskCommandAPIApiService) CTaskCompletePostExecute(r ApiCTaskCompletePo
 }
 
 type ApiCTaskCreatePostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *TaskCommandAPIApiService
-	body *CreateTaskResponse
+	body       *CreateTaskResponse
 }
 
 func (r ApiCTaskCreatePostRequest) Body(body CreateTaskResponse) ApiCTaskCreatePostRequest {
@@ -185,7 +185,7 @@ func (r ApiCTaskCreatePostRequest) Execute() (CommandResponse, *_nethttp.Respons
 func (a *TaskCommandAPIApiService) CTaskCreatePost(ctx _context.Context) ApiCTaskCreatePostRequest {
 	return ApiCTaskCreatePostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -297,9 +297,9 @@ func (a *TaskCommandAPIApiService) CTaskCreatePostExecute(r ApiCTaskCreatePostRe
 }
 
 type ApiCTaskDeletePostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *TaskCommandAPIApiService
-	body *TaskDeleteTaskRequestBody
+	body       *TaskDeleteTaskRequestBody
 }
 
 func (r ApiCTaskDeletePostRequest) Body(body TaskDeleteTaskRequestBody) ApiCTaskDeletePostRequest {
@@ -320,7 +320,7 @@ func (r ApiCTaskDeletePostRequest) Execute() (CommandResponse, *_nethttp.Respons
 func (a *TaskCommandAPIApiService) CTaskDeletePost(ctx _context.Context) ApiCTaskDeletePostRequest {
 	return ApiCTaskDeletePostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -432,9 +432,9 @@ func (a *TaskCommandAPIApiService) CTaskDeletePostExecute(r ApiCTaskDeletePostRe
 }
 
 type ApiCTaskReopenPostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *TaskCommandAPIApiService
-	body *TaskCompleteReopenTaskRequestBody
+	body       *TaskCompleteReopenTaskRequestBody
 }
 
 func (r ApiCTaskReopenPostRequest) Body(body TaskCompleteReopenTaskRequestBody) ApiCTaskReopenPostRequest {
@@ -455,7 +455,7 @@ func (r ApiCTaskReopenPostRequest) Execute() (CommandResponse, *_nethttp.Respons
 func (a *TaskCommandAPIApiService) CTaskReopenPost(ctx _context.Context) ApiCTaskReopenPostRequest {
 	return ApiCTaskReopenPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -567,9 +567,9 @@ func (a *TaskCommandAPIApiService) CTaskReopenPostExecute(r ApiCTaskReopenPostRe
 }
 
 type ApiCTaskUpdatePostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *TaskCommandAPIApiService
-	body *TaskTask
+	body       *TaskTask
 }
 
 func (r ApiCTaskUpdatePostRequest) Body(body TaskTask) ApiCTaskUpdatePostRequest {
@@ -590,7 +590,7 @@ func (r ApiCTaskUpdatePostRequest) Execute() (CommandResponse, *_nethttp.Respons
 func (a *TaskCommandAPIApiService) CTaskUpdatePost(ctx _context.Context) ApiCTaskUpdatePostRequest {
 	return ApiCTaskUpdatePostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 

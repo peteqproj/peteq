@@ -27,9 +27,9 @@ var (
 type ListCommandAPIApiService service
 
 type ApiCListMoveTasksPostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ListCommandAPIApiService
-	body *MoveTasksRequestBody
+	body       *MoveTasksRequestBody
 }
 
 func (r ApiCListMoveTasksPostRequest) Body(body MoveTasksRequestBody) ApiCListMoveTasksPostRequest {
@@ -50,7 +50,7 @@ func (r ApiCListMoveTasksPostRequest) Execute() (CommandResponse, *_nethttp.Resp
 func (a *ListCommandAPIApiService) CListMoveTasksPost(ctx _context.Context) ApiCListMoveTasksPostRequest {
 	return ApiCListMoveTasksPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 

@@ -28,10 +28,9 @@ var (
 type ViewApiService service
 
 type ApiQBacklogGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ViewApiService
 }
-
 
 func (r ApiQBacklogGetRequest) Execute() (BacklogBacklogView, *_nethttp.Response, error) {
 	return r.ApiService.QBacklogGetExecute(r)
@@ -46,7 +45,7 @@ func (r ApiQBacklogGetRequest) Execute() (BacklogBacklogView, *_nethttp.Response
 func (a *ViewApiService) QBacklogGet(ctx _context.Context) ApiQBacklogGetRequest {
 	return ApiQBacklogGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -144,10 +143,9 @@ func (a *ViewApiService) QBacklogGetExecute(r ApiQBacklogGetRequest) (BacklogBac
 }
 
 type ApiQHomeGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ViewApiService
 }
-
 
 func (r ApiQHomeGetRequest) Execute() (HomeHomeView, *_nethttp.Response, error) {
 	return r.ApiService.QHomeGetExecute(r)
@@ -162,7 +160,7 @@ func (r ApiQHomeGetRequest) Execute() (HomeHomeView, *_nethttp.Response, error) 
 func (a *ViewApiService) QHomeGet(ctx _context.Context) ApiQHomeGetRequest {
 	return ApiQHomeGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -260,10 +258,9 @@ func (a *ViewApiService) QHomeGetExecute(r ApiQHomeGetRequest) (HomeHomeView, *_
 }
 
 type ApiQProjectGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ViewApiService
 }
-
 
 func (r ApiQProjectGetRequest) Execute() (ProjectsProjectsView, *_nethttp.Response, error) {
 	return r.ApiService.QProjectGetExecute(r)
@@ -278,7 +275,7 @@ func (r ApiQProjectGetRequest) Execute() (ProjectsProjectsView, *_nethttp.Respon
 func (a *ViewApiService) QProjectGet(ctx _context.Context) ApiQProjectGetRequest {
 	return ApiQProjectGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -376,11 +373,10 @@ func (a *ViewApiService) QProjectGetExecute(r ApiQProjectGetRequest) (ProjectsPr
 }
 
 type ApiQProjectIdGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ViewApiService
-	id string
+	id         string
 }
-
 
 func (r ApiQProjectIdGetRequest) Execute() (ProjectProjectView, *_nethttp.Response, error) {
 	return r.ApiService.QProjectIdGetExecute(r)
@@ -396,8 +392,8 @@ func (r ApiQProjectIdGetRequest) Execute() (ProjectProjectView, *_nethttp.Respon
 func (a *ViewApiService) QProjectIdGet(ctx _context.Context, id string) ApiQProjectIdGetRequest {
 	return ApiQProjectIdGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
@@ -496,10 +492,9 @@ func (a *ViewApiService) QProjectIdGetExecute(r ApiQProjectIdGetRequest) (Projec
 }
 
 type ApiQTriggersGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ViewApiService
 }
-
 
 func (r ApiQTriggersGetRequest) Execute() (TriggersTriggersView, *_nethttp.Response, error) {
 	return r.ApiService.QTriggersGetExecute(r)
@@ -514,7 +509,7 @@ func (r ApiQTriggersGetRequest) Execute() (TriggersTriggersView, *_nethttp.Respo
 func (a *ViewApiService) QTriggersGet(ctx _context.Context) ApiQTriggersGetRequest {
 	return ApiQTriggersGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 

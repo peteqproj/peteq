@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	make gen-openapi && make gen-domain && make gen-repo && make compile
+	make gen-openapi && make gen-domain && make gen-repo && gofmt -w -s . && make compile
 
 .PHONY: compile
 compile:

@@ -16,10 +16,10 @@ import (
 
 // ProjectProjectView struct for ProjectProjectView
 type ProjectProjectView struct {
-	Id *string `json:"id,omitempty"`
+	Id       *string          `json:"id,omitempty"`
 	Metadata *ProjectMetadata `json:"metadata,omitempty"`
-	Tasks *[]TaskTask `json:"tasks,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Tasks    *[]TaskTask      `json:"tasks,omitempty"`
+	Type     *string          `json:"type,omitempty"`
 }
 
 // NewProjectProjectView instantiates a new ProjectProjectView object
@@ -219,5 +219,3 @@ func (v *NullableProjectProjectView) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

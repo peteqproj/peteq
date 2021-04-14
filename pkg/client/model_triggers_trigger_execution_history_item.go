@@ -16,7 +16,7 @@ import (
 
 // TriggersTriggerExecutionHistoryItem struct for TriggersTriggerExecutionHistoryItem
 type TriggersTriggerExecutionHistoryItem struct {
-	Manual *bool `json:"manual,omitempty"`
+	Manual      *bool   `json:"manual,omitempty"`
 	TriggeredAt *string `json:"triggeredAt,omitempty"`
 }
 
@@ -147,5 +147,3 @@ func (v *NullableTriggersTriggerExecutionHistoryItem) UnmarshalJSON(src []byte) 
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

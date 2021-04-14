@@ -16,13 +16,13 @@ import (
 
 // BacklogBacklogTask struct for BacklogBacklogTask
 type BacklogBacklogTask struct {
-	Id *string `json:"id,omitempty"`
-	List *BacklogBacklogTaskList `json:"list,omitempty"`
-	Metadata TaskMetadata `json:"metadata"`
-	Project *BacklogBacklogTaskProject `json:"project,omitempty"`
-	Spec TaskSpec `json:"spec"`
-	Status *TaskStatus `json:"status,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Id       *string                    `json:"id,omitempty"`
+	List     *BacklogBacklogTaskList    `json:"list,omitempty"`
+	Metadata TaskMetadata               `json:"metadata"`
+	Project  *BacklogBacklogTaskProject `json:"project,omitempty"`
+	Spec     TaskSpec                   `json:"spec"`
+	Status   *TaskStatus                `json:"status,omitempty"`
+	Type     *string                    `json:"type,omitempty"`
 }
 
 // NewBacklogBacklogTask instantiates a new BacklogBacklogTask object
@@ -121,7 +121,7 @@ func (o *BacklogBacklogTask) GetMetadata() TaskMetadata {
 // GetMetadataOk returns a tuple with the Metadata field value
 // and a boolean to check if the value has been set.
 func (o *BacklogBacklogTask) GetMetadataOk() (*TaskMetadata, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Metadata, true
@@ -177,7 +177,7 @@ func (o *BacklogBacklogTask) GetSpec() TaskSpec {
 // GetSpecOk returns a tuple with the Spec field value
 // and a boolean to check if the value has been set.
 func (o *BacklogBacklogTask) GetSpecOk() (*TaskSpec, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Spec, true
@@ -313,5 +313,3 @@ func (v *NullableBacklogBacklogTask) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -7,16 +7,15 @@ import (
 	"errors"
 
 	"github.com/peteqproj/peteq/domain/user"
-	
-	"gopkg.in/yaml.v2"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
-	
+	"gopkg.in/yaml.v2"
+
 	"github.com/peteqproj/peteq/pkg/tenant"
-	
 )
 
 const db_name = "repo_task"
@@ -60,26 +59,27 @@ var queries = []string{
 
 type (
 	Repo struct {
-		DB        db.Database 
+		DB        db.Database
 		Logger    logger.Logger
 		initiated bool
 		def       *repo.RepoDef
 	}
 
-	ListOptions struct {}
-	GetOptions struct {
+	ListOptions struct{}
+	GetOptions  struct {
 		ID    string
 		Query string
 	}
 )
+
 func (r *Repo) Initiate(ctx context.Context) error {
-    for _, q := range queries {
+	for _, q := range queries {
 		r.Logger.Info("Running db init query", "query", q)
 		if _, err := r.DB.ExecContext(ctx, q); err != nil {
 			return err
 		}
 	}
-	
+
 	def := &repo.RepoDef{}
 	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
 		return err
@@ -89,13 +89,14 @@ func (r *Repo) Initiate(ctx context.Context) error {
 	r.initiated = true
 	return nil
 }
+
 /* PrimeryKey functions*/
 
 func (r *Repo) Create(ctx context.Context, resource *Task) error {
-    if !r.initiated {
+	if !r.initiated {
 		return errNotInitiated
 	}
-	var user *user.User 
+	var user *user.User
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
@@ -103,8 +104,7 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 		}
 		user = u
 	}
-	
-	
+
 	table_column_id := resource.Metadata.ID
 	table_column_userid := user.Metadata.ID
 	table_column_info, err := json.Marshal(resource)
@@ -114,14 +114,14 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 	q, _, err := goqu.
 		Insert(db_name).
 		Cols(
-		"id",
-		"userid",
-		"info",
+			"id",
+			"userid",
+			"info",
 		).
 		Vals(goqu.Vals{
-		string(table_column_id),
-		string(table_column_userid),
-		string(table_column_info),
+			string(table_column_id),
+			string(table_column_userid),
+			string(table_column_info),
 		}).
 		ToSQL()
 	if err != nil {
@@ -134,7 +134,7 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 	return nil
 }
 func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
-    if !r.initiated {
+	if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
@@ -146,7 +146,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 		}
 		e["userid"] = u.Metadata.ID
 	}
-	
+
 	query, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
@@ -158,12 +158,12 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 	var table_id string
 	var table_userid string
 	var table_info string
-	
+
 	if err := row.Scan(
 		&table_id,
 		&table_userid,
 		&table_info,
-		); err != nil {
+	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
 		}
@@ -173,14 +173,14 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 	// info column must exist
 	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
 		return nil, err
-	}   
+	}
 	return resource, nil
 }
-func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
-    if !r.initiated {
+func (r *Repo) UpdateTask(ctx context.Context, resource *Task) error {
+	if !r.initiated {
 		return errNotInitiated
 	}
-	var user *user.User 
+	var user *user.User
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
@@ -188,7 +188,6 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
 		}
 		user = u
 	}
-	
 
 	table_column_id := resource.Metadata.ID
 	table_column_userid := user.Metadata.ID
@@ -202,9 +201,9 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
 			"id": resource.Metadata.ID,
 		}).
 		Set(goqu.Record{
-		"id": string(table_column_id),
-		"userid": string(table_column_userid),
-		"info": string(table_column_info),
+			"id":     string(table_column_id),
+			"userid": string(table_column_userid),
+			"info":   string(table_column_info),
 		}).
 		ToSQL()
 	if err != nil {
@@ -216,7 +215,7 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) (error) {
 	}
 	return nil
 }
-func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
+func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	if !r.initiated {
 		return errNotInitiated
 	}
@@ -229,7 +228,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
 		}
 		e["userid"] = u.Metadata.ID
 	}
-	
+
 	q, _, err := goqu.
 		Delete(db_name).
 		Where(e).
@@ -240,11 +239,12 @@ func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
 	_, err = r.DB.ExecContext(ctx, q)
 	return err
 }
+
 /*End of PrimeryKey functions*/
 
 /*Index functions*/
 
-func (r *Repo) ListByUserid(ctx context.Context, userid string) ( []*Task, error) {
+func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Task, error) {
 	if !r.initiated {
 		return nil, errNotInitiated
 	}
@@ -257,7 +257,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ( []*Task, error
 		}
 		e["userid"] = u.Metadata.ID
 	}
-	
+
 	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
@@ -271,12 +271,12 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ( []*Task, error
 		var table_id string
 		var table_userid string
 		var table_info string
-		
+
 		if err := rows.Scan(
 			&table_id,
 			&table_userid,
 			&table_info,
-			); err != nil {
+		); err != nil {
 			return nil, err
 		}
 		resource := &Task{}

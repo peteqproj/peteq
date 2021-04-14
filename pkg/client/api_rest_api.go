@@ -28,10 +28,9 @@ var (
 type RestAPIApiService service
 
 type ApiApiListGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *RestAPIApiService
 }
-
 
 func (r ApiApiListGetRequest) Execute() ([]ListList, *_nethttp.Response, error) {
 	return r.ApiService.ApiListGetExecute(r)
@@ -46,7 +45,7 @@ func (r ApiApiListGetRequest) Execute() ([]ListList, *_nethttp.Response, error) 
 func (a *RestAPIApiService) ApiListGet(ctx _context.Context) ApiApiListGetRequest {
 	return ApiApiListGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -144,10 +143,9 @@ func (a *RestAPIApiService) ApiListGetExecute(r ApiApiListGetRequest) ([]ListLis
 }
 
 type ApiApiProjectGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *RestAPIApiService
 }
-
 
 func (r ApiApiProjectGetRequest) Execute() ([]ProjectProject, *_nethttp.Response, error) {
 	return r.ApiService.ApiProjectGetExecute(r)
@@ -162,7 +160,7 @@ func (r ApiApiProjectGetRequest) Execute() ([]ProjectProject, *_nethttp.Response
 func (a *RestAPIApiService) ApiProjectGet(ctx _context.Context) ApiApiProjectGetRequest {
 	return ApiApiProjectGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -260,11 +258,10 @@ func (a *RestAPIApiService) ApiProjectGetExecute(r ApiApiProjectGetRequest) ([]P
 }
 
 type ApiApiProjectIdGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *RestAPIApiService
-	id string
+	id         string
 }
-
 
 func (r ApiApiProjectIdGetRequest) Execute() (ProjectProject, *_nethttp.Response, error) {
 	return r.ApiService.ApiProjectIdGetExecute(r)
@@ -280,8 +277,8 @@ func (r ApiApiProjectIdGetRequest) Execute() (ProjectProject, *_nethttp.Response
 func (a *RestAPIApiService) ApiProjectIdGet(ctx _context.Context, id string) ApiApiProjectIdGetRequest {
 	return ApiApiProjectIdGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
@@ -380,10 +377,9 @@ func (a *RestAPIApiService) ApiProjectIdGetExecute(r ApiApiProjectIdGetRequest) 
 }
 
 type ApiApiTaskGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *RestAPIApiService
 }
-
 
 func (r ApiApiTaskGetRequest) Execute() ([]TaskTask, *_nethttp.Response, error) {
 	return r.ApiService.ApiTaskGetExecute(r)
@@ -398,7 +394,7 @@ func (r ApiApiTaskGetRequest) Execute() ([]TaskTask, *_nethttp.Response, error) 
 func (a *RestAPIApiService) ApiTaskGet(ctx _context.Context) ApiApiTaskGetRequest {
 	return ApiApiTaskGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -496,11 +492,10 @@ func (a *RestAPIApiService) ApiTaskGetExecute(r ApiApiTaskGetRequest) ([]TaskTas
 }
 
 type ApiApiTaskIdGetRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *RestAPIApiService
-	id string
+	id         string
 }
-
 
 func (r ApiApiTaskIdGetRequest) Execute() (TaskTask, *_nethttp.Response, error) {
 	return r.ApiService.ApiTaskIdGetExecute(r)
@@ -516,8 +511,8 @@ func (r ApiApiTaskIdGetRequest) Execute() (TaskTask, *_nethttp.Response, error) 
 func (a *RestAPIApiService) ApiTaskIdGet(ctx _context.Context, id string) ApiApiTaskIdGetRequest {
 	return ApiApiTaskIdGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 

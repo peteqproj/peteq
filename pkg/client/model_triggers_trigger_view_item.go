@@ -16,12 +16,12 @@ import (
 
 // TriggersTriggerViewItem struct for TriggersTriggerViewItem
 type TriggersTriggerViewItem struct {
-	Description *string `json:"description,omitempty"`
-	History *[]TriggersTriggerExecutionHistoryItem `json:"history,omitempty"`
-	Id *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Spec *map[string]interface{} `json:"spec,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Description *string                                `json:"description,omitempty"`
+	History     *[]TriggersTriggerExecutionHistoryItem `json:"history,omitempty"`
+	Id          *string                                `json:"id,omitempty"`
+	Name        *string                                `json:"name,omitempty"`
+	Spec        *map[string]interface{}                `json:"spec,omitempty"`
+	Type        *string                                `json:"type,omitempty"`
 }
 
 // NewTriggersTriggerViewItem instantiates a new TriggersTriggerViewItem object
@@ -291,5 +291,3 @@ func (v *NullableTriggersTriggerViewItem) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

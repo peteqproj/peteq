@@ -16,8 +16,8 @@ import (
 
 // AddTasksRequestBody struct for AddTasksRequestBody
 type AddTasksRequestBody struct {
-	Project string `json:"project"`
-	Tasks []string `json:"tasks"`
+	Project string   `json:"project"`
+	Tasks   []string `json:"tasks"`
 }
 
 // NewAddTasksRequestBody instantiates a new AddTasksRequestBody object
@@ -52,7 +52,7 @@ func (o *AddTasksRequestBody) GetProject() string {
 // GetProjectOk returns a tuple with the Project field value
 // and a boolean to check if the value has been set.
 func (o *AddTasksRequestBody) GetProjectOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Project, true
@@ -76,7 +76,7 @@ func (o *AddTasksRequestBody) GetTasks() []string {
 // GetTasksOk returns a tuple with the Tasks field value
 // and a boolean to check if the value has been set.
 func (o *AddTasksRequestBody) GetTasksOk() (*[]string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Tasks, true
@@ -133,5 +133,3 @@ func (v *NullableAddTasksRequestBody) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-
