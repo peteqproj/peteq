@@ -27,7 +27,6 @@ import (
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
-	userEventHandlers "github.com/peteqproj/peteq/domain/user/event/handler"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
@@ -45,16 +44,6 @@ func registerListEventHandlers(eventbus eventbus.Eventbus, repo *listDomain.Repo
 		Repo: repo,
 	})
 	eventbus.Subscribe(listEventTypes.ListCreatedEvent, &listEventHandlers.CreatedHandler{
-		Repo: repo,
-	})
-}
-
-func registerUserEventHandlers(eventbus eventbus.Eventbus, repo *userDomain.Repo) {
-	// User related event handlers
-	eventbus.Subscribe(userEventTypes.UserRegistredEvent, &userEventHandlers.RegistredHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(userEventTypes.UserLoggedIn, &userEventHandlers.LoggedinHandler{
 		Repo: repo,
 	})
 }

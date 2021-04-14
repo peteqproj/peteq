@@ -1,4 +1,4 @@
-package repo
+package def
 
 type (
 	RepoDef struct {

@@ -952,7 +952,7 @@
                     "$ref": "#/definitions/repo.Resource"
                 },
                 "task": {
-                    "$ref": "#/definitions/repo.Resource"
+                    "$ref": "#/definitions/task.Task"
                 }
             }
         },
@@ -1069,7 +1069,7 @@
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/repo.Resource"
+                        "$ref": "#/definitions/task.Task"
                     }
                 }
             }
@@ -1083,7 +1083,7 @@
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/repo.Resource"
+                        "$ref": "#/definitions/task.Task"
                     }
                 }
             }

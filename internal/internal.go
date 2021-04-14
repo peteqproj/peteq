@@ -45,12 +45,12 @@ func NewEventBusFromFlagsOrDie(db db.Database, repo *user.Repo, watchQueues bool
 			if ev.Tenant.Type != tenant.User.String() {
 				return ctx
 			}
-			user, err := repo.Get(ev.Tenant.ID)
+			user, err := repo.GetById(ctx, ev.Tenant.ID)
 			if err != nil {
 				logger.Info("Failed extend context", "user", ev.Tenant.ID, "event", ev.Metadata.ID)
 				return ctx
 			}
-			return tenant.ContextWithUser(ctx, user)
+			return tenant.ContextWithUser(ctx, *user)
 		},
 		EventStorage: storage.New(storage.Options{
 			DB: db,
@@ -79,12 +79,12 @@ func NewCommandBusFromFlagsOrDie(repo *user.Repo, logger logger.Logger) commandb
 	return commandbus.New(commandbus.Options{
 		GoogleOptions: google,
 		ExtendContextFunc: func(c context.Context, id string) context.Context {
-			user, err := repo.Get(id)
+			user, err := repo.GetById(c, id)
 			if err != nil {
 				logger.Info("Failed extend context", "user", id)
 				return c
 			}
-			return tenant.ContextWithUser(c, user)
+			return tenant.ContextWithUser(c, *user)
 		},
 		Logger: logger,
 	})

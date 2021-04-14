@@ -91,27 +91,27 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 		case _ = <-time.After(time.Minute * 1):
 			{
 				lgr.Info("Running loop")
-				res, err := userRepo.List(userDomain.ListOptions{})
-				if err != nil {
-					lgr.Info("Failed to load users", "error", err.Error())
-					continue
-				}
-				for _, u := range res {
-					if _, found := l[u.Metadata.ID]; found {
-						continue
-					}
-					lgr.Info("New user added", "email", u.Spec.Email, "id", u.Metadata.ID)
-					l[u.Metadata.ID] = userTriggerPair{
-						user:     u,
-						triggers: map[string]triggerDomain.Trigger{},
-						cron: cron.New(cron.Options{
-							EventPublisher: ebus,
-							Logger:         lgr.Fork("user", u.Metadata.ID),
-							UserID:         u.Metadata.ID,
-						}),
-					}
-					go l[u.Metadata.ID].cron.Start()
-				}
+				// res, err := userRepo.List(userDomain.ListOptions{})
+				// if err != nil {
+				// 	lgr.Info("Failed to load users", "error", err.Error())
+				// 	continue
+				// }
+				// for _, u := range res {
+				// 	if _, found := l[u.Metadata.ID]; found {
+				// 		continue
+				// 	}
+				// 	lgr.Info("New user added", "email", u.Spec.Email, "id", u.Metadata.ID)
+				// 	l[u.Metadata.ID] = userTriggerPair{
+				// 		user:     u,
+				// 		triggers: map[string]triggerDomain.Trigger{},
+				// 		cron: cron.New(cron.Options{
+				// 			EventPublisher: ebus,
+				// 			Logger:         lgr.Fork("user", u.Metadata.ID),
+				// 			UserID:         u.Metadata.ID,
+				// 		}),
+				// 	}
+				// 	go l[u.Metadata.ID].cron.Start()
+				// }
 
 				for id, pair := range l {
 					res, err := triggerRepo.List(triggerDomain.QueryOptions{

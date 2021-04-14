@@ -20,6 +20,7 @@ gen-domain:
 .PHONY: gen-repo
 gen-repo:
 	./dist/peteq-dev create repo --repo manifests/task/repo.yaml
+	./dist/peteq-dev create repo --repo manifests/user/repo.yaml
 
 
 .PHONY: dependency-update

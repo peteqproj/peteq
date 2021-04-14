@@ -151,7 +151,7 @@ definitions:
       project:
         $ref: '#/definitions/repo.Resource'
       task:
-        $ref: '#/definitions/repo.Resource'
+        $ref: '#/definitions/task.Task'
     type: object
   home.homeView:
     properties:
@@ -226,7 +226,7 @@ definitions:
         $ref: '#/definitions/project.Project'
       tasks:
         items:
-          $ref: '#/definitions/repo.Resource'
+          $ref: '#/definitions/task.Task'
         type: array
     type: object
   projects.populatedProject:
@@ -235,7 +235,7 @@ definitions:
         $ref: '#/definitions/project.Project'
       tasks:
         items:
-          $ref: '#/definitions/repo.Resource'
+          $ref: '#/definitions/task.Task'
         type: array
     type: object
   projects.projectsView:

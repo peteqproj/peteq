@@ -12,7 +12,7 @@ import (
 
 	"github.com/hairyhenderson/gomplate"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
+	repo "github.com/peteqproj/peteq/pkg/repo/def"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

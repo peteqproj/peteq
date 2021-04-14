@@ -73,6 +73,9 @@ var commandServiceCmd = &cobra.Command{
 			DB:     db,
 			Logger: logr.Fork("repo", "user"),
 		}
+		if err := userRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init user repo")
+		}
 
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
 		defer ebus.Stop()

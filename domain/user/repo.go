@@ -2,93 +2,127 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 
+	
+	"gopkg.in/yaml.v2"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/imdario/mergo"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
+	repo "github.com/peteqproj/peteq/pkg/repo/def"
+	
+	
 )
 
-const dbName = "repo_users"
+const db_name = "repo_user"
 
-var errNotFound = errors.New("User not found")
+var ErrNotFound = errors.New("User not found")
+var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
+var errNoTenantInContext = errors.New("No tenant in context")
+var repoDefEmbed = `name: user
+rootAggregate:
+  resource: User
+aggregates: []
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+      from:
+        type: resource
+        path: Metadata.ID
+    - name: email
+      type: text
+      from:
+        type: resource
+        path: Spec.Email
+    - name: token
+      type: text
+      from:
+        type: resource
+        path: Spec.TokenHash
+    - name: info
+      type: json
+      from:
+        type: resource
+        path: .
+    indexes: []
+    uniqueIndexes:
+    - - email
+    - - token
+    primeryKey:
+    - id
+tenant: ""
+`
+var queries = []string{
+	"CREATE TABLE IF NOT EXISTS repo_user ( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS email ON repo_user ( email);",
+	"CREATE UNIQUE INDEX IF NOT EXISTS token ON repo_user ( token);",
+}
 
 type (
-	// Repo is user repository
-	// it works on the view db to read/write from it
 	Repo struct {
-		DB     db.Database
-		Logger logger.Logger
+		DB        db.Database 
+		Logger    logger.Logger
+		initiated bool
+		def       *repo.RepoDef
 	}
 
-	// ListOptions to get user list
-	ListOptions struct{}
+	ListOptions struct {}
+	GetOptions struct {
+		ID    string
+		Query string
+	}
 )
-
-// List returns list of users
-func (r *Repo) List(options ListOptions) ([]User, error) {
-	return r.find(context.Background(), nil, nil)
-}
-
-// Get returns user given user id
-func (r *Repo) Get(id string) (User, error) {
-	users, err := r.find(context.Background(), []string{id}, nil)
-	if err != nil {
-		return User{}, err
+func (r *Repo) Initiate(ctx context.Context) error {
+    for _, q := range queries {
+		r.Logger.Info("Running db init query", "query", q)
+		if _, err := r.DB.ExecContext(ctx, q); err != nil {
+			return err
+		}
 	}
-	if len(users) == 0 {
-		return User{}, errNotFound
+	
+	def := &repo.RepoDef{}
+	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
+		return err
 	}
-	return users[0], nil
-}
+	r.def = def
 
-// GetByEmail returns user by given email
-func (r *Repo) GetByEmail(email string) (*User, error) {
-	users, err := r.find(context.Background(), nil, []string{email})
-	if err != nil {
-		return nil, err
+	r.initiated = true
+	return nil
+}
+/* PrimeryKey functions*/
+
+func (r *Repo) Create(ctx context.Context, resource *User) error {
+    if !r.initiated {
+		return errNotInitiated
 	}
-	if len(users) == 0 {
-		return nil, errNotFound
-	}
-	return &users[0], nil
-}
-
-// Create will save new user into db
-func (r *Repo) Create(u User) error {
-	return r.create(context.Background(), u)
-}
-
-// Delete will remove user from db
-func (r *Repo) Delete(id string) error {
-	return r.delete(context.Background(), id)
-}
-
-// Update will update given user
-func (r *Repo) Update(newUser User) error {
-	user, err := r.Get(newUser.Metadata.ID)
-	if err != nil {
-		return fmt.Errorf("Failed to read previous user: %w", err)
-	}
-	if err := mergo.Merge(&user, newUser, mergo.WithOverwriteWithEmptyValue); err != nil {
-		return fmt.Errorf("Failed to update user: %w", err)
-	}
-	return r.update(context.Background(), user)
-}
-
-func (r *Repo) create(ctx context.Context, user User) error {
-	u, err := json.Marshal(user)
+	
+	
+	table_column_id := resource.Metadata.ID
+	table_column_email := resource.Spec.Email
+	table_column_token := resource.Spec.TokenHash
+	table_column_info, err := json.Marshal(resource)
 	if err != nil {
 		return err
 	}
 	q, _, err := goqu.
-		Insert(dbName).
-		Cols("userid", "email", "info").
-		Vals(goqu.Vals{user.Metadata.ID, user.Spec.Email, string(u)}).
+		Insert(db_name).
+		Cols(
+		"id",
+		"email",
+		"token",
+		"info",
+		).
+		Vals(goqu.Vals{
+		string(table_column_id),
+		string(table_column_email),
+		string(table_column_token),
+		string(table_column_info),
+		}).
 		ToSQL()
 	if err != nil {
 		return err
@@ -99,77 +133,176 @@ func (r *Repo) create(ctx context.Context, user User) error {
 	}
 	return nil
 }
-func (r *Repo) find(ctx context.Context, user []string, email []string) ([]User, error) {
+func (r *Repo) GetById(ctx context.Context, id string) (*User, error) {
+    if !r.initiated {
+		return nil, errNotInitiated
+	}
 	e := exp.Ex{}
-	if len(user) > 0 && len(email) > 0 {
-		e = exp.Ex{
-			"userid": user,
-			"email":  email,
-		}
+	e["id"] = id
+	
+	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
 	}
-	if len(user) == 0 && len(email) > 0 {
-		e = exp.Ex{
-			"email": email,
-		}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, err
 	}
-	if len(user) > 0 && len(email) == 0 {
-		e = exp.Ex{
-			"userid": user,
+	var table_id string
+	var table_email string
+	var table_token string
+	var table_info string
+	
+	if err := row.Scan(
+		&table_id,
+		&table_email,
+		&table_token,
+		&table_info,
+		); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
 		}
+		return nil, err
+	}
+	resource := &User{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}   
+	return resource, nil
+}
+func (r *Repo) UpdateUser(ctx context.Context, resource *User) (error) {
+    if !r.initiated {
+		return errNotInitiated
+	}
+	
+
+	table_column_id := resource.Metadata.ID
+	table_column_email := resource.Spec.Email
+	table_column_token := resource.Spec.TokenHash
+	table_column_info, err := json.Marshal(resource)
+	if err != nil {
+		return err
 	}
 	q, _, err := goqu.
-		From(dbName).
+		Update(db_name).
+		Where(exp.Ex{
+			"id": resource.Metadata.ID,
+		}).
+		Set(goqu.Record{
+		"id": string(table_column_id),
+		"email": string(table_column_email),
+		"token": string(table_column_token),
+		"info": string(table_column_info),
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo) DeleteById(ctx context.Context, id string) (error) {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	e := exp.Ex{}
+	e["id"] = id
+	
+	q, _, err := goqu.
+		Delete(db_name).
 		Where(e).
 		ToSQL()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	rows, err := r.DB.QueryContext(ctx, q)
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+/*End of PrimeryKey functions*/
+
+/*Index functions*/
+
+/*End of index function'*/
+
+/*UniqueIndex functions*/
+func (r *Repo) GetByEmail(ctx context.Context, email string) ( *User, error) {
+    if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	e["email"] = email
+	
+	query, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	set := []User{}
-	for rows.Next() {
-		uid := ""
-		email := ""
-		u := ""
-		if err := rows.Scan(&uid, &email, &u); err != nil {
-			return nil, err
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, err
+	}
+	var table_id string
+	var table_email string
+	var table_token string
+	var table_info string
+	
+	if err := row.Scan(
+		&table_id,
+		&table_email,
+		&table_token,
+		&table_info,
+		); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
 		}
-		usr := User{}
-		json.Unmarshal([]byte(u), &usr)
-		set = append(set, usr)
+		return nil, err
 	}
-	return set, rows.Close()
+	resource := &User{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}   
+	return resource, nil
 }
-func (r *Repo) delete(ctx context.Context, user string) error {
-	q, _, err := goqu.
-		Delete(dbName).
-		Where(exp.Ex{
-			"userid": user,
-		}).
-		ToSQL()
-	if err != nil {
-		return err
+func (r *Repo) GetByToken(ctx context.Context, token string) ( *User, error) {
+    if !r.initiated {
+		return nil, errNotInitiated
 	}
-	_, err = r.DB.ExecContext(ctx, q)
-	return err
+	e := exp.Ex{}
+	e["token"] = token
+	
+	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, err
+	}
+	var table_id string
+	var table_email string
+	var table_token string
+	var table_info string
+	
+	if err := row.Scan(
+		&table_id,
+		&table_email,
+		&table_token,
+		&table_info,
+		); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	resource := &User{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}   
+	return resource, nil
 }
-func (r *Repo) update(ctx context.Context, user User) error {
-	u, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
-	q, _, err := goqu.
-		Update(dbName).
-		Where(exp.Ex{
-			"userid": user.Metadata.ID,
-		}).
-		Set(goqu.Record{"info": string(u)}).
-		ToSQL()
-	if err != nil {
-		return err
-	}
-	_, err = r.DB.ExecContext(ctx, q)
-	return err
-}
+/*End of UniqueIndex functions*/

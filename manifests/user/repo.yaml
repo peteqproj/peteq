@@ -4,12 +4,27 @@ database:
     columns:
     - name: id
       type: text
+      from:
+        type: resource
+        path: Metadata.ID
     - name: email
       type: text
+      from:
+        type: resource
+        path: Spec.Email
+    - name: token
+      type: text
+      from:
+        type: resource
+        path: Spec.TokenHash
     - name: info
       type: json
+      from:
+        type: resource
+        path: .
     uniqueIndexes:
       - [email]
+      - [token]
     primeryKey: [id]
 rootAggregate:
   resource: User 

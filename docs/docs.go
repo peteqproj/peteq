@@ -968,7 +968,7 @@ var doc = `{
                     "$ref": "#/definitions/repo.Resource"
                 },
                 "task": {
-                    "$ref": "#/definitions/repo.Resource"
+                    "$ref": "#/definitions/task.Task"
                 }
             }
         },
@@ -1085,7 +1085,7 @@ var doc = `{
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/repo.Resource"
+                        "$ref": "#/definitions/task.Task"
                     }
                 }
             }
@@ -1099,7 +1099,7 @@ var doc = `{
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/repo.Resource"
+                        "$ref": "#/definitions/task.Task"
                     }
                 }
             }

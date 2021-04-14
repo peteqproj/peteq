@@ -36,7 +36,7 @@ func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error 
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to LoginCommandOptions")
 	}
-	user, err := r.Repo.GetByEmail(opt.Email)
+	user, err := r.Repo.GetByEmail(ctx, opt.Email)
 	if err != nil {
 		return err
 	}
@@ -48,6 +48,10 @@ func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error 
 		return fmt.Errorf("Invalid credentials")
 	}
 
+	user.Spec.TokenHash = opt.HashedToken
+	if err := r.Repo.UpdateUser(ctx, user); err != nil {
+		return err
+	}
 	ectx := tenant.ContextWithUser(ctx, *user)
 	_, err = r.Eventbus.Publish(ectx, event.Event{
 		Tenant: tenant.Tenant{
@@ -61,8 +65,7 @@ func (r *LoginCommand) Handle(ctx context.Context, arguments interface{}) error 
 			AggregatorID:   user.Metadata.ID,
 		},
 		Spec: handler.LoggedinSpec{
-			ID:        user.Metadata.ID,
-			TokenHash: opt.HashedToken,
+			ID: user.Metadata.ID,
 		},
 	})
 	return err

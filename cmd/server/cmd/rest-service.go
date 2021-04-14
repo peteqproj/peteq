@@ -73,6 +73,9 @@ var restServiceCmd = &cobra.Command{
 			DB:     db,
 			Logger: logr.Fork("repo", "user"),
 		}
+		if err := userRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init user repo")
+		}
 
 		apiBuilder := builder.Builder{
 			UserRepo:    userRepo,

@@ -39,24 +39,32 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to User")
 	}
-	usr, err := r.Repo.GetByEmail(opt.Email)
+	usr, err := r.Repo.GetByEmail(ctx, opt.Email)
 	if err != nil {
-		if err.Error() != "User not found" {
+		if err != user.ErrNotFound {
 			return err
 		}
 	}
 	if usr != nil {
 		return fmt.Errorf("Email already registred")
 	}
-	ectx := tenant.ContextWithUser(ctx, user.User{
+	u := user.User{
 		Metadata: user.Metadata{
-			ID:   opt.UserID,
-			Name: opt.Email,
+			ID:          opt.UserID,
+			Name:        "",
+			Description: utils.PtrString(""),
+			Labels:      map[string]string{},
 		},
 		Spec: user.Spec{
-			Email: opt.Email,
+			Email:        opt.Email,
+			PasswordHash: opt.PasswordHash,
 		},
-	})
+	}
+	ectx := tenant.ContextWithUser(ctx, u)
+	if err := r.Repo.Create(ctx, &u); err != nil {
+		return fmt.Errorf("Failed to register user: %v", err)
+	}
+
 	_, err = r.Eventbus.Publish(ectx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   opt.UserID,
@@ -69,9 +77,8 @@ func (r *RegisterCommand) Handle(ctx context.Context, arguments interface{}) err
 			AggregatorID:   opt.UserID,
 		},
 		Spec: handler.RegisteredSpec{
-			Email:        opt.Email,
-			ID:           opt.UserID,
-			PasswordHash: opt.PasswordHash,
+			Email: opt.Email,
+			ID:    opt.UserID,
 		},
 	})
 	return err

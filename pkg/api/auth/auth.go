@@ -20,20 +20,17 @@ func IsAuthenticated(userRepo *user.Repo) func(c *gin.Context) {
 			})
 			return
 		}
-		users, err := userRepo.List(user.ListOptions{})
+		user, err := userRepo.GetByToken(c.Request.Context(), hash(token))
 		if err != nil {
 			return
 		}
-		hashed := hash(token)
-		for _, u := range users {
-			if hashed == u.Spec.TokenHash {
-				ctx := tenant.ContextWithUser(c.Request.Context(), u)
-				c.Request = c.Request.WithContext(ctx)
-				c.Next()
-				return
-			}
+		if user == nil {
+			UnauthorizedResponse(c)
+			return
 		}
-		UnauthorizedResponse(c)
+		ctx := tenant.ContextWithUser(c.Request.Context(), *user)
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
 	}
 }
 
