@@ -1,0 +1,41 @@
+package user
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+)
+
+// List selects all the users from the database
+func (r *Repo) List(ctx context.Context) ([]*User, error) {
+	query, _, err := goqu.From(db_name).Where(exp.Ex{}).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	res := []*User{}
+	for rows.Next() {
+		var table_id string
+		var table_userid string
+		var table_info string
+
+		if err := rows.Scan(
+			&table_id,
+			&table_userid,
+			&table_info,
+		); err != nil {
+			return nil, err
+		}
+		resource := &User{}
+		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+			return nil, err
+		}
+		res = append(res, resource)
+	}
+	return res, rows.Close()
+}

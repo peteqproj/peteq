@@ -64,12 +64,6 @@ type (
 		initiated bool
 		def       *repo.RepoDef
 	}
-
-	ListOptions struct{}
-	GetOptions  struct {
-		ID    string
-		Query string
-	}
 )
 
 func (r *Repo) Initiate(ctx context.Context) error {
