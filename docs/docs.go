@@ -965,7 +965,7 @@ var doc = `{
             "type": "object",
             "properties": {
                 "project": {
-                    "$ref": "#/definitions/repo.Resource"
+                    "$ref": "#/definitions/project.Project"
                 },
                 "task": {
                     "$ref": "#/definitions/task.Task"
@@ -1112,40 +1112,6 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/projects.populatedProject"
                     }
-                }
-            }
-        },
-        "repo.Metadata": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "repo.Resource": {
-            "type": "object",
-            "properties": {
-                "metadata": {
-                    "$ref": "#/definitions/repo.Metadata"
-                },
-                "spec": {
-                    "type": "object"
                 }
             }
         },

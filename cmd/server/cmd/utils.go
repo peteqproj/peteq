@@ -4,7 +4,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
 
@@ -15,9 +14,9 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
+	"github.com/peteqproj/peteq/domain/project"
+	projectDomain "github.com/peteqproj/peteq/domain/project"
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
-	projectEventHandlers "github.com/peteqproj/peteq/domain/project/event/handler"
-	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
@@ -37,17 +36,6 @@ func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
 }
 
-func registerProjectEventHandlers(eventbus eventbus.Eventbus, repo *repo.Repo) {
-	// List related event handlers
-	eventbus.Subscribe(projectEventTypes.ProjectCreatedEvent, &projectEventHandlers.CreatedHandler{
-		Repo: repo,
-	})
-
-	eventbus.Subscribe(projectEventTypes.TaskAddedToProjectEvent, &projectEventHandlers.TaskAddedHandler{
-		Repo: repo,
-	})
-}
-
 func registerTriggerEventHandlers(eventbus eventbus.Eventbus, repo *triggerDomain.Repo) {
 	// Trigger related event handlers
 	eventbus.Subscribe(triggerEventTypes.TriggerCreatedEvent, &triggerEventHandlers.CreatedHandler{
@@ -65,7 +53,7 @@ func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automatio
 	})
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
@@ -101,9 +89,11 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 	// Project related commands
 	cb.RegisterHandler("project.create", &projectCommands.CreateCommand{
 		Eventbus: eventbus,
+		Repo:     projectRepo,
 	})
 	cb.RegisterHandler("project.add-task", &projectCommands.AddTaskCommand{
 		Eventbus: eventbus,
+		Repo:     projectRepo,
 	})
 
 	// User related commands
@@ -140,7 +130,7 @@ func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
 	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
 }
 
-func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *task.Repo, listRepo *listDomain.Repo, projectRepo *repo.Repo, logger logger.Logger) {
+func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *task.Repo, listRepo *listDomain.Repo, projectRepo *projectDomain.Repo, logger logger.Logger) {
 	vb := viewBuilder.New(&viewBuilder.Options{
 		TaskRepo:    taskRepo,
 		ListRepo:    listRepo,

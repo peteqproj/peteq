@@ -15,7 +15,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -23,7 +22,7 @@ type (
 	// ViewAPI for projects view
 	ViewAPI struct {
 		TaskRepo    *task.Repo
-		ProjectRepo *repo.Repo
+		ProjectRepo *project.Repo
 		DAL         *DAL
 	}
 

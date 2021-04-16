@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// CreateCommand to create task
 	CreateCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *project.Repo
 	}
 
 	// CreateProjectCommandOptions to create new project
@@ -37,7 +39,22 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to Project object")
 	}
-
+	prj := &project.Project{
+		Metadata: project.Metadata{
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Labels:      opt.Labels,
+			Description: utils.PtrString(opt.Description),
+		},
+		Spec: project.Spec{
+			Color:    utils.PtrString(opt.Color),
+			ImageURL: utils.PtrString(opt.ImageURL),
+			Tasks:    []string{},
+		},
+	}
+	if err := m.Repo.Create(ctx, prj); err != nil {
+		return err
+	}
 	u := tenant.UserFromContext(ctx)
 	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{

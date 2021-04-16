@@ -3,9 +3,9 @@ package builder
 import (
 	"github.com/peteqproj/peteq/pkg/api/view"
 	"github.com/peteqproj/peteq/pkg/db"
-	"github.com/peteqproj/peteq/pkg/repo"
 
 	"github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/pkg/api/view/views/backlog"
 	"github.com/peteqproj/peteq/pkg/api/view/views/home"
@@ -19,7 +19,7 @@ type (
 	Builder struct {
 		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
-		ProjectRepo *repo.Repo
+		ProjectRepo *project.Repo
 		Logger      logger.Logger
 		DB          db.Database
 	}
@@ -27,7 +27,7 @@ type (
 	Options struct {
 		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
-		ProjectRepo *repo.Repo
+		ProjectRepo *project.Repo
 		Logger      logger.Logger
 		DB          db.Database
 	}

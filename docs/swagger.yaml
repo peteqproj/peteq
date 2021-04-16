@@ -149,7 +149,7 @@ definitions:
   home.homeTask:
     properties:
       project:
-        $ref: '#/definitions/repo.Resource'
+        $ref: '#/definitions/project.Project'
       task:
         $ref: '#/definitions/task.Task'
     type: object
@@ -244,28 +244,6 @@ definitions:
         items:
           $ref: '#/definitions/projects.populatedProject'
         type: array
-    type: object
-  repo.Metadata:
-    properties:
-      description:
-        type: string
-      id:
-        type: string
-      labels:
-        additionalProperties:
-          type: string
-        type: object
-      name:
-        type: string
-      type:
-        type: string
-    type: object
-  repo.Resource:
-    properties:
-      metadata:
-        $ref: '#/definitions/repo.Metadata'
-      spec:
-        type: object
     type: object
   task.Metadata:
     properties:

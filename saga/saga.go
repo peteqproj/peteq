@@ -5,6 +5,7 @@ import (
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
@@ -13,7 +14,6 @@ import (
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -29,7 +29,7 @@ type (
 		ListRepo       *listDomain.Repo
 		TaskRepo       *task.Repo
 		AutomationRepo *automationDomain.Repo
-		ProjectRepo    *repo.Repo
+		ProjectRepo    *project.Repo
 		TriggerRepo    *triggerDomain.Repo
 		UserRepo       *userDomain.Repo
 		CommandBus     commandbus.CommandBus
@@ -86,7 +86,7 @@ func newTaskArchiver(cb commandbus.CommandBus, taskRepo *task.Repo, listRepo *li
 	}
 }
 
-func newRSSImporter(cb commandbus.CommandBus, taskRepo *task.Repo, projectRepo *repo.Repo, ev event.Event, lgr logger.Logger) Saga {
+func newRSSImporter(cb commandbus.CommandBus, taskRepo *task.Repo, projectRepo *project.Repo, ev event.Event, lgr logger.Logger) Saga {
 	return &rssImporter{
 		Commandbus:  cb,
 		TaskRepo:    taskRepo,

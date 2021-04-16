@@ -4,7 +4,6 @@ build:
 	make build-dev-cli
 	make gen-domain
 	make gen-repo 
-	gofmt -w -s .
 	make compile
 
 .PHONY: compile
@@ -31,6 +30,8 @@ gen-repo:
 	./dist/peteq-dev create repo --repo manifests/task/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/user/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/list/repo.yaml
+	./dist/peteq-dev create repo --repo manifests/project/repo.yaml
+	gofmt -w -s .
 
 
 .PHONY: dependency-update

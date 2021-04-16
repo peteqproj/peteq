@@ -14,7 +14,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -22,7 +21,7 @@ type (
 	// ViewAPI for single project view
 	ViewAPI struct {
 		TaskRepo    *task.Repo
-		ProjectRepo *repo.Repo
+		ProjectRepo *project.Repo
 		DAL         *DAL
 	}
 
@@ -120,18 +119,20 @@ func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view p
 }
 
 func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, logger logger.Logger) (string, error) {
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return "", fmt.Errorf("user not found in context")
+	}
 	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged || ev.Metadata.Name == taskEventTypes.TaskUpdatedEvent {
-		projects, err := h.ProjectRepo.List(ctx, repo.ListOptions{})
+		projects, err := h.ProjectRepo.ListByUserid(ctx, u.Metadata.ID)
 		if err != nil {
 			return "", err
 		}
 		projectID := ""
 		for _, p := range projects {
-			if spec, ok := p.Spec.(project.Spec); ok {
-				for _, t := range spec.Tasks {
-					if t == ev.Metadata.AggregatorID {
-						projectID = p.Metadata.ID
-					}
+			for _, t := range p.Spec.Tasks {
+				if t == ev.Metadata.AggregatorID {
+					projectID = p.Metadata.ID
 				}
 			}
 		}

@@ -5,6 +5,7 @@ import (
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
+	projectDomain "github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
@@ -13,7 +14,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
@@ -66,13 +66,13 @@ var eventHandlerServiceCmd = &cobra.Command{
 		if err := listRepo.Initiate(context.Background()); err != nil {
 			utils.DieOnError(err, "Failed to init list repo")
 		}
-		projectRepo, err := repo.New(repo.Options{
-			ResourceType: "projects",
-			DB:           db,
-			Logger:       logr.Fork("repo", "project"),
-		})
-		utils.DieOnError(err, "Failed to init project repo")
-
+		projectRepo := &projectDomain.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "project"),
+		}
+		if err := projectRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init project repo")
+		}
 		userRepo := &userDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "user"),
@@ -95,9 +95,8 @@ var eventHandlerServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo)
 
-		registerProjectEventHandlers(ebus, projectRepo)
 		registerTriggerEventHandlers(ebus, triggerRepo)
 		registerAutomationEventHandlers(ebus, automationRepo)
 		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
