@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/trigger"
 	"github.com/peteqproj/peteq/domain/trigger/event/handler"
 	"github.com/peteqproj/peteq/domain/trigger/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,16 +18,16 @@ type (
 	// CreateCommand to create task
 	CreateCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *trigger.Repo
 	}
 
 	// TriggerCreateCommandOptions options to create trigger
 	TriggerCreateCommandOptions struct {
-		ID              string            `json:"id"`
-		Name            string            `json:"name"`
-		Description     string            `json:"description"`
-		Cron            *string           `json:"cron"`
-		URL             *string           `json:"url"`
-		RequiredHeaders map[string]string `json:"requiredHeaders"`
+		ID          string  `json:"id"`
+		Name        string  `json:"name"`
+		Description string  `json:"description"`
+		Cron        *string `json:"cron"`
+		URL         *string `json:"url"`
 	}
 )
 
@@ -39,6 +40,19 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 	}
 
 	u := tenant.UserFromContext(ctx)
+	if err := m.Repo.Create(ctx, &trigger.Trigger{
+		Metadata: trigger.Metadata{
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Labels:      map[string]string{},
+			Description: utils.PtrString(""),
+		},
+		Spec: trigger.Spec{
+			Cron: opt.Cron,
+		},
+	}); err != nil {
+		return err
+	}
 	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
@@ -51,12 +65,10 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 			AggregatorID:   opt.ID,
 		},
 		Spec: handler.CreatedSpec{
-			ID:              opt.ID,
-			Name:            opt.Name,
-			Description:     opt.Description,
-			Cron:            opt.Cron,
-			URL:             opt.URL,
-			RequiredHeaders: opt.RequiredHeaders,
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Description: opt.Description,
+			Cron:        opt.Cron,
 		},
 	})
 	return err

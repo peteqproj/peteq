@@ -34,7 +34,7 @@ var cronServiceCmdFlags struct {
 type (
 	userTriggerPair struct {
 		user     userDomain.User
-		triggers map[string]triggerDomain.Trigger
+		triggers map[string]*triggerDomain.Trigger
 		cron     cron.Cron
 	}
 )
@@ -66,6 +66,9 @@ var cronServiceCmd = &cobra.Command{
 		triggerRepo := &triggerDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "trigger"),
+		}
+		if err := triggerRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init trigger repo")
 		}
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
 		if err := ebus.Start(); err != nil {
@@ -104,7 +107,7 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 					lgr.Info("New user added", "email", u.Spec.Email, "id", u.Metadata.ID)
 					l[u.Metadata.ID] = userTriggerPair{
 						user:     *u,
-						triggers: map[string]triggerDomain.Trigger{},
+						triggers: map[string]*triggerDomain.Trigger{},
 						cron: cron.New(cron.Options{
 							EventPublisher: ebus,
 							Logger:         lgr.Fork("user", u.Metadata.ID),
@@ -115,9 +118,7 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 				}
 
 				for id, pair := range l {
-					res, err := triggerRepo.List(triggerDomain.QueryOptions{
-						UserID: id,
-					})
+					res, err := triggerRepo.ListByUserid(context.Background(), id)
 					if err != nil {
 						lgr.Info("Failed to load user triggers", "error", err.Error(), "user", id)
 					}

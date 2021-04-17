@@ -19,9 +19,8 @@ import (
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
-	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
+	"github.com/peteqproj/peteq/domain/trigger"
 	triggerCommands "github.com/peteqproj/peteq/domain/trigger/command"
-	triggerEventHandlers "github.com/peteqproj/peteq/domain/trigger/event/handler"
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
@@ -36,13 +35,6 @@ func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
 }
 
-func registerTriggerEventHandlers(eventbus eventbus.Eventbus, repo *triggerDomain.Repo) {
-	// Trigger related event handlers
-	eventbus.Subscribe(triggerEventTypes.TriggerCreatedEvent, &triggerEventHandlers.CreatedHandler{
-		Repo: repo,
-	})
-}
-
 func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automationDomain.Repo) {
 	// Automation related event handlers
 	eventbus.Subscribe(automationEventTypes.AutomationCreatedEvent, &automationEventHandlers.CreatedHandler{
@@ -53,7 +45,7 @@ func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automatio
 	})
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo, triggerRepo *trigger.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
@@ -111,9 +103,11 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 	// Trigger related commands
 	cb.RegisterHandler("trigger.create", &triggerCommands.CreateCommand{
 		Eventbus: eventbus,
+		Repo:     triggerRepo,
 	})
 	cb.RegisterHandler("trigger.run", &triggerCommands.RunCommand{
 		Eventbus: eventbus,
+		Repo:     triggerRepo,
 	})
 
 	// Automation related commands

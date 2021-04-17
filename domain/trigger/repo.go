@@ -2,65 +2,121 @@ package trigger
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 
+	"github.com/peteqproj/peteq/domain/user"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
+	repo "github.com/peteqproj/peteq/pkg/repo/def"
+	"gopkg.in/yaml.v2"
+
+	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
-const dbName = "repo_triggers"
+const db_name = "repo_trigger"
 
-var errNotFound = errors.New("Trigger not foud")
+var ErrNotFound = errors.New("Trigger not found")
+var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
+var errNoTenantInContext = errors.New("No tenant in context")
+var repoDefEmbed = `name: trigger
+rootAggregate:
+  resource: Trigger
+aggregates: []
+database:
+  postgres:
+    columns:
+    - name: id
+      type: text
+      from:
+        type: resource
+        path: Metadata.ID
+    - name: userid
+      type: text
+      from:
+        type: tenant
+        path: Metadata.ID
+    - name: info
+      type: json
+      from:
+        type: resource
+        path: .
+    indexes:
+    - - userid
+    uniqueIndexes: []
+    primeryKey:
+    - id
+tenant: user
+`
+var queries = []string{
+	"CREATE TABLE IF NOT EXISTS repo_trigger ( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON repo_trigger ( userid);",
+}
 
 type (
-	// Repo is trigger repository
-	// it works on the view db to read/write from it
 	Repo struct {
-		DB     db.Database
-		Logger logger.Logger
-	}
-
-	// QueryOptions to get trigger trigger
-	QueryOptions struct {
-		UserID string
+		DB        db.Database
+		Logger    logger.Logger
+		initiated bool
+		def       *repo.RepoDef
 	}
 )
 
-// List returns set of trigger
-func (r *Repo) List(options QueryOptions) ([]Trigger, error) {
-	return r.find(context.Background(), options.UserID)
-}
-
-// Get returns trigger given trigger id
-func (r *Repo) Get(userID string, id string) (Trigger, error) {
-	triggers, err := r.find(context.Background(), userID, id)
-	if err != nil {
-		return Trigger{}, err
+func (r *Repo) Initiate(ctx context.Context) error {
+	for _, q := range queries {
+		r.Logger.Info("Running db init query", "query", q)
+		if _, err := r.DB.ExecContext(ctx, q); err != nil {
+			return err
+		}
 	}
-	if len(triggers) == 0 {
-		return Trigger{}, errNotFound
+
+	def := &repo.RepoDef{}
+	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
+		return err
 	}
-	return triggers[0], nil
+	r.def = def
+
+	r.initiated = true
+	return nil
 }
 
-// Create will save new trigger into db
-func (r *Repo) Create(user string, trigger Trigger) error {
-	return r.create(context.Background(), user, trigger)
-}
+/* PrimeryKey functions*/
 
-func (r *Repo) create(ctx context.Context, user string, trigger Trigger) error {
-	t, err := json.Marshal(trigger)
+func (r *Repo) Create(ctx context.Context, resource *Trigger) error {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	var user *user.User
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+
+	table_column_id := resource.Metadata.ID
+	table_column_userid := user.Metadata.ID
+	table_column_info, err := json.Marshal(resource)
 	if err != nil {
 		return err
 	}
 	q, _, err := goqu.
-		Insert(dbName).
-		Cols("userid", "triggerid", "info").
-		Vals(goqu.Vals{user, trigger.Metadata.ID, string(t)}).
+		Insert(db_name).
+		Cols(
+			"id",
+			"userid",
+			"info",
+		).
+		Vals(goqu.Vals{
+			string(table_column_id),
+			string(table_column_userid),
+			string(table_column_info),
+		}).
 		ToSQL()
 	if err != nil {
 		return err
@@ -71,38 +127,164 @@ func (r *Repo) create(ctx context.Context, user string, trigger Trigger) error {
 	}
 	return nil
 }
-func (r *Repo) find(ctx context.Context, user string, ids ...string) ([]Trigger, error) {
-	e := exp.Ex{
-		"userid": user,
+func (r *Repo) GetById(ctx context.Context, id string) (*Trigger, error) {
+	if !r.initiated {
+		return nil, errNotInitiated
 	}
-	if len(ids) > 0 {
-		e = exp.Ex{
-			"userid":    user,
-			"triggerid": ids,
+	e := exp.Ex{}
+	e["id"] = id
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
 		}
+		e["userid"] = u.Metadata.ID
+	}
+
+	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+	var table_id string
+	var table_userid string
+	var table_info string
+
+	if err := row.Scan(
+		&table_id,
+		&table_userid,
+		&table_info,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	resource := &Trigger{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}
+	return resource, nil
+}
+func (r *Repo) UpdateTrigger(ctx context.Context, resource *Trigger) error {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	var user *user.User
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+
+	table_column_id := resource.Metadata.ID
+	table_column_userid := user.Metadata.ID
+	table_column_info, err := json.Marshal(resource)
+	if err != nil {
+		return err
 	}
 	q, _, err := goqu.
-		From(dbName).
+		Update(db_name).
+		Where(exp.Ex{
+			"id": resource.Metadata.ID,
+		}).
+		Set(goqu.Record{
+			"id":     string(table_column_id),
+			"userid": string(table_column_userid),
+			"info":   string(table_column_info),
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo) DeleteById(ctx context.Context, id string) error {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	e := exp.Ex{}
+	e["id"] = id
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+
+	q, _, err := goqu.
+		Delete(db_name).
 		Where(e).
 		ToSQL()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	rows, err := r.DB.QueryContext(ctx, q)
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+
+/*End of PrimeryKey functions*/
+
+/*Index functions*/
+
+func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Trigger, error) {
+	if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	e["userid"] = userid
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+
+	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	set := []Trigger{}
+	rows, err := r.DB.QueryContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+	res := []*Trigger{}
 	for rows.Next() {
-		uid := ""
-		pid := ""
-		t := ""
-		if err := rows.Scan(&uid, &pid, &t); err != nil {
+		var table_id string
+		var table_userid string
+		var table_info string
+
+		if err := rows.Scan(
+			&table_id,
+			&table_userid,
+			&table_info,
+		); err != nil {
 			return nil, err
 		}
-		trigger := Trigger{}
-		json.Unmarshal([]byte(t), &trigger)
-		set = append(set, trigger)
+		resource := &Trigger{}
+		// info column must exist
+		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+			return nil, err
+		}
+		res = append(res, resource)
 	}
-	return set, rows.Close()
+	return res, rows.Close()
+
 }
+
+/*End of index function'*/
+
+/*UniqueIndex functions*/
+/*End of UniqueIndex functions*/
