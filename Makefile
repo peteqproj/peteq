@@ -32,6 +32,7 @@ gen-repo:
 	./dist/peteq-dev create repo --repo manifests/list/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/project/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/trigger/repo.yaml
+	./dist/peteq-dev create repo --repo manifests/automation/repo.yaml
 	gofmt -w -s .
 
 

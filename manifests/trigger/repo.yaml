@@ -1,25 +1,26 @@
 name: trigger 
-database:
-  postgres:
-    columns:
-    - name: id
-      type: text
-      from:
-        type: resource
-        path: Metadata.ID
-    - name: userid
-      type: text
-      from:
-        type: tenant
-        path: Metadata.ID
-    - name: info
-      type: json
-      from:
-        type: resource
-        path: .
-    indexes:
-      - [userid]
-    primeryKey: [id]
 tenant: user
-rootAggregate:
-  resource: Trigger 
+root:
+  resource: Trigger
+  database:
+    name: trigger_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes:
+        - [userid]
+      primeryKey: [id]

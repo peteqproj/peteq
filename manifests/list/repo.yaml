@@ -1,26 +1,26 @@
-name: list 
-database:
-  postgres:
-    columns:
-    - name: id
-      type: text
-      from:
-        type: resource
-        path: Metadata.ID
-    - name: userid
-      type: text
-      from:
-        type: tenant
-        path: Metadata.ID
-    - name: info
-      type: json
-      from:
-        type: resource
-        path: .
-    indexes:
-      - [userid]
-    primeryKey: [id]
+name: list
 tenant: user
-rootAggregate:
-  resource: List 
-    
+root:
+  resource: List
+  database:
+    name: list_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes:
+        - [userid]
+      primeryKey: [id]

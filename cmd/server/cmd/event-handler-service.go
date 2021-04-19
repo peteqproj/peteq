@@ -84,6 +84,9 @@ var eventHandlerServiceCmd = &cobra.Command{
 			DB:     db,
 			Logger: logr.Fork("repo", "automation"),
 		}
+		if err := automationRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init automation repo")
+		}
 		triggerRepo := &triggerDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "trigger"),
@@ -98,9 +101,8 @@ var eventHandlerServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, triggerRepo)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, triggerRepo, automationRepo)
 
-		registerAutomationEventHandlers(ebus, automationRepo)
 		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
 		sagaEventHandler := &saga.EventHandler{
 			CommandBus:     cb,

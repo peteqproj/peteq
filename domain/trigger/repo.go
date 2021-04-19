@@ -18,43 +18,42 @@ import (
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
-const db_name = "repo_trigger"
-
 var ErrNotFound = errors.New("Trigger not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
 var errNoTenantInContext = errors.New("No tenant in context")
 var repoDefEmbed = `name: trigger
-rootAggregate:
-  resource: Trigger
-aggregates: []
-database:
-  postgres:
-    columns:
-    - name: id
-      type: text
-      from:
-        type: resource
-        path: Metadata.ID
-    - name: userid
-      type: text
-      from:
-        type: tenant
-        path: Metadata.ID
-    - name: info
-      type: json
-      from:
-        type: resource
-        path: .
-    indexes:
-    - - userid
-    uniqueIndexes: []
-    primeryKey:
-    - id
 tenant: user
+root:
+  resource: Trigger
+  database:
+    name: trigger_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes:
+      - - userid
+      uniqueIndexes: []
+      primeryKey:
+      - id
+aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS repo_trigger ( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON repo_trigger ( userid);",
+	"CREATE TABLE IF NOT EXISTS trigger_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON trigger_repo ( userid);",
 }
 
 type (
@@ -106,7 +105,7 @@ func (r *Repo) Create(ctx context.Context, resource *Trigger) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert(db_name).
+		Insert("trigger_repo").
 		Cols(
 			"id",
 			"userid",
@@ -141,7 +140,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Trigger, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	query, _, err := goqu.From("trigger_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (r *Repo) UpdateTrigger(ctx context.Context, resource *Trigger) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update(db_name).
+		Update("trigger_repo").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -224,7 +223,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete(db_name).
+		Delete("trigger_repo").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -252,7 +251,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Trigger, err
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
+	sql, _, err := goqu.From("trigger_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}

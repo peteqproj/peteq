@@ -1,31 +1,31 @@
-name: user 
-database:
-  postgres:
-    columns:
-    - name: id
-      type: text
-      from:
-        type: resource
-        path: Metadata.ID
-    - name: email
-      type: text
-      from:
-        type: resource
-        path: Spec.Email
-    - name: token
-      type: text
-      from:
-        type: resource
-        path: Spec.TokenHash
-    - name: info
-      type: json
-      from:
-        type: resource
-        path: .
-    uniqueIndexes:
-      - [email]
-      - [token]
-    primeryKey: [id]
-rootAggregate:
-  resource: User 
-    
+name: user
+root:
+  resource: User
+  database:
+    name: user_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: email
+        type: text
+        fromResource:
+          as: string
+          path: Spec.Email
+      - name: token
+        type: text
+        fromResource:
+          as: string
+          path: Spec.TokenHash
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      uniqueIndexes:
+        - [email]
+        - [token]
+      primeryKey: [id]

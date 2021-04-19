@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/automation"
 	"github.com/peteqproj/peteq/domain/automation/event/handler"
 	"github.com/peteqproj/peteq/domain/automation/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// CreateTriggerBindingCommand to create task
 	CreateTriggerBindingCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *automation.Repo
 	}
 
 	// TriggerBindingCreateCommandOptions options to create automation
@@ -37,6 +39,23 @@ func (m *CreateTriggerBindingCommand) Handle(ctx context.Context, arguments inte
 	}
 
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return fmt.Errorf("user is not set in context")
+	}
+	if err := m.Repo.CreateTriggerBinding(ctx, &automation.TriggerBinding{
+		Metadata: automation.Metadata{
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Labels:      map[string]string{},
+			Description: utils.PtrString(""),
+		},
+		Spec: automation.TriggerBindingSpec{
+			Automation: opt.Automation,
+			Trigger:    opt.Trigger,
+		},
+	}); err != nil {
+		return err
+	}
 	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,

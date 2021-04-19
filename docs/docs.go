@@ -184,7 +184,7 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Add tasks into project",
+                "description": "Move tasks from source to destination list",
                 "consumes": [
                     "application/json"
                 ],
@@ -192,7 +192,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Project Command API"
+                    "List Command API"
                 ],
                 "parameters": [
                     {
@@ -201,7 +201,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/AddTasksRequestBody"
+                            "$ref": "#/definitions/MoveTasksRequestBody"
                         }
                     }
                 ],

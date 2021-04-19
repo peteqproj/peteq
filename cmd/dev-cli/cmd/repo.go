@@ -46,9 +46,8 @@ var repoCmd = &cobra.Command{
 		logr.Info("Creating repo")
 		funcs := gomplate.Funcs(nil)
 		funcs["BuildInitQueries"] = buildInitQueries
-		funcs["BuildDBName"] = buildDBName
 		funcs["BuildIndexesFunction"] = buildIndexesFunction(r)
-		funcs["BuildIndexesArgumentList"] = buildIndexesArgumentList(r)
+		funcs["BuildIndexesArgumentList"] = buildIndexesArgumentList
 		funcs["BuildColumnVar"] = buildColumnVar(r)
 		funcs["EmbedRepoDef"] = embedRepoDef
 		res, err := templateRepo(funcs, r)
@@ -93,28 +92,26 @@ func buildIndexesFunction(r *repo.RepoDef) func([]string) string {
 	}
 }
 
-func buildIndexesArgumentList(r *repo.RepoDef) func([]string) string {
-	return func(indexes []string) string {
-		list := []string{
-			"ctx context.Context",
-		}
-		for _, i := range indexes {
-			var col *repo.Column
-			for _, c := range r.Database.Postgres.Columns {
-				if c.Name == i {
-					col = &c
-				}
-				if col != nil {
-					break
-				}
-			}
-			if col == nil {
-				panic("Column not found")
-			}
-			list = append(list, fmt.Sprintf("%s %s", i, postgresTypeToGolangType(col.Type)))
-		}
-		return strings.Join(list, ", ")
+func buildIndexesArgumentList(indexes []string, database repo.Database) string {
+	list := []string{
+		"ctx context.Context",
 	}
+	for _, i := range indexes {
+		var col *repo.Column
+		for _, c := range database.Postgres.Columns {
+			if c.Name == i {
+				col = &c
+			}
+			if col != nil {
+				break
+			}
+		}
+		if col == nil {
+			panic("Column not found")
+		}
+		list = append(list, fmt.Sprintf("%s %s", i, postgresTypeToGolangType(col.Type)))
+	}
+	return strings.Join(list, ", ")
 }
 
 func postgresTypeToGolangType(t string) string {
@@ -128,35 +125,43 @@ func postgresTypeToGolangType(t string) string {
 
 func buildInitQueries(r repo.RepoDef) string {
 	queries := []string{}
-	queries = append(queries, createTableString(r))
-	for _, idx := range r.Database.Postgres.Indexes {
-		queries = append(queries, createIndexString(idx, false, buildDBName(r)))
+	queries = append(queries, createTableString(r.Root.Database.Name, r.Root.Database.Postgres.Columns, r.Root.Database.Postgres.PrimeryKey))
+	for _, idx := range r.Root.Database.Postgres.Indexes {
+		queries = append(queries, createIndexString(idx, false, r.Root.Database.Name))
 	}
 
-	for _, idx := range r.Database.Postgres.UniqueIndexes {
-		queries = append(queries, createIndexString(idx, true, buildDBName(r)))
+	for _, idx := range r.Root.Database.Postgres.UniqueIndexes {
+		queries = append(queries, createIndexString(idx, true, r.Root.Database.Name))
 	}
 	res := strings.Builder{}
 	res.WriteString("var queries = []string{\n")
+
+	for _, aggregate := range r.Aggregates {
+		queries = append(queries, createTableString(aggregate.Database.Name, aggregate.Database.Postgres.Columns, aggregate.Database.Postgres.PrimeryKey))
+		for _, idx := range aggregate.Database.Postgres.UniqueIndexes {
+			queries = append(queries, createIndexString(idx, true, aggregate.Database.Name))
+		}
+		for _, idx := range aggregate.Database.Postgres.Indexes {
+			queries = append(queries, createIndexString(idx, false, aggregate.Database.Name))
+		}
+	}
+
 	for _, q := range queries {
 		res.WriteString(fmt.Sprintf("\t\"%s\",\n", q))
 	}
+
 	res.WriteString("}")
 	return res.String()
 }
 
-func createTableString(r repo.RepoDef) string {
+func createTableString(table string, columns []repo.Column, pks []string) string {
 	q := strings.Builder{}
 	q.WriteString("CREATE TABLE IF NOT EXISTS ")
-	q.WriteString(fmt.Sprintf("%s ", buildDBName(r)))
+	q.WriteString(table)
 	q.WriteString("( ")
 	col := []string{}
-	for _, c := range r.Database.Postgres.Columns {
+	for _, c := range columns {
 		col = append(col, fmt.Sprintf("%s %s not null", c.Name, c.Type))
-	}
-	pks := []string{}
-	for _, p := range r.Database.Postgres.PrimeryKey {
-		pks = append(pks, p)
 	}
 	col = append(col, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(pks, ",")))
 	q.WriteString(strings.Join(col, ","))
@@ -182,23 +187,20 @@ func createIndexString(idx []string, unique bool, db string) string {
 	return q.String()
 }
 
-func buildDBName(r repo.RepoDef) string {
-	return fmt.Sprintf("repo_%s", r.Name)
-}
-
 func buildColumnVar(r *repo.RepoDef) func(repo.Column) string {
 	return func(c repo.Column) string {
-		switch c.From.Type {
-		case "resource":
-			if c.From.Path == "." {
+		if c.FromResource != nil {
+			if c.FromResource.Path == "." {
 				return fmt.Sprintf("table_column_%s, err := json.Marshal(resource)\n if err != nil {\n return err\n}", c.Name)
 			}
-			return fmt.Sprintf("table_column_%s := resource.%s", c.Name, c.From.Path)
-		case "tenant":
-			return fmt.Sprintf("table_column_%s := user.%s", c.Name, c.From.Path)
-		default:
-			return "...."
+			return fmt.Sprintf("table_column_%s := resource.%s", c.Name, c.FromResource.Path)
 		}
+
+		if c.FromTenant != nil {
+			return fmt.Sprintf("table_column_%s := user.%s", c.Name, c.FromTenant.Path)
+		}
+
+		panic("From is not defined")
 	}
 }
 

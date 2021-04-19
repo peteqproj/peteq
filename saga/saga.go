@@ -2,6 +2,7 @@ package saga
 
 import (
 	"context"
+	"fmt"
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
@@ -14,6 +15,7 @@ import (
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
@@ -38,7 +40,10 @@ type (
 
 func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger.Logger) error {
 	logger.Info("Handling saga event", "event", ev.Metadata.Name, "id", ev.Metadata.ID)
-
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return fmt.Errorf("user is not set in context")
+	}
 	switch ev.Metadata.Name {
 	case userEventTypes.UserRegistredEvent:
 		{
@@ -51,11 +56,11 @@ func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger
 		}
 	case triggerEventTypes.TriggerTriggeredEvent:
 		{
-			tb, err := e.AutomationRepo.GetTriggerBindingByTriggerID(ev.Tenant.ID, ev.Metadata.AggregatorID)
+			tb, err := e.AutomationRepo.GetTriggerBindingByUseridTrigger(ctx, u.Metadata.ID, ev.Metadata.AggregatorID)
 			if err != nil {
 				return err
 			}
-			a, err := e.AutomationRepo.Get(ev.Tenant.ID, tb.Spec.Automation)
+			a, err := e.AutomationRepo.GetById(ctx, tb.Spec.Automation)
 			if err != nil {
 				return err
 			}

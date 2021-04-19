@@ -18,43 +18,42 @@ import (
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
-const db_name = "repo_task"
-
 var ErrNotFound = errors.New("Task not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
 var errNoTenantInContext = errors.New("No tenant in context")
 var repoDefEmbed = `name: task
-rootAggregate:
-  resource: Task
-aggregates: []
-database:
-  postgres:
-    columns:
-    - name: id
-      type: text
-      from:
-        type: resource
-        path: Metadata.ID
-    - name: userid
-      type: text
-      from:
-        type: tenant
-        path: Metadata.ID
-    - name: info
-      type: json
-      from:
-        type: resource
-        path: .
-    indexes:
-    - - userid
-    uniqueIndexes: []
-    primeryKey:
-    - id
 tenant: user
+root:
+  resource: Task
+  database:
+    name: task_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes:
+      - - userid
+      uniqueIndexes: []
+      primeryKey:
+      - id
+aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS repo_task ( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON repo_task ( userid);",
+	"CREATE TABLE IF NOT EXISTS task_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON task_repo ( userid);",
 }
 
 type (
@@ -106,7 +105,7 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert(db_name).
+		Insert("task_repo").
 		Cols(
 			"id",
 			"userid",
@@ -141,7 +140,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	query, _, err := goqu.From("task_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update(db_name).
+		Update("task_repo").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -224,7 +223,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete(db_name).
+		Delete("task_repo").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -252,7 +251,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Task, error)
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From(db_name).Where(e).ToSQL()
+	sql, _, err := goqu.From("task_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}

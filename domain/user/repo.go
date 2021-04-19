@@ -14,50 +14,49 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const db_name = "repo_user"
-
 var ErrNotFound = errors.New("User not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
 var errNoTenantInContext = errors.New("No tenant in context")
 var repoDefEmbed = `name: user
-rootAggregate:
-  resource: User
-aggregates: []
-database:
-  postgres:
-    columns:
-    - name: id
-      type: text
-      from:
-        type: resource
-        path: Metadata.ID
-    - name: email
-      type: text
-      from:
-        type: resource
-        path: Spec.Email
-    - name: token
-      type: text
-      from:
-        type: resource
-        path: Spec.TokenHash
-    - name: info
-      type: json
-      from:
-        type: resource
-        path: .
-    indexes: []
-    uniqueIndexes:
-    - - email
-    - - token
-    primeryKey:
-    - id
 tenant: ""
+root:
+  resource: User
+  database:
+    name: user_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: email
+        type: text
+        fromResource:
+          as: string
+          path: Spec.Email
+      - name: token
+        type: text
+        fromResource:
+          as: string
+          path: Spec.TokenHash
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes: []
+      uniqueIndexes:
+      - - email
+      - - token
+      primeryKey:
+      - id
+aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS repo_user ( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE UNIQUE INDEX IF NOT EXISTS email ON repo_user ( email);",
-	"CREATE UNIQUE INDEX IF NOT EXISTS token ON repo_user ( token);",
+	"CREATE TABLE IF NOT EXISTS user_repo( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS email ON user_repo ( email);",
+	"CREATE UNIQUE INDEX IF NOT EXISTS token ON user_repo ( token);",
 }
 
 type (
@@ -102,7 +101,7 @@ func (r *Repo) Create(ctx context.Context, resource *User) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert(db_name).
+		Insert("user_repo").
 		Cols(
 			"id",
 			"email",
@@ -132,7 +131,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*User, error) {
 	e := exp.Ex{}
 	e["id"] = id
 
-	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +175,7 @@ func (r *Repo) UpdateUser(ctx context.Context, resource *User) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update(db_name).
+		Update("user_repo").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -204,7 +203,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	e["id"] = id
 
 	q, _, err := goqu.
-		Delete(db_name).
+		Delete("user_repo").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -228,7 +227,7 @@ func (r *Repo) GetByEmail(ctx context.Context, email string) (*User, error) {
 	e := exp.Ex{}
 	e["email"] = email
 
-	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +265,7 @@ func (r *Repo) GetByToken(ctx context.Context, token string) (*User, error) {
 	e := exp.Ex{}
 	e["token"] = token
 
-	query, _, err := goqu.From(db_name).Where(e).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}

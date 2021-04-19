@@ -7,10 +7,8 @@ import (
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
 
-	automationDomain "github.com/peteqproj/peteq/domain/automation"
+	"github.com/peteqproj/peteq/domain/automation"
 	automationCommands "github.com/peteqproj/peteq/domain/automation/command"
-	automationEventHandlers "github.com/peteqproj/peteq/domain/automation/event/handler"
-	automationEventTypes "github.com/peteqproj/peteq/domain/automation/event/types"
 	"github.com/peteqproj/peteq/domain/list"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	listCommands "github.com/peteqproj/peteq/domain/list/command"
@@ -35,17 +33,7 @@ func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
 }
 
-func registerAutomationEventHandlers(eventbus eventbus.Eventbus, repo *automationDomain.Repo) {
-	// Automation related event handlers
-	eventbus.Subscribe(automationEventTypes.AutomationCreatedEvent, &automationEventHandlers.CreatedHandler{
-		Repo: repo,
-	})
-	eventbus.Subscribe(automationEventTypes.TriggerBindingCreatedEvent, &automationEventHandlers.TriggerBindingCreatedHandler{
-		Repo: repo,
-	})
-}
-
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo, triggerRepo *trigger.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo, triggerRepo *trigger.Repo, automationRepo *automation.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
@@ -113,9 +101,11 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 	// Automation related commands
 	cb.RegisterHandler("automation.create", &automationCommands.CreateCommand{
 		Eventbus: eventbus,
+		Repo:     automationRepo,
 	})
 	cb.RegisterHandler("automation.bindTrigger", &automationCommands.CreateTriggerBindingCommand{
 		Eventbus: eventbus,
+		Repo:     automationRepo,
 	})
 }
 

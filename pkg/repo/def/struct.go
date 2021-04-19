@@ -2,20 +2,23 @@ package def
 
 type (
 	RepoDef struct {
-		Name          string      `yaml:"name"`
-		RootAggregate Aggregate   `yaml:"rootAggregate"`
-		Aggregates    []Aggregate `yaml:"aggregates"`
-		Database      Database    `yaml:"database"`
+		Name string `yaml:"name"`
+
 		// Tenant is a representation of tenant column
 		// which if set must be part of all the sql queries
 		// otherwise errNoTenantInContent is returned
 		Tenant string `yaml:"tenant"`
+
+		Root       Aggregate   `yaml:"root"`
+		Aggregates []Aggregate `yaml:"aggregates"`
 	}
 	Aggregate struct {
-		Resource string `yaml:"resource"`
+		Resource string   `yaml:"resource"`
+		Database Database `yaml:"database"`
 	}
 
 	Database struct {
+		Name     string     `yaml:"name"`
 		Postgres PostgresDB `yaml:"postgres"`
 	}
 
@@ -29,11 +32,14 @@ type (
 	}
 
 	Column struct {
-		Name string `yaml:"name"`
-		Type string `yaml:"type"`
-		From struct {
-			Type string `yaml:"type"`
-			Path string `yaml:"path"`
-		} `yaml:"from"`
+		Name         string `yaml:"name"`
+		Type         string `yaml:"type"`
+		FromResource *From  `yaml:"fromResource,omitempty"`
+		FromTenant   *From  `yaml:"fromTenant,omitempty"`
+	}
+
+	From struct {
+		As   string `yaml:"as"`
+		Path string `yaml:"path"`
 	}
 )

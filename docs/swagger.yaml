@@ -414,14 +414,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Add tasks into project
+      description: Move tasks from source to destination list
       parameters:
       - description: Move tasks from source to destination list
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/AddTasksRequestBody'
+          $ref: '#/definitions/MoveTasksRequestBody'
       produces:
       - application/json
       responses:
@@ -436,7 +436,7 @@ paths:
       security:
       - ApiKeyAuth: []
       tags:
-      - Project Command API
+      - List Command API
   /c/project/create:
     post:
       consumes:
