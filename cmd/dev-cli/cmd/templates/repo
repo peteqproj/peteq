@@ -14,6 +14,7 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
+	perrors "github.com/peteqproj/peteq/internal/errors"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
 	
 	{{ if eq .Tenant "user" -}}
@@ -23,7 +24,6 @@ import (
 
 var ErrNotFound = errors.New("{{.Root.Resource}} not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
-var errNoTenantInContext = errors.New("No tenant in context")
 var repoDefEmbed = {{ EmbedRepoDef . }}
 {{ BuildInitQueries . }}
 
@@ -63,7 +63,7 @@ func (r *Repo) Create(ctx context.Context, resource *{{ .Root.Resource}}) error 
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		user = u
 	}
@@ -129,7 +129,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryKey 
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -171,7 +171,7 @@ func (r *Repo) Update{{ .Root.Resource }}(ctx context.Context, resource *{{ .Roo
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		user = u
 	}
@@ -235,7 +235,7 @@ func (r *Repo) DeleteBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryK
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -267,7 +267,7 @@ func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList .
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -320,7 +320,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . 
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -366,7 +366,7 @@ func (r *Repo)Create{{ .Resource }}(ctx context.Context, resource *{{ .Resource 
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		user = u
 	}
@@ -443,7 +443,7 @@ func (r *Repo) List{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexe
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -492,7 +492,7 @@ func (r *Repo) Get{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexes
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}

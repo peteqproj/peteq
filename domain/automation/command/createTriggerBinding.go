@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/automation"
 	"github.com/peteqproj/peteq/domain/automation/event/handler"
 	"github.com/peteqproj/peteq/domain/automation/event/types"
+	errors "github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -40,7 +41,7 @@ func (m *CreateTriggerBindingCommand) Handle(ctx context.Context, arguments inte
 
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
-		return fmt.Errorf("user is not set in context")
+		return errors.ErrMissingUserInContext
 	}
 	if err := m.Repo.CreateTriggerBinding(ctx, &automation.TriggerBinding{
 		Metadata: automation.Metadata{

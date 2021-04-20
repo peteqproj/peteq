@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -37,6 +38,9 @@ func (c *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 		return fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
 	}
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
+	}
 	tenant := tenant.Tenant{
 		ID:   u.Metadata.ID,
 		Type: tenant.User.String(),

@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -35,6 +36,9 @@ func (c *DeleteCommand) Handle(ctx context.Context, arguments interface{}) error
 		return fmt.Errorf("Failed to convert arguments to Task object")
 	}
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
+	}
 	if err := c.Repo.DeleteById(ctx, opt.ID); err != nil {
 		return err
 	}

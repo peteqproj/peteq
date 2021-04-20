@@ -16,6 +16,8 @@ import (
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
+	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -55,6 +57,10 @@ type (
 // @Security ApiKeyAuth
 func (h *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
+	if u == nil {
+		auth.UnauthorizedResponse(c)
+		return
+	}
 	view, err := h.DAL.load(c.Request.Context(), u.Metadata.ID)
 	if err != nil {
 		handleError(400, err, c)
@@ -162,7 +168,7 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
-		return view, fmt.Errorf("user not found in contxt")
+		return view, errors.ErrMissingUserInContext
 	}
 	spec := listEvents.TaskMovedSpec{}
 	if err := ev.UnmarshalSpecInto(&spec); err != nil {

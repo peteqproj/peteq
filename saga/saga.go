@@ -2,7 +2,6 @@ package saga
 
 import (
 	"context"
-	"fmt"
 
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
@@ -12,6 +11,7 @@ import (
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -42,7 +42,7 @@ func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger
 	logger.Info("Handling saga event", "event", ev.Metadata.Name, "id", ev.Metadata.ID)
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
-		return fmt.Errorf("user is not set in context")
+		return errors.ErrMissingUserInContext
 	}
 	switch ev.Metadata.Name {
 	case userEventTypes.UserRegistredEvent:

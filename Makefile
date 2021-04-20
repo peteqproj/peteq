@@ -34,6 +34,8 @@ gen-repo:
 	./dist/peteq-dev create repo --repo manifests/trigger/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/automation/repo.yaml
 	gofmt -w -s .
+	# go get golang.org/x/tools/cmd/goimports
+	goimports -w .
 
 
 .PHONY: dependency-update

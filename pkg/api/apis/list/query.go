@@ -3,6 +3,7 @@ package list
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
@@ -22,6 +23,10 @@ type (
 // @Security ApiKeyAuth
 func (q *QueryAPI) List(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
+	if u == nil {
+		auth.UnauthorizedResponse(c)
+		return
+	}
 	res, err := q.Repo.ListByUserid(c.Request.Context(), u.Metadata.ID)
 	if err != nil {
 		handleError(500, err, c)

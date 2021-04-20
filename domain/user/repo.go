@@ -16,7 +16,6 @@ import (
 
 var ErrNotFound = errors.New("User not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
-var errNoTenantInContext = errors.New("No tenant in context")
 var repoDefEmbed = `name: user
 tenant: ""
 root:

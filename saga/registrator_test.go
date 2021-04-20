@@ -58,7 +58,7 @@ func Test_registrator_Run(t *testing.T) {
 	}{
 		{
 			name:         "Context is not authenticated -> return an error",
-			errorMessage: "Authentication Error: user not found in context",
+			errorMessage: "user missing in context",
 			fields: fields{
 				CommandbusFn: func() commandbus.CommandBus {
 					cb := &commandbus.MockCommandBus{}

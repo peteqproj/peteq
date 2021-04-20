@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/list/event/handler"
 	"github.com/peteqproj/peteq/domain/list/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -33,7 +34,7 @@ type (
 func (m *MoveTaskCommand) Handle(ctx context.Context, arguments interface{}) error {
 	usr := tenant.UserFromContext(ctx)
 	if usr == nil {
-		return fmt.Errorf("User is not set in context") // TODO: use generic error
+		return errors.ErrMissingUserInContext
 	}
 	opt := &MoveTaskArguments{}
 	err := utils.UnmarshalInto(arguments, opt)
@@ -73,6 +74,9 @@ func (m *MoveTaskCommand) Handle(ctx context.Context, arguments interface{}) err
 	}
 
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
+	}
 	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,
