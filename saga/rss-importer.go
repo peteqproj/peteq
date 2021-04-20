@@ -57,7 +57,7 @@ func (r *rssImporter) Run(ctx context.Context) error {
 	}
 	projectID := ""
 
-	r.Logger.Info("Pasing RSS", "url", input.URL)
+	r.Logger.Info("Parsing RSS", "url", input.URL)
 	rss, err := gofeed.NewParser().ParseURL(input.URL)
 	if err != nil {
 		return err
