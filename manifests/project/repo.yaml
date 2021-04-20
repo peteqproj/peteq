@@ -1,0 +1,26 @@
+name: project 
+tenant: user
+root:
+  resource: Project
+  database:
+    name: project_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes:
+        - [userid]
+      primeryKey: [id]

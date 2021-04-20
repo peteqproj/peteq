@@ -16,11 +16,11 @@ import (
 
 // ProjectMetadata struct for ProjectMetadata
 type ProjectMetadata struct {
-	Color *string `json:"color,omitempty"`
+	Color       *string `json:"color,omitempty"`
 	Description *string `json:"description,omitempty"`
-	Id *string `json:"id,omitempty"`
-	ImageUrl *string `json:"imageUrl,omitempty"`
-	Name *string `json:"name,omitempty"`
+	Id          *string `json:"id,omitempty"`
+	ImageUrl    *string `json:"imageUrl,omitempty"`
+	Name        *string `json:"name,omitempty"`
 }
 
 // NewProjectMetadata instantiates a new ProjectMetadata object
@@ -255,5 +255,3 @@ func (v *NullableProjectMetadata) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

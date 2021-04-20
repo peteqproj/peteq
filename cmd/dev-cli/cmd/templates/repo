@@ -1,0 +1,529 @@
+package {{ .Name }}
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+
+	{{ if eq .Tenant "user" -}}
+	"github.com/peteqproj/peteq/domain/user"
+	{{ end }}
+	"gopkg.in/yaml.v2"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/peteqproj/peteq/pkg/db"
+	"github.com/peteqproj/peteq/pkg/logger"
+	repo "github.com/peteqproj/peteq/pkg/repo/def"
+	
+	{{ if eq .Tenant "user" -}}
+	"github.com/peteqproj/peteq/pkg/tenant"
+	{{ end }}
+)
+
+var ErrNotFound = errors.New("{{.Root.Resource}} not found")
+var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
+var errNoTenantInContext = errors.New("No tenant in context")
+var repoDefEmbed = {{ EmbedRepoDef . }}
+{{ BuildInitQueries . }}
+
+type (
+	Repo struct {
+		DB        db.Database 
+		Logger    logger.Logger
+		initiated bool
+		def       *repo.RepoDef
+	}
+)
+func (r *Repo) Initiate(ctx context.Context) error {
+    for _, q := range queries {
+		r.Logger.Info("Running db init query", "query", q)
+		if _, err := r.DB.ExecContext(ctx, q); err != nil {
+			return err
+		}
+	}
+	
+	def := &repo.RepoDef{}
+	if err := yaml.Unmarshal([]byte(repoDefEmbed), def); err != nil {
+		return err
+	}
+	r.def = def
+
+	r.initiated = true
+	return nil
+}
+/* PrimeryKey functions*/
+
+func (r *Repo) Create(ctx context.Context, resource *{{ .Root.Resource}}) error {
+    if !r.initiated {
+		return errNotInitiated
+	}
+	{{ if eq .Tenant "user" -}}
+	var user *user.User 
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+	{{ end }}
+	
+	{{ range $.Root.Database.Postgres.Columns -}}
+	
+	{{- if eq .Type "json" -}}
+	table_column_{{ .Name }}, err := json.Marshal(resource)
+	if err != nil {
+		return err
+	}
+	{{ end -}}
+
+	{{- if eq .Type "text" -}}
+	
+	{{- if .FromResource -}}
+	table_column_{{ .Name }} := resource.{{.FromResource.Path}}
+	{{ end -}}
+	
+	{{- if .FromTenant }}
+	{{- if eq $.Tenant "user" -}}
+	table_column_{{ .Name }} := user.{{.FromTenant.Path}}
+	{{ end -}}
+	{{ end -}}
+	
+	{{- end -}}
+	
+	{{- end -}}
+	
+	q, _, err := goqu.
+		Insert({{ $.Root.Database.Name | quote }}).
+		Cols(
+		{{ range $.Root.Database.Postgres.Columns -}}
+			"{{.Name}}",
+		{{ end -}}
+		).
+		Vals(goqu.Vals{
+		{{ range $.Root.Database.Postgres.Columns -}}
+			string(table_column_{{.Name}}),
+		{{ end -}}
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo) GetBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryKey }}({{ BuildIndexesArgumentList  .Root.Database.Postgres.PrimeryKey .Root.Database }}) (*{{.Root.Resource}}, error) {
+    if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	{{- range .Root.Database.Postgres.PrimeryKey }}
+	e["{{ . }}"] = {{ . }}
+	{{ end -}}
+
+	{{ if eq .Tenant "user" -}}
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+	{{ end }}
+	query, _, err := goqu.From({{ $.Root.Database.Name | quote }}).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, row.Err() 
+	}
+	{{range $.Root.Database.Postgres.Columns -}}
+	var table_{{ .Name }} string
+	{{ end }}
+	if err := row.Scan(
+		{{ range $.Root.Database.Postgres.Columns -}}
+		&table_{{.Name}},
+		{{ end -}}
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	resource := &{{$.Root.Resource}}{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}   
+	return resource, nil
+}
+func (r *Repo) Update{{ .Root.Resource }}(ctx context.Context, resource *{{ .Root.Resource}}) (error) {
+    if !r.initiated {
+		return errNotInitiated
+	}
+	{{ if eq .Tenant "user" -}}
+	var user *user.User 
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+	{{ end }}
+
+	{{ range $.Root.Database.Postgres.Columns -}}
+	
+	{{- if eq .Type "json" -}}
+	table_column_{{ .Name }}, err := json.Marshal(resource)
+	if err != nil {
+		return err
+	}
+	{{ end -}}
+
+	{{- if eq .Type "text" -}}	
+	
+	{{- if .FromResource -}}
+	table_column_{{ .Name }} := resource.{{.FromResource.Path}}
+	{{ end -}}
+	
+	{{- if .FromTenant }}
+	{{- if eq $.Tenant "user" -}}
+	table_column_{{ .Name }} := user.{{.FromTenant.Path}}
+	{{ end -}}
+	{{ end -}}
+	
+	{{- end -}}
+	
+	{{- end -}}
+	
+	q, _, err := goqu.
+		Update({{ $.Root.Database.Name | quote }}).
+		Where(exp.Ex{
+			"id": resource.Metadata.ID,
+		}).
+		Set(goqu.Record{
+		{{ range $.Root.Database.Postgres.Columns -}}
+			"{{.Name}}": string(table_column_{{.Name}}),
+		{{ end -}}
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo) DeleteBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryKey }}({{ BuildIndexesArgumentList  .Root.Database.Postgres.PrimeryKey .Root.Database}}) (error) {
+	if !r.initiated {
+		return errNotInitiated
+	}
+	e := exp.Ex{}
+	{{- range .Root.Database.Postgres.PrimeryKey }}
+	e["{{ . }}"] = {{ . }}
+	{{ end -}}
+
+	{{ if eq .Tenant "user" -}}
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+	{{ end }}
+	q, _, err := goqu.
+		Delete({{ $.Root.Database.Name | quote }}).
+		Where(e).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	return err
+}
+/*End of PrimeryKey functions*/
+
+/*Index functions*/
+{{ range .Root.Database.Postgres.Indexes }}
+func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . $.Root.Database }}) ( []*{{$.Root.Resource}}, error) {
+	if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	{{- range . }}
+	e["{{ . }}"] = {{ . }}
+	{{ end -}}
+
+	{{ if eq $.Tenant "user" -}}
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+	{{ end }}
+	sql, _, err := goqu.From({{ $.Root.Database.Name | quote }}).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DB.QueryContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+	res := []*{{$.Root.Resource}}{}
+	for rows.Next() {
+		{{range $.Root.Database.Postgres.Columns -}}
+		var table_{{ .Name }} string
+		{{ end }}
+		if err := rows.Scan(
+			{{ range $.Root.Database.Postgres.Columns -}}
+			&table_{{.Name}},
+			{{ end -}}
+		); err != nil {
+			return nil, err
+		}
+		resource := &{{$.Root.Resource}}{}
+		// info column must exist
+		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+			return nil, err
+		}
+		res = append(res, resource)
+	}
+	return res, rows.Close()
+
+}
+{{ end }}
+/*End of index function'*/
+
+/*UniqueIndex functions*/
+{{ range .Root.Database.Postgres.UniqueIndexes -}}
+func (r *Repo) GetBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . $.Root.Database }}) ( *{{$.Root.Resource}}, error) {
+    if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	{{- range . }}
+	e["{{ . }}"] = {{ . }}
+	{{ end -}}
+
+	{{ if eq $.Tenant "user" -}}
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+	{{ end }}
+	query, _, err := goqu.From({{ $.Root.Database.Name | quote }}).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, row.Err() 
+	}
+	{{range $.Root.Database.Postgres.Columns -}}
+	var table_{{ .Name }} string
+	{{ end }}
+	if err := row.Scan(
+		{{ range $.Root.Database.Postgres.Columns -}}
+		&table_{{.Name}},
+		{{ end -}}
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	resource := &{{$.Root.Resource}}{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}   
+	return resource, nil
+}
+{{ end -}}
+/*End of UniqueIndex functions*/
+
+{{ range .Aggregates }}
+func (r *Repo)Create{{ .Resource }}(ctx context.Context, resource *{{ .Resource }}) (error) {
+    if !r.initiated {
+		return errNotInitiated
+	}
+	{{ if eq $.Tenant "user" -}}
+	var user *user.User 
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return errNoTenantInContext
+		}
+		user = u
+	}
+	{{ end }}
+	
+	{{ range .Database.Postgres.Columns -}}
+	
+	{{- if eq .Type "json" -}}
+	table_column_{{ .Name }}, err := json.Marshal(resource)
+	if err != nil {
+		return err
+	}
+	{{ end -}}
+
+	{{- if eq .Type "text" -}}
+	
+	{{- if .FromResource -}}
+	table_column_{{ .Name }} := resource.{{.FromResource.Path}}
+	{{ end -}}
+	
+	{{- if .FromTenant }}
+	{{- if eq $.Tenant "user" -}}
+	table_column_{{ .Name }} := user.{{.FromTenant.Path}}
+	{{ end -}}
+	{{ end -}}
+
+	{{- end -}}
+	
+	{{- end -}}
+	
+	q, _, err := goqu.
+		Insert({{ .Database.Name | quote }}).
+		Cols(
+		{{ range .Database.Postgres.Columns -}}
+			"{{.Name}}",
+		{{ end -}}
+		).
+		Vals(goqu.Vals{
+		{{ range .Database.Postgres.Columns -}}
+			string(table_column_{{.Name}}),
+		{{ end -}}
+		}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.ExecContext(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *Repo)Update{{ .Resource}}(ctx context.Context, resouce *{{ .Resource }}) (error) {
+	// TODO
+	return nil
+}
+
+func (r *Repo) Get{{ .Resource }}By{{- BuildIndexesFunction .Database.Postgres.PrimeryKey }}({{ BuildIndexesArgumentList  .Database.Postgres.PrimeryKey .Database }}) (*{{.Resource}}, error) {
+	return nil, nil
+}
+{{ $resource := .Resource }}
+{{ $database := .Database }}
+{{ range .Database.Postgres.Indexes }}
+func (r *Repo) List{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList  . $database }}) ([]*{{$resource}}, error) {
+	if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	{{- range . }}
+	e["{{ . }}"] = {{ . }}
+	{{ end -}}
+
+	{{ if eq $.Tenant "user" -}}
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+	{{ end }}
+	sql, _, err := goqu.From({{ $database.Name | quote }}).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DB.QueryContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+	res := []*{{$resource}}{}
+	for rows.Next() {
+		{{range $database.Postgres.Columns -}}
+		var table_{{ .Name }} string
+		{{ end }}
+		if err := rows.Scan(
+			{{ range $database.Postgres.Columns -}}
+			&table_{{.Name}},
+			{{ end -}}
+		); err != nil {
+			return nil, err
+		}
+		resource := &{{$resource}}{}
+		// info column must exist
+		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+			return nil, err
+		}
+		res = append(res, resource)
+	}
+	return res, rows.Close()
+}
+{{ end }}
+{{ range .Database.Postgres.UniqueIndexes }}
+func (r *Repo) Get{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList  . $database }}) (*{{$resource}}, error) {
+    if !r.initiated {
+		return nil, errNotInitiated
+	}
+	e := exp.Ex{}
+	{{- range . }}
+	e["{{ . }}"] = {{ . }}
+	{{ end -}}
+
+	{{ if eq $.Tenant "user" -}}
+	if r.def.Tenant != "" {
+		u := tenant.UserFromContext(ctx)
+		if u == nil {
+			return nil, errNoTenantInContext
+		}
+		e["userid"] = u.Metadata.ID
+	}
+	{{ end }}
+	query, _, err := goqu.From({{ $database.Name | quote }}).Where(e).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	row := r.DB.QueryRowContext(ctx, query)
+	if row.Err() != nil {
+		return nil, row.Err() 
+	}
+	{{range $database.Postgres.Columns -}}
+	var table_{{ .Name }} string
+	{{ end }}
+	if err := row.Scan(
+		{{ range $database.Postgres.Columns -}}
+		&table_{{.Name}},
+		{{ end -}}
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	resource := &{{$resource}}{}
+	// info column must exist
+	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
+		return nil, err
+	}   
+	return resource, nil
+}
+{{ end }}
+{{ end }}

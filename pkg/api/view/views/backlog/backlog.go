@@ -9,6 +9,7 @@ import (
 	"github.com/peteqproj/peteq/domain/list"
 	listEvents "github.com/peteqproj/peteq/domain/list/event/handler"
 	listEventTypes "github.com/peteqproj/peteq/domain/list/event/types"
+	"github.com/peteqproj/peteq/domain/project"
 	projectEvents "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/domain/task"
@@ -18,16 +19,15 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
 	// ViewAPI for backlog view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
-		ProjectRepo *repo.Repo
+		ProjectRepo *project.Repo
 		DAL         *DAL
 	}
 
@@ -163,9 +163,9 @@ func (h *ViewAPI) handleTaskMovedToList(ctx context.Context, ev event.Event, vie
 	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
-	newList := list.List{}
+	var newList *list.List
 	if spec.Destination != "" {
-		list, err := h.ListRepo.Get(ev.Tenant.ID, spec.Destination)
+		list, err := h.ListRepo.GetById(ctx, spec.Destination)
 		if err != nil {
 			return view, err
 		}
@@ -196,9 +196,9 @@ func (h *ViewAPI) handleTaskCreated(ctx context.Context, ev event.Event, view ba
 	}
 	t := task.Task{
 		Metadata: task.Metadata{
-			ID:          spec.ID,
-			Name:        spec.Name,
-			Description: &spec.Description,
+			ID:   spec.ID,
+			Name: spec.Name,
+			// Description: &spec.Description,
 		},
 	}
 	view.Tasks = append(view.Tasks, backlogTask{
@@ -217,7 +217,7 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view ba
 		return view, fmt.Errorf("Task not found")
 	}
 	view.Tasks[index].Task.Metadata.Name = spec.Name
-	view.Tasks[index].Task.Metadata.Description = &spec.Description
+	// view.Tasks[index].Task.Metadata.Description = &spec.Description
 	return view, nil
 }
 func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, view backlogView, logger logger.Logger) (backlogView, error) {
@@ -261,9 +261,7 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	}
 	newProject := backlogTaskProject{}
 	if spec.Project != "" {
-		prj, err := h.ProjectRepo.Get(ctx, repo.GetOptions{
-			ID: spec.Project,
-		})
+		prj, err := h.ProjectRepo.GetById(ctx, spec.Project)
 		if err != nil {
 			return view, err
 		}

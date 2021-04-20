@@ -27,9 +27,9 @@ var (
 type UserCommandAPIApiService service
 
 type ApiCUserLoginPostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *UserCommandAPIApiService
-	body *LoginRequestBody
+	body       *LoginRequestBody
 }
 
 func (r ApiCUserLoginPostRequest) Body(body LoginRequestBody) ApiCUserLoginPostRequest {
@@ -50,7 +50,7 @@ func (r ApiCUserLoginPostRequest) Execute() (CommandResponse, *_nethttp.Response
 func (a *UserCommandAPIApiService) CUserLoginPost(ctx _context.Context) ApiCUserLoginPostRequest {
 	return ApiCUserLoginPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
@@ -148,9 +148,9 @@ func (a *UserCommandAPIApiService) CUserLoginPostExecute(r ApiCUserLoginPostRequ
 }
 
 type ApiCUserRegisterPostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *UserCommandAPIApiService
-	body *RegistrationRequestBody
+	body       *RegistrationRequestBody
 }
 
 func (r ApiCUserRegisterPostRequest) Body(body RegistrationRequestBody) ApiCUserRegisterPostRequest {
@@ -171,7 +171,7 @@ func (r ApiCUserRegisterPostRequest) Execute() (CommandResponse, *_nethttp.Respo
 func (a *UserCommandAPIApiService) CUserRegisterPost(ctx _context.Context) ApiCUserRegisterPostRequest {
 	return ApiCUserRegisterPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 

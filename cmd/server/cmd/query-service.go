@@ -1,14 +1,17 @@
 package cmd
 
 import (
+	"context"
+
 	listDomain "github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/domain/task"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/api/builder"
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
 
@@ -46,28 +49,36 @@ var queryServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		taskRepo, err := repo.New(repo.Options{
-			ResourceType: "tasks",
-			DB:           db,
-			Logger:       logr.Fork("repo", "task"),
-		})
+		taskRepo := &task.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "task"),
+		}
+		if err := taskRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init task repo")
+		}
 		utils.DieOnError(err, "Failed to init task repo")
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
 		}
-		projectRepo, err := repo.New(repo.Options{
-			ResourceType: "projects",
-			DB:           db,
-			Logger:       logr.Fork("repo", "project"),
-		})
-		utils.DieOnError(err, "Failed to init project repo")
+		if err := taskRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init list repo")
+		}
+		projectRepo := &project.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "project"),
+		}
+		if err := projectRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init project repo")
+		}
 
 		userRepo := &userDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "user"),
 		}
-
+		if err := userRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init user repo")
+		}
 		apiBuilder := builder.Builder{
 			UserRepo:    userRepo,
 			ListRpeo:    listRepo,

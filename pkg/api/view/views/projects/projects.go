@@ -8,21 +8,21 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
+	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
 	// ViewAPI for projects view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
-		ProjectRepo *repo.Repo
+		TaskRepo    *task.Repo
+		ProjectRepo *project.Repo
 		DAL         *DAL
 	}
 
@@ -32,7 +32,7 @@ type (
 
 	populatedProject struct {
 		Project project.Project `json:"project"`
-		Tasks   []repo.Resource `json:"tasks"`
+		Tasks   []task.Task     `json:"tasks"`
 	}
 )
 
@@ -131,7 +131,7 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	newTask, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
+	newTask, err := h.TaskRepo.GetById(ctx, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
@@ -168,7 +168,7 @@ func (h *ViewAPI) handlerProjectCreated(ctx context.Context, ev event.Event, vie
 	}
 	view.Projects = append(view.Projects, populatedProject{
 		Project: p,
-		Tasks:   make([]repo.Resource, 0),
+		Tasks:   make([]task.Task, 0),
 	})
 	return view, nil
 }

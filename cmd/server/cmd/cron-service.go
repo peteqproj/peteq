@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"time"
 
 	userDomain "github.com/peteqproj/peteq/domain/user"
@@ -14,6 +15,7 @@ import (
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
+	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 
 	"github.com/spf13/cobra"
@@ -33,7 +35,7 @@ var cronServiceCmdFlags struct {
 type (
 	userTriggerPair struct {
 		user     userDomain.User
-		triggers map[string]triggerDomain.Trigger
+		triggers map[string]*triggerDomain.Trigger
 		cron     cron.Cron
 	}
 )
@@ -66,6 +68,9 @@ var cronServiceCmd = &cobra.Command{
 			DB:     db,
 			Logger: logr.Fork("repo", "trigger"),
 		}
+		if err := triggerRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init trigger repo")
+		}
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
 		if err := ebus.Start(); err != nil {
 			return err
@@ -91,7 +96,7 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 		case _ = <-time.After(time.Minute * 1):
 			{
 				lgr.Info("Running loop")
-				res, err := userRepo.List(userDomain.ListOptions{})
+				res, err := userRepo.List(context.Background())
 				if err != nil {
 					lgr.Info("Failed to load users", "error", err.Error())
 					continue
@@ -102,8 +107,8 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 					}
 					lgr.Info("New user added", "email", u.Spec.Email, "id", u.Metadata.ID)
 					l[u.Metadata.ID] = userTriggerPair{
-						user:     u,
-						triggers: map[string]triggerDomain.Trigger{},
+						user:     *u,
+						triggers: map[string]*triggerDomain.Trigger{},
 						cron: cron.New(cron.Options{
 							EventPublisher: ebus,
 							Logger:         lgr.Fork("user", u.Metadata.ID),
@@ -114,9 +119,8 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 				}
 
 				for id, pair := range l {
-					res, err := triggerRepo.List(triggerDomain.QueryOptions{
-						UserID: id,
-					})
+					ctx := tenant.ContextWithUser(context.Background(), pair.user)
+					res, err := triggerRepo.ListByUserid(ctx, id)
 					if err != nil {
 						lgr.Info("Failed to load user triggers", "error", err.Error(), "user", id)
 					}

@@ -27,9 +27,9 @@ var (
 type ProjectCommandAPIApiService service
 
 type ApiCProjectCreatePostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *ProjectCommandAPIApiService
-	body *CreateProjectRequestBody
+	body       *CreateProjectRequestBody
 }
 
 func (r ApiCProjectCreatePostRequest) Body(body CreateProjectRequestBody) ApiCProjectCreatePostRequest {
@@ -50,7 +50,7 @@ func (r ApiCProjectCreatePostRequest) Execute() (CommandResponse, *_nethttp.Resp
 func (a *ProjectCommandAPIApiService) CProjectCreatePost(ctx _context.Context) ApiCProjectCreatePostRequest {
 	return ApiCProjectCreatePostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 

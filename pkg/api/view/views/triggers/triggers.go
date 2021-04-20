@@ -113,9 +113,6 @@ func (h *ViewAPI) handlerTriggerCreated(ctx context.Context, ev event.Event, vie
 		triggerSpec = append(triggerSpec, *spec.Cron)
 	}
 
-	if spec.URL != nil {
-		triggerSpec = append(triggerSpec, *spec.URL)
-	}
 	view.Triggers = append(view.Triggers, triggerViewItem{
 		ID:          spec.ID,
 		Name:        spec.Name,

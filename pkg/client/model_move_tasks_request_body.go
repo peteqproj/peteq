@@ -16,9 +16,9 @@ import (
 
 // MoveTasksRequestBody struct for MoveTasksRequestBody
 type MoveTasksRequestBody struct {
-	Destination *string `json:"destination,omitempty"`
-	Source *string `json:"source,omitempty"`
-	Tasks []string `json:"tasks"`
+	Destination *string  `json:"destination,omitempty"`
+	Source      *string  `json:"source,omitempty"`
+	Tasks       []string `json:"tasks"`
 }
 
 // NewMoveTasksRequestBody instantiates a new MoveTasksRequestBody object
@@ -116,7 +116,7 @@ func (o *MoveTasksRequestBody) GetTasks() []string {
 // GetTasksOk returns a tuple with the Tasks field value
 // and a boolean to check if the value has been set.
 func (o *MoveTasksRequestBody) GetTasksOk() (*[]string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Tasks, true
@@ -176,5 +176,3 @@ func (v *NullableMoveTasksRequestBody) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

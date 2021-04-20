@@ -6,12 +6,13 @@ import (
 	"fmt"
 
 	"github.com/mmcdole/gofeed"
+	"github.com/peteqproj/peteq/domain/project"
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/command"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
@@ -19,8 +20,8 @@ import (
 type (
 	rssImporter struct {
 		Commandbus  commandbus.CommandBus
-		TaskRepo    *repo.Repo
-		ProjectRepo *repo.Repo
+		TaskRepo    *task.Repo
+		ProjectRepo *project.Repo
 		Logger      logger.Logger
 		Event       event.Event
 		IDGenerator utils.IDGenerator
@@ -40,7 +41,7 @@ func (r *rssImporter) Run(ctx context.Context) error {
 	if usr == nil {
 		return fmt.Errorf("User was not set in the current context")
 	}
-	list, err := r.ProjectRepo.List(ctx, repo.ListOptions{})
+	list, err := r.ProjectRepo.ListByUserid(ctx, usr.Metadata.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to list projects: %w", err)
 	}
@@ -56,7 +57,7 @@ func (r *rssImporter) Run(ctx context.Context) error {
 	}
 	projectID := ""
 
-	r.Logger.Info("Pasing RSS", "url", input.URL)
+	r.Logger.Info("Parsing RSS", "url", input.URL)
 	rss, err := gofeed.NewParser().ParseURL(input.URL)
 	if err != nil {
 		return err

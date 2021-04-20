@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// CompleteCommand to create task
 	CompleteCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *task.Repo
 	}
 
 	CompleteTaskArguments struct {
@@ -30,6 +32,14 @@ func (c *CompleteCommand) Handle(ctx context.Context, arguments interface{}) err
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to CompleteTaskArguments object")
+	}
+	t, err := c.Repo.GetById(ctx, opt.TaskID)
+	if err != nil {
+		return err
+	}
+	t.Spec.Completed = true
+	if err := c.Repo.UpdateTask(ctx, t); err != nil {
+		return err
 	}
 	u := tenant.UserFromContext(ctx)
 	_, err = c.Eventbus.Publish(ctx, event.Event{

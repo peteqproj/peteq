@@ -21,18 +21,18 @@ func (r *User) Marshal() ([]byte, error) {
 // user
 type User struct {
 	Metadata Metadata `json:"metadata"`
-	Spec     Spec     `json:"spec"`    
+	Spec     Spec     `json:"spec"`
 }
 
 type Metadata struct {
 	Description *string           `json:"description,omitempty"`
-	ID          string            `json:"id"`                   
-	Labels      map[string]string `json:"labels,omitempty"`     
-	Name        string            `json:"name"`                 
+	ID          string            `json:"id"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Name        string            `json:"name"`
 }
 
 type Spec struct {
-	Email        string `json:"email"`       
+	Email        string `json:"email"`
 	PasswordHash string `json:"passwordHash"`
-	TokenHash    string `json:"tokenHash"`   
+	TokenHash    string `json:"tokenHash"`
 }

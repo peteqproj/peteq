@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 )
 
 type (
 	// CommandAPI for lists
 	CommandAPI struct {
-		Repo        *repo.Repo
+		Repo        *project.Repo
 		Commandbus  commandbus.CommandBus
 		Logger      logger.Logger
 		IDGenerator utils.IDGenerator

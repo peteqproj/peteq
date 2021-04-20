@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/automation"
 	"github.com/peteqproj/peteq/domain/automation/event/handler"
 	"github.com/peteqproj/peteq/domain/automation/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// CreateCommand to create task
 	CreateCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *automation.Repo
 	}
 
 	// AutomationCreateCommandOptions options to create automation
@@ -38,6 +40,23 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 	}
 
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return fmt.Errorf("user not set in context")
+	}
+	if err := m.Repo.Create(ctx, &automation.Automation{
+		Metadata: automation.Metadata{
+			ID:          opt.ID,
+			Name:        opt.Name,
+			Labels:      map[string]string{},
+			Description: utils.PtrString(""),
+		},
+		Spec: automation.AutomationSpec{
+			JSONInputSchema: opt.JSONInputSchema,
+			Type:            opt.Type,
+		},
+	}); err != nil {
+		return err
+	}
 	_, err = m.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   u.Metadata.ID,

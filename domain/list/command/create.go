@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/list/event/handler"
 	"github.com/peteqproj/peteq/domain/list/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// Create to create task
 	Create struct {
 		Eventbus bus.EventPublisher
+		Repo     *list.Repo
 	}
 
 	// CreateCommandOptions is the arguments the command expects
@@ -33,6 +35,21 @@ func (m *Create) Handle(ctx context.Context, arguments interface{}) error {
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to CreateCommandOptions object")
+	}
+
+	if err := m.Repo.Create(ctx, &list.List{
+		Metadata: list.Metadata{
+			ID:          opt.ID,
+			Description: utils.PtrString(""),
+			Labels:      map[string]string{},
+			Name:        opt.Name,
+		},
+		Spec: list.Spec{
+			Index: float64(opt.Index),
+			Tasks: []string{},
+		},
+	}); err != nil {
+		return err
 	}
 
 	u := tenant.UserFromContext(ctx)

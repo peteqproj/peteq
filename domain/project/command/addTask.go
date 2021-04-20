@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/event/handler"
 	"github.com/peteqproj/peteq/domain/project/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,6 +18,7 @@ type (
 	// AddTaskCommand to create task
 	AddTaskCommand struct {
 		Eventbus bus.EventPublisher
+		Repo     *project.Repo
 	}
 
 	// AddTasksCommandOptions options to add tasks to project
@@ -32,6 +34,14 @@ func (m *AddTaskCommand) Handle(ctx context.Context, arguments interface{}) erro
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
 		return fmt.Errorf("Failed to convert arguments to AddTasksCommandOptions object")
+	}
+	prj, err := m.Repo.GetById(ctx, opt.Project)
+	if err != nil {
+		return err
+	}
+	prj.Spec.Tasks = append(prj.Spec.Tasks, opt.TaskID)
+	if err := m.Repo.UpdateProject(ctx, prj); err != nil {
+		return err
 	}
 	u := tenant.UserFromContext(ctx)
 	_, err = m.Eventbus.Publish(ctx, event.Event{

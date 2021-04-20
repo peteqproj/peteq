@@ -16,10 +16,10 @@ import (
 
 // HomeHomeList struct for HomeHomeList
 type HomeHomeList struct {
-	Id *string `json:"id,omitempty"`
-	Metadata *ListMetadata `json:"metadata,omitempty"`
-	Tasks *[]HomeHomeTask `json:"tasks,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Id       *string         `json:"id,omitempty"`
+	Metadata *ListMetadata   `json:"metadata,omitempty"`
+	Tasks    *[]HomeHomeTask `json:"tasks,omitempty"`
+	Type     *string         `json:"type,omitempty"`
 }
 
 // NewHomeHomeList instantiates a new HomeHomeList object
@@ -219,5 +219,3 @@ func (v *NullableHomeHomeList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

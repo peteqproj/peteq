@@ -16,9 +16,9 @@ import (
 
 // ListMetadata struct for ListMetadata
 type ListMetadata struct {
-	Id *string `json:"id,omitempty"`
-	Index *int32 `json:"index,omitempty"`
-	Name *string `json:"name,omitempty"`
+	Id    *string `json:"id,omitempty"`
+	Index *int32  `json:"index,omitempty"`
+	Name  *string `json:"name,omitempty"`
 }
 
 // NewListMetadata instantiates a new ListMetadata object
@@ -183,5 +183,3 @@ func (v *NullableListMetadata) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

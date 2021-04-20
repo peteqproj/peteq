@@ -34,28 +34,28 @@ func (r *TriggerBinding) Marshal() ([]byte, error) {
 // Automation aggregate
 type Automation struct {
 	Metadata Metadata       `json:"metadata"`
-	Spec     AutomationSpec `json:"spec"`    
+	Spec     AutomationSpec `json:"spec"`
 }
 
 type Metadata struct {
 	Description *string           `json:"description,omitempty"`
-	ID          string            `json:"id"`                   
-	Labels      map[string]string `json:"labels,omitempty"`     
-	Name        string            `json:"name"`                 
+	ID          string            `json:"id"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Name        string            `json:"name"`
 }
 
 type AutomationSpec struct {
 	JSONInputSchema string `json:"jsonInputSchema"`
-	Type            string `json:"type"`           
+	Type            string `json:"type"`
 }
 
 // Trigger binding aggregate
 type TriggerBinding struct {
 	Metadata Metadata           `json:"metadata"`
-	Spec     TriggerBindingSpec `json:"spec"`    
+	Spec     TriggerBindingSpec `json:"spec"`
 }
 
 type TriggerBindingSpec struct {
 	Automation string `json:"automation"`
-	Trigger    string `json:"trigger"`   
+	Trigger    string `json:"trigger"`
 }

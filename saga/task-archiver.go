@@ -5,15 +5,16 @@ import (
 	"fmt"
 
 	listDomain "github.com/peteqproj/peteq/domain/list"
+	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/domain/task/command"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 )
 
 type (
 	archiver struct {
 		Commandbus commandbus.CommandBus
-		TaskRepo   *repo.Repo
+		TaskRepo   *task.Repo
 		ListRepo   *listDomain.Repo
 		Logger     logger.Logger
 		User       string // TODO: use from context tenant
@@ -22,9 +23,8 @@ type (
 
 func (a *archiver) Run(ctx context.Context) error {
 	a.Logger.Info("Running task archiver")
-	lists, err := a.ListRepo.List(listDomain.QueryOptions{
-		UserID: a.User,
-	})
+	// TODO: make sure the context is authenticated and remove a.User
+	lists, err := a.ListRepo.ListByUserid(ctx, a.User)
 	if err != nil {
 		return fmt.Errorf("Failed to get lists: %w", err)
 	}
@@ -37,13 +37,13 @@ func (a *archiver) Run(ctx context.Context) error {
 	}
 
 	for _, c := range candidates {
-		t, err := a.TaskRepo.Get(ctx, repo.GetOptions{ID: c})
+		t, err := a.TaskRepo.GetById(ctx, c)
 		if err != nil {
 			a.Logger.Info("Failed to request task", "id", c, "error", err.Error())
 			continue
 		}
 		a.Logger.Info("Deleting task", "task", t.Metadata.ID)
-		if err := a.Commandbus.Execute(ctx, "task.delete", t); err != nil {
+		if err := a.Commandbus.Execute(ctx, "task.delete", command.DeleteCommandOptions{ID: t.Metadata.ID}); err != nil {
 			return err
 		}
 	}

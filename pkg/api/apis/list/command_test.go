@@ -2,6 +2,7 @@ package list
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"io"
 	"testing"
@@ -54,22 +55,28 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
+					logger := &logger.MockLogger{}
+					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					db, mock, _ := sqlmock.New()
 					q := ".*"
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
 						}))
-					return &list.Repo{
-						DB: db,
+					l := &list.Repo{
+						DB:     db,
+						Logger: logger,
 					}
+					return l
 				},
 			},
 			want: api.NewRejectedCommandResponse(
-				fmt.Errorf("Source list: Resource List with ID not-found was not found"),
+				fmt.Errorf("Source list: List not found"),
 			),
 		},
 		{
@@ -84,36 +91,41 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
+					logger := &logger.MockLogger{}
+					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
+					q := ".*"
+					db, mock, _ := sqlmock.New()
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					l := string(tests.MustMarshal(list.List{
 						Metadata: list.Metadata{
 							ID:   "found",
 							Name: "list",
 						},
 					}))
-					db, mock, _ := sqlmock.New()
-					q := ".*"
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", l))
+						}).AddRow("listid", "userid", l))
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
 						}))
 
 					return &list.Repo{
-						DB: db,
+						DB:     db,
+						Logger: logger,
 					}
 				},
 			},
 			want: api.NewRejectedCommandResponse(
-				fmt.Errorf("Destination list: Resource List with ID not-found was not found"),
+				fmt.Errorf("Destination list: List not found"),
 			),
 		},
 		{
@@ -128,15 +140,19 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
-					db, mock, _ := sqlmock.New()
+					logger := &logger.MockLogger{}
+					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
+					db, mock, _ := sqlmock.New()
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "source",
 								Name: "source",
@@ -145,10 +161,10 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "destination",
 								Name: "destination",
@@ -156,7 +172,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 						}))))
 
 					return &list.Repo{
-						DB: db,
+						DB:     db,
+						Logger: logger,
 					}
 				},
 				Commandbus: func() commandbus.CommandBus {
@@ -185,15 +202,19 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
-					db, mock, _ := sqlmock.New()
+					logger := &logger.MockLogger{}
+					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
+					db, mock, _ := sqlmock.New()
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Upcoming",
 								Name: "Upcoming",
@@ -202,10 +223,10 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Done",
 								Name: "Done",
@@ -213,7 +234,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 						}))))
 
 					return &list.Repo{
-						DB: db,
+						DB:     db,
+						Logger: logger,
 					}
 				},
 				Commandbus: func() commandbus.CommandBus {
@@ -244,15 +266,19 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
-					db, mock, _ := sqlmock.New()
+					logger := &logger.MockLogger{}
+					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
+					db, mock, _ := sqlmock.New()
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Done",
 								Name: "Done",
@@ -261,10 +287,10 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Upcoming",
 								Name: "Upcoming",
@@ -272,7 +298,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 						}))))
 
 					return &list.Repo{
-						DB: db,
+						DB:     db,
+						Logger: logger,
 					}
 				},
 				Commandbus: func() commandbus.CommandBus {
@@ -303,15 +330,19 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 			},
 			fields: fields{
 				Repo: func() *list.Repo {
-					db, mock, _ := sqlmock.New()
+					logger := &logger.MockLogger{}
+					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
+					db, mock, _ := sqlmock.New()
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
+					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
-							"userid",
-							"listid",
+							"id",
+							"name",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Upcoming",
 								Name: "Upcoming",
@@ -320,10 +351,10 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					mock.
 						ExpectQuery(q).
 						WillReturnRows(sqlmock.NewRows([]string{
+							"id",
 							"userid",
-							"listid",
 							"info",
-						}).AddRow("userid", "listid", string(tests.MustMarshal(list.List{
+						}).AddRow("id", "userid", string(tests.MustMarshal(list.List{
 							Metadata: list.Metadata{
 								ID:   "Today",
 								Name: "Today",
@@ -331,7 +362,8 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 						}))))
 
 					return &list.Repo{
-						DB: db,
+						DB:     db,
+						Logger: logger,
 					}
 				},
 				Commandbus: func() commandbus.CommandBus {
@@ -367,6 +399,12 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 				Repo:       repo,
 				Commandbus: cm,
 				Logger:     logger,
+			}
+
+			if ca.Repo != nil {
+				if err := ca.Repo.Initiate(context.Background()); err != nil {
+					panic(err)
+				}
 			}
 			resp := ca.MoveTasks(tt.args.ctx, tt.args.body)
 			assert.Equal(t, tt.want, resp)

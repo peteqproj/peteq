@@ -6,11 +6,11 @@ import (
 	"io"
 	"testing"
 
+	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/pkg/api"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/pkg/utils/tests"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ import (
 
 func TestCommandAPI_AddTasks(t *testing.T) {
 	type fields struct {
-		Repo        func() *repo.Repo
+		Repo        func() *project.Repo
 		Commandbus  func() commandbus.CommandBus
 		Logger      func() logger.Logger
 		IDGenerator func() utils.IDGenerator
@@ -86,7 +86,7 @@ func TestCommandAPI_AddTasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var repo *repo.Repo
+			var repo *project.Repo
 			var cm commandbus.CommandBus
 			var logger logger.Logger
 			var idGenerator utils.IDGenerator
@@ -116,7 +116,7 @@ func TestCommandAPI_AddTasks(t *testing.T) {
 
 func TestCommandAPI_Create(t *testing.T) {
 	type fields struct {
-		Repo        func() *repo.Repo
+		Repo        func() *project.Repo
 		Commandbus  func() commandbus.CommandBus
 		Logger      func() logger.Logger
 		IDGenerator func() utils.IDGenerator
@@ -199,7 +199,7 @@ func TestCommandAPI_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var repo *repo.Repo
+			var repo *project.Repo
 			var cm commandbus.CommandBus
 			var logger logger.Logger
 			var idGenerator utils.IDGenerator

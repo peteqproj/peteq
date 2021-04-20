@@ -16,7 +16,7 @@ import (
 
 // BacklogBacklogTaskList struct for BacklogBacklogTaskList
 type BacklogBacklogTaskList struct {
-	Id *string `json:"id,omitempty"`
+	Id   *string `json:"id,omitempty"`
 	Name *string `json:"name,omitempty"`
 }
 
@@ -147,5 +147,3 @@ func (v *NullableBacklogBacklogTaskList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

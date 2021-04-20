@@ -14,21 +14,20 @@ import (
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
 	// ViewAPI for single project view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
-		ProjectRepo *repo.Repo
+		TaskRepo    *task.Repo
+		ProjectRepo *project.Repo
 		DAL         *DAL
 	}
 
 	projectView struct {
 		Project project.Project `json:"project"`
-		Tasks   []repo.Resource `json:"tasks"`
+		Tasks   []task.Task     `json:"tasks"`
 	}
 )
 
@@ -120,18 +119,20 @@ func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view p
 }
 
 func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, logger logger.Logger) (string, error) {
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return "", fmt.Errorf("user not found in context")
+	}
 	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged || ev.Metadata.Name == taskEventTypes.TaskUpdatedEvent {
-		projects, err := h.ProjectRepo.List(ctx, repo.ListOptions{})
+		projects, err := h.ProjectRepo.ListByUserid(ctx, u.Metadata.ID)
 		if err != nil {
 			return "", err
 		}
 		projectID := ""
 		for _, p := range projects {
-			if spec, ok := p.Spec.(project.Spec); ok {
-				for _, t := range spec.Tasks {
-					if t == ev.Metadata.AggregatorID {
-						projectID = p.Metadata.ID
-					}
+			for _, t := range p.Spec.Tasks {
+				if t == ev.Metadata.AggregatorID {
+					projectID = p.Metadata.ID
 				}
 			}
 		}
@@ -167,9 +168,7 @@ func (h *ViewAPI) handleTaskStatusChanged(ctx context.Context, ev event.Event, v
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	tspec := view.Tasks[taskIndex].Spec.(task.Spec)
-	tspec.Completed = spec.Completed
-	view.Tasks[taskIndex].Spec = tspec
+	view.Tasks[taskIndex].Spec.Completed = spec.Completed
 	return view, nil
 }
 func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view projectView, logger logger.Logger) (projectView, error) {
@@ -182,9 +181,9 @@ func (h *ViewAPI) handleTaskUpdated(ctx context.Context, ev event.Event, view pr
 	if taskIndex == -1 {
 		return view, fmt.Errorf("Task not found")
 	}
-	if spec.Description != "" {
-		view.Tasks[taskIndex].Metadata.Description = spec.Description
-	}
+	// if spec.Description != "" {
+	// view.Tasks[taskIndex].Metadata.Description = utils.PtrString(spec.Description)
+	// }
 	if spec.Name != "" {
 		view.Tasks[taskIndex].Metadata.Name = spec.Name
 	}
@@ -196,7 +195,7 @@ func (h *ViewAPI) handleTaskAddedToProject(ctx context.Context, ev event.Event, 
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	task, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
+	task, err := h.TaskRepo.GetById(ctx, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
@@ -228,7 +227,7 @@ func (h *ViewAPI) handleProjectCreated(ctx context.Context, ev event.Event, logg
 	}
 	view := projectView{
 		Project: p,
-		Tasks:   make([]repo.Resource, 0),
+		Tasks:   make([]task.Task, 0),
 	}
 	return view, nil
 }

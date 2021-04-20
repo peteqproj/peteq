@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"context"
+
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
+	projectDomain "github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/domain/task"
 	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/internal"
@@ -10,7 +14,6 @@ import (
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
@@ -49,34 +52,47 @@ var eventHandlerServiceCmd = &cobra.Command{
 			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		taskRepo, err := repo.New(repo.Options{
-			ResourceType: "tasks",
-			DB:           db,
-			Logger:       logr.Fork("repo", "task"),
-		})
-		utils.DieOnError(err, "Failed to init task repo")
+		taskRepo := &task.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "task"),
+		}
+		if err := taskRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init task repo")
+		}
 		listRepo := &listDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "list"),
 		}
-		projectRepo, err := repo.New(repo.Options{
-			ResourceType: "projects",
-			DB:           db,
-			Logger:       logr.Fork("repo", "project"),
-		})
-		utils.DieOnError(err, "Failed to init project repo")
-
+		if err := listRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init list repo")
+		}
+		projectRepo := &projectDomain.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "project"),
+		}
+		if err := projectRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init project repo")
+		}
 		userRepo := &userDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "user"),
+		}
+		if err := userRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init user repo")
 		}
 		automationRepo := &automationDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "automation"),
 		}
+		if err := automationRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init automation repo")
+		}
 		triggerRepo := &triggerDomain.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "trigger"),
+		}
+		if err := triggerRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init trigger repo")
 		}
 
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, true, logr.Fork("module", "eventbus"))
@@ -85,14 +101,8 @@ var eventHandlerServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, triggerRepo, automationRepo)
 
-		registerUserEventHandlers(ebus, userRepo)
-		registerTaskEventHandlers(ebus, taskRepo)
-		registerListEventHandlers(ebus, listRepo)
-		registerProjectEventHandlers(ebus, projectRepo)
-		registerTriggerEventHandlers(ebus, triggerRepo)
-		registerAutomationEventHandlers(ebus, automationRepo)
 		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
 		sagaEventHandler := &saga.EventHandler{
 			CommandBus:     cb,

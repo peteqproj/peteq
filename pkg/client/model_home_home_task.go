@@ -16,12 +16,12 @@ import (
 
 // HomeHomeTask struct for HomeHomeTask
 type HomeHomeTask struct {
-	Id *string `json:"id,omitempty"`
-	Metadata TaskMetadata `json:"metadata"`
-	Project *ProjectProject `json:"project,omitempty"`
-	Spec TaskSpec `json:"spec"`
-	Status *TaskStatus `json:"status,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Id       *string         `json:"id,omitempty"`
+	Metadata TaskMetadata    `json:"metadata"`
+	Project  *ProjectProject `json:"project,omitempty"`
+	Spec     TaskSpec        `json:"spec"`
+	Status   *TaskStatus     `json:"status,omitempty"`
+	Type     *string         `json:"type,omitempty"`
 }
 
 // NewHomeHomeTask instantiates a new HomeHomeTask object
@@ -88,7 +88,7 @@ func (o *HomeHomeTask) GetMetadata() TaskMetadata {
 // GetMetadataOk returns a tuple with the Metadata field value
 // and a boolean to check if the value has been set.
 func (o *HomeHomeTask) GetMetadataOk() (*TaskMetadata, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Metadata, true
@@ -144,7 +144,7 @@ func (o *HomeHomeTask) GetSpec() TaskSpec {
 // GetSpecOk returns a tuple with the Spec field value
 // and a boolean to check if the value has been set.
 func (o *HomeHomeTask) GetSpecOk() (*TaskSpec, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Spec, true
@@ -277,5 +277,3 @@ func (v *NullableHomeHomeTask) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

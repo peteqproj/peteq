@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine3.12 AS dev
+FROM golang:1.16-alpine3.12 AS dev
 
 RUN apk update && apk add make gcc musl-dev
 

@@ -47,7 +47,7 @@ async function start() {
     try {
         for (let index = 0; index < s.integer({ min: 50, max: 80 }); index++ ) {
             const task = generateTask(s);
-            console.log(`Generating Task: ${task.name}`);
+            console.log(`Generating Task: ${task.name} [list: ${task.list}] [project: ${task.project}]`);
             await createTask({url, token, task})
         }
     } catch(err) {

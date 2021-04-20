@@ -21,14 +21,14 @@ func (r *Task) Marshal() ([]byte, error) {
 // task
 type Task struct {
 	Metadata Metadata `json:"metadata"`
-	Spec     Spec     `json:"spec"`    
+	Spec     Spec     `json:"spec"`
 }
 
 type Metadata struct {
 	Description *string           `json:"description,omitempty"`
-	ID          string            `json:"id"`                   
-	Labels      map[string]string `json:"labels,omitempty"`     
-	Name        string            `json:"name"`                 
+	ID          string            `json:"id"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Name        string            `json:"name"`
 }
 
 type Spec struct {

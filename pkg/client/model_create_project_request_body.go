@@ -16,10 +16,10 @@ import (
 
 // CreateProjectRequestBody struct for CreateProjectRequestBody
 type CreateProjectRequestBody struct {
-	Color *string `json:"color,omitempty"`
+	Color       *string `json:"color,omitempty"`
 	Description *string `json:"description,omitempty"`
-	ImageUrl *string `json:"imageUrl,omitempty"`
-	Name string `json:"name"`
+	ImageUrl    *string `json:"imageUrl,omitempty"`
+	Name        string  `json:"name"`
 }
 
 // NewCreateProjectRequestBody instantiates a new CreateProjectRequestBody object
@@ -149,7 +149,7 @@ func (o *CreateProjectRequestBody) GetName() string {
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *CreateProjectRequestBody) GetNameOk() (*string, bool) {
-	if o == nil  {
+	if o == nil {
 		return nil, false
 	}
 	return &o.Name, true
@@ -212,5 +212,3 @@ func (v *NullableCreateProjectRequestBody) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

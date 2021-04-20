@@ -1,0 +1,31 @@
+name: user
+root:
+  resource: User
+  database:
+    name: user_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: email
+        type: text
+        fromResource:
+          as: string
+          path: Spec.Email
+      - name: token
+        type: text
+        fromResource:
+          as: string
+          path: Spec.TokenHash
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      uniqueIndexes:
+        - [email]
+        - [token]
+      primeryKey: [id]

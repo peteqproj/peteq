@@ -1,0 +1,62 @@
+name: automation
+tenant: user
+root:
+  resource: Automation
+  database:
+    name: automation_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: info
+        type: json
+        fromResource:
+          as: string
+          path: .
+      indexes:
+        - [userid]
+      primeryKey: [id]
+aggregates:
+- resource: TriggerBinding
+  database:
+    name: trigger_binding_repo
+    postgres:
+      columns:
+      - name: id
+        type: text
+        fromResource:
+          as: string
+          path: Metadata.ID
+      - name: userid
+        type: text
+        fromTenant:
+          as: string
+          path: Metadata.ID
+      - name: automation
+        type: text
+        fromResource:
+          path: Spec.Automation
+          as: string
+      - name: trigger
+        type: text
+        fromResource:
+          path: Spec.Trigger
+          as: string
+      - name: info
+        type: json
+        fromResource:
+          as: json
+          path: .
+      indexes:
+        - [userid]
+      uniqueIndexes:
+        - [userid, trigger]
+      primeryKey: [id]

@@ -12,22 +12,22 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	projectEvent "github.com/peteqproj/peteq/domain/project/event/handler"
 	projectEventTypes "github.com/peteqproj/peteq/domain/project/event/types"
+	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
-	"github.com/peteqproj/peteq/pkg/repo"
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
 type (
 	// ViewAPI for backlog view
 	ViewAPI struct {
-		TaskRepo    *repo.Repo
+		TaskRepo    *task.Repo
 		ListRepo    *list.Repo
-		ProjectRepo *repo.Repo
+		ProjectRepo *project.Repo
 		DAL         *DAL
 	}
 
@@ -41,8 +41,8 @@ type (
 	}
 
 	homeTask struct {
-		Task    repo.Resource  `json:"task"`
-		Project *repo.Resource `json:"project,omitempty"`
+		Task    task.Task        `json:"task"`
+		Project *project.Project `json:"project,omitempty"`
 	}
 )
 
@@ -160,11 +160,15 @@ func (h *ViewAPI) handlerListCreated(ctx context.Context, ev event.Event, view h
 	return view, nil
 }
 func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, view homeView, logger logger.Logger) (homeView, error) {
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return view, fmt.Errorf("user not found in contxt")
+	}
 	spec := listEvents.TaskMovedSpec{}
 	if err := ev.UnmarshalSpecInto(&spec); err != nil {
 		return view, err
 	}
-	task, err := h.TaskRepo.Get(ctx, repo.GetOptions{ID: spec.TaskID})
+	task, err := h.TaskRepo.GetById(ctx, spec.TaskID)
 	if err != nil {
 		return view, err
 	}
@@ -183,7 +187,7 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 	}
 
 	// search if there is reference for task in any project
-	projects, err := h.ProjectRepo.List(ctx, repo.ListOptions{})
+	projects, err := h.ProjectRepo.ListByUserid(ctx, u.Metadata.ID)
 	if err != nil {
 		return view, err
 	}
@@ -194,18 +198,17 @@ func (h *ViewAPI) handlerTaskAddedToList(ctx context.Context, ev event.Event, vi
 		if taskInProjectIndex != -1 {
 			break
 		}
-		if pspec, ok := p.Spec.(project.Spec); ok {
-			for j, t := range pspec.Tasks {
-				if t == spec.TaskID {
-					projectIndex = i
-					taskInProjectIndex = j
-					break
-				}
+
+		for j, t := range p.Spec.Tasks {
+			if t == spec.TaskID {
+				projectIndex = i
+				taskInProjectIndex = j
+				break
 			}
 		}
 
 	}
-	var taskProject *repo.Resource
+	var taskProject *project.Project
 	if taskInProjectIndex != -1 {
 		taskProject = projects[projectIndex]
 	}
@@ -243,7 +246,7 @@ func (h *ViewAPI) handlerTaskUpdated(ctx context.Context, ev event.Event, view h
 		// task not in lists, no action to do
 		return view, nil
 	}
-	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = spec.Description
+	// view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Description = utils.PtrString(spec.Description)
 	view.Lists[listIndex].Tasks[taskIndex].Task.Metadata.Name = spec.Name
 	return view, nil
 }
@@ -268,9 +271,7 @@ func (h *ViewAPI) handlerTaskAddedToProject(ctx context.Context, ev event.Event,
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to AddTasksCommandOptions object: %v", err)
 	}
-	newProject, err := h.ProjectRepo.Get(ctx, repo.GetOptions{
-		ID: spec.Project,
-	})
+	newProject, err := h.ProjectRepo.GetById(ctx, spec.Project)
 	if err != nil {
 		return view, err
 	}

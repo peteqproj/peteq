@@ -22,7 +22,7 @@ type (
 // @Security ApiKeyAuth
 func (q *QueryAPI) List(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
-	res, err := q.Repo.List(list.QueryOptions{UserID: u.Metadata.ID})
+	res, err := q.Repo.ListByUserid(c.Request.Context(), u.Metadata.ID)
 	if err != nil {
 		handleError(500, err, c)
 		return

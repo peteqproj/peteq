@@ -27,9 +27,9 @@ var (
 type TriggerCommandAPIApiService service
 
 type ApiCTriggerRunPostRequest struct {
-	ctx _context.Context
+	ctx        _context.Context
 	ApiService *TriggerCommandAPIApiService
-	body *TriggerRunRequestBody
+	body       *TriggerRunRequestBody
 }
 
 func (r ApiCTriggerRunPostRequest) Body(body TriggerRunRequestBody) ApiCTriggerRunPostRequest {
@@ -50,7 +50,7 @@ func (r ApiCTriggerRunPostRequest) Execute() (CommandResponse, *_nethttp.Respons
 func (a *TriggerCommandAPIApiService) CTriggerRunPost(ctx _context.Context) ApiCTriggerRunPostRequest {
 	return ApiCTriggerRunPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
