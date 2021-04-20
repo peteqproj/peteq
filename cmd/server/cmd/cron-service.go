@@ -15,6 +15,7 @@ import (
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
+	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 
 	"github.com/spf13/cobra"
@@ -118,7 +119,8 @@ func loop(userRepo *userDomain.Repo, triggerRepo *triggerDomain.Repo, ebus event
 				}
 
 				for id, pair := range l {
-					res, err := triggerRepo.ListByUserid(context.Background(), id)
+					ctx := tenant.ContextWithUser(context.Background(), pair.user)
+					res, err := triggerRepo.ListByUserid(ctx, id)
 					if err != nil {
 						lgr.Info("Failed to load user triggers", "error", err.Error(), "user", id)
 					}

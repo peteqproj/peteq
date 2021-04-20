@@ -21,12 +21,14 @@ func (r *Repo) List(ctx context.Context) ([]*User, error) {
 	res := []*User{}
 	for rows.Next() {
 		var table_id string
-		var table_userid string
+		var table_email string
+		var table_token string
 		var table_info string
 
 		if err := rows.Scan(
 			&table_id,
-			&table_userid,
+			&table_email,
+			&table_token,
 			&table_info,
 		); err != nil {
 			return nil, err

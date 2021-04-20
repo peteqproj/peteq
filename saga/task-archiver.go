@@ -6,6 +6,7 @@ import (
 
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/task"
+	"github.com/peteqproj/peteq/domain/task/command"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
@@ -42,7 +43,7 @@ func (a *archiver) Run(ctx context.Context) error {
 			continue
 		}
 		a.Logger.Info("Deleting task", "task", t.Metadata.ID)
-		if err := a.Commandbus.Execute(ctx, "task.delete", t); err != nil {
+		if err := a.Commandbus.Execute(ctx, "task.delete", command.DeleteCommandOptions{ID: t.Metadata.ID}); err != nil {
 			return err
 		}
 	}
