@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -46,7 +47,10 @@ func (e *GoogleEventbus) Publish(ctx context.Context, ev event.Event) (string, e
 	}
 
 	e.createSubscriptionIfNotExists(k, t)
-	tenant := tenant.UserFromContext(ctx)
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return "", errors.ErrMissingUserInContext
+	}
 	data, err := json.Marshal(ev)
 	if err != nil {
 		return "", err
@@ -54,7 +58,7 @@ func (e *GoogleEventbus) Publish(ctx context.Context, ev event.Event) (string, e
 	res := e.Ps.Topic(k).Publish(ctx, &pubsub.Message{
 		ID: ev.Metadata.ID,
 		Attributes: map[string]string{
-			"tenant":  tenant.Metadata.ID,
+			"tenant":  u.Metadata.ID,
 			"handler": ev.Metadata.Name,
 		},
 		Data: data,

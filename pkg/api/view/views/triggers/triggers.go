@@ -9,6 +9,7 @@ import (
 	triggerEvent "github.com/peteqproj/peteq/domain/trigger/event/handler"
 	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
+	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -49,6 +50,10 @@ type (
 // @Security ApiKeyAuth
 func (b *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
+	if u == nil {
+		auth.UnauthorizedResponse(c)
+		return
+	}
 	view, err := b.DAL.load(c.Request.Context(), u.Metadata.ID)
 	if err != nil {
 		handleError(400, err, c)

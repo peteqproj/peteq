@@ -10,6 +10,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	perrors "github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
@@ -20,7 +21,6 @@ import (
 
 var ErrNotFound = errors.New("List not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
-var errNoTenantInContext = errors.New("No tenant in context")
 var repoDefEmbed = `name: list
 tenant: user
 root:
@@ -93,7 +93,7 @@ func (r *Repo) Create(ctx context.Context, resource *List) error {
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		user = u
 	}
@@ -135,7 +135,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*List, error) {
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -177,7 +177,7 @@ func (r *Repo) UpdateList(ctx context.Context, resource *List) error {
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		user = u
 	}
@@ -217,7 +217,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return errNoTenantInContext
+			return perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}
@@ -246,7 +246,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*List, error)
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
-			return nil, errNoTenantInContext
+			return nil, perrors.ErrMissingUserInContext
 		}
 		e["userid"] = u.Metadata.ID
 	}

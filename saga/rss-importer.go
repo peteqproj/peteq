@@ -10,6 +10,7 @@ import (
 	projectCommand "github.com/peteqproj/peteq/domain/project/command"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/command"
+	"github.com/peteqproj/peteq/internal/errors"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -37,11 +38,11 @@ type (
 
 func (r *rssImporter) Run(ctx context.Context) error {
 	r.Logger.Info("Running task rss-importer")
-	usr := tenant.UserFromContext(ctx)
-	if usr == nil {
-		return fmt.Errorf("User was not set in the current context")
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
 	}
-	list, err := r.ProjectRepo.ListByUserid(ctx, usr.Metadata.ID)
+	list, err := r.ProjectRepo.ListByUserid(ctx, u.Metadata.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to list projects: %w", err)
 	}

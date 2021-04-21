@@ -11,6 +11,8 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	taskEvents "github.com/peteqproj/peteq/domain/task/event/handler"
 	taskEventTypes "github.com/peteqproj/peteq/domain/task/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
+	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/handler"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -41,6 +43,10 @@ type (
 // @Security ApiKeyAuth
 func (h *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
+	if u == nil {
+		auth.UnauthorizedResponse(c)
+		return
+	}
 	id := c.Param("id")
 	view, err := h.DAL.load(c.Request.Context(), u.Metadata.ID, id)
 	if err != nil {
@@ -121,7 +127,7 @@ func (h *ViewAPI) handlerUpdateEvent(ctx context.Context, ev event.Event, view p
 func (h *ViewAPI) findProjectIDFromEvent(ctx context.Context, ev event.Event, logger logger.Logger) (string, error) {
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
-		return "", fmt.Errorf("user not found in context")
+		return "", errors.ErrMissingUserInContext
 	}
 	if ev.Metadata.Name == taskEventTypes.TaskDeletedEvent || ev.Metadata.Name == taskEventTypes.TaskStatusChanged || ev.Metadata.Name == taskEventTypes.TaskUpdatedEvent {
 		projects, err := h.ProjectRepo.ListByUserid(ctx, u.Metadata.ID)

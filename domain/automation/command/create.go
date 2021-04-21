@@ -2,12 +2,12 @@ package command
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/peteqproj/peteq/domain/automation"
 	"github.com/peteqproj/peteq/domain/automation/event/handler"
 	"github.com/peteqproj/peteq/domain/automation/event/types"
+	errors "github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -36,12 +36,12 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 	opt := &AutomationCreateCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
-		return fmt.Errorf("Failed to convert arguments to AutomationCreateCommandOptions object")
+		return errors.ErrMissingUserInContext
 	}
 
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
-		return fmt.Errorf("user not set in context")
+		return errors.ErrMissingUserInContext
 	}
 	if err := m.Repo.Create(ctx, &automation.Automation{
 		Metadata: automation.Metadata{

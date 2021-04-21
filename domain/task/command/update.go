@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -33,6 +34,9 @@ func (u *UpdateCommand) Handle(ctx context.Context, arguments interface{}) error
 		return err
 	}
 	user := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
+	}
 	_, err = u.Eventbus.Publish(ctx, event.Event{
 		Tenant: tenant.Tenant{
 			ID:   user.Metadata.ID,

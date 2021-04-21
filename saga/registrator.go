@@ -7,6 +7,7 @@ import (
 	automationCommand "github.com/peteqproj/peteq/domain/automation/command"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
 	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
+	"github.com/peteqproj/peteq/internal/errors"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -24,9 +25,9 @@ type (
 
 func (a *registrator) Run(ctx context.Context) error {
 	a.Logger.Info("Running user registrator")
-	user := tenant.UserFromContext(ctx)
-	if user == nil {
-		return fmt.Errorf("Authentication Error: user not found in context")
+	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
 	}
 	if err := a.createBasicLists(ctx); err != nil {
 		return err

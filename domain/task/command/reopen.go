@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/task/event/handler"
 	"github.com/peteqproj/peteq/domain/task/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -34,6 +35,9 @@ func (r *ReopenCommand) Handle(ctx context.Context, arguments interface{}) error
 		return fmt.Errorf("Failed to convert arguments to ReopenTaskArguments object")
 	}
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
+	}
 	t, err := r.Repo.GetById(ctx, opt.TaskID)
 	if err != nil {
 		return err

@@ -8,6 +8,7 @@ import (
 	"github.com/peteqproj/peteq/domain/trigger"
 	"github.com/peteqproj/peteq/domain/trigger/event/handler"
 	"github.com/peteqproj/peteq/domain/trigger/event/types"
+	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/tenant"
@@ -40,6 +41,9 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 	}
 
 	u := tenant.UserFromContext(ctx)
+	if u == nil {
+		return errors.ErrMissingUserInContext
+	}
 	if err := m.Repo.Create(ctx, &trigger.Trigger{
 		Metadata: trigger.Metadata{
 			ID:          opt.ID,

@@ -26,7 +26,6 @@ require (
 	github.com/hairyhenderson/gomplate v3.5.0+incompatible
 	github.com/hairyhenderson/toml v0.3.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4 // indirect
-	github.com/imdario/mergo v0.3.12
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.0
@@ -54,6 +53,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
+	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/api v0.44.0
 	gopkg.in/hairyhenderson/yaml.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/yaml.v2 v2.4.0
