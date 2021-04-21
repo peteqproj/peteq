@@ -50,9 +50,9 @@ root:
       primeryKey:
       - id
 aggregates:
-- resource: TriggerBinding
+- resource: SensorBinding
   database:
-    name: trigger_binding_repo
+    name: sensor_binding_repo
     postgres:
       columns:
       - name: id
@@ -70,11 +70,11 @@ aggregates:
         fromResource:
           as: string
           path: Spec.Automation
-      - name: trigger
+      - name: sensor
         type: text
         fromResource:
           as: string
-          path: Spec.Trigger
+          path: Spec.Sensor
       - name: info
         type: json
         fromResource:
@@ -84,16 +84,16 @@ aggregates:
       - - userid
       uniqueIndexes:
       - - userid
-        - trigger
+        - sensor
       primeryKey:
       - id
 `
 var queries = []string{
 	"CREATE TABLE IF NOT EXISTS automation_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
 	"CREATE INDEX IF NOT EXISTS userid ON automation_repo ( userid);",
-	"CREATE TABLE IF NOT EXISTS trigger_binding_repo( id text not null,userid text not null,automation text not null,trigger text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE UNIQUE INDEX IF NOT EXISTS userid_trigger ON trigger_binding_repo ( userid,trigger);",
-	"CREATE INDEX IF NOT EXISTS userid ON trigger_binding_repo ( userid);",
+	"CREATE TABLE IF NOT EXISTS sensor_binding_repo( id text not null,userid text not null,automation text not null,sensor text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS userid_sensor ON sensor_binding_repo ( userid,sensor);",
+	"CREATE INDEX IF NOT EXISTS userid ON sensor_binding_repo ( userid);",
 }
 
 type (
@@ -328,7 +328,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Automation, 
 /*UniqueIndex functions*/
 /*End of UniqueIndex functions*/
 
-func (r *Repo) CreateTriggerBinding(ctx context.Context, resource *TriggerBinding) error {
+func (r *Repo) CreateSensorBinding(ctx context.Context, resource *SensorBinding) error {
 	if !r.initiated {
 		return errNotInitiated
 	}
@@ -344,25 +344,25 @@ func (r *Repo) CreateTriggerBinding(ctx context.Context, resource *TriggerBindin
 	table_column_id := resource.Metadata.ID
 	table_column_userid := user.Metadata.ID
 	table_column_automation := resource.Spec.Automation
-	table_column_trigger := resource.Spec.Trigger
+	table_column_sensor := resource.Spec.Sensor
 	table_column_info, err := json.Marshal(resource)
 	if err != nil {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("trigger_binding_repo").
+		Insert("sensor_binding_repo").
 		Cols(
 			"id",
 			"userid",
 			"automation",
-			"trigger",
+			"sensor",
 			"info",
 		).
 		Vals(goqu.Vals{
 			string(table_column_id),
 			string(table_column_userid),
 			string(table_column_automation),
-			string(table_column_trigger),
+			string(table_column_sensor),
 			string(table_column_info),
 		}).
 		ToSQL()
@@ -375,16 +375,16 @@ func (r *Repo) CreateTriggerBinding(ctx context.Context, resource *TriggerBindin
 	}
 	return nil
 }
-func (r *Repo) UpdateTriggerBinding(ctx context.Context, resouce *TriggerBinding) error {
+func (r *Repo) UpdateSensorBinding(ctx context.Context, resouce *SensorBinding) error {
 	// TODO
 	return nil
 }
 
-func (r *Repo) GetTriggerBindingById(ctx context.Context, id string) (*TriggerBinding, error) {
+func (r *Repo) GetSensorBindingById(ctx context.Context, id string) (*SensorBinding, error) {
 	return nil, nil
 }
 
-func (r *Repo) ListTriggerBindingByUserid(ctx context.Context, userid string) ([]*TriggerBinding, error) {
+func (r *Repo) ListSensorBindingByUserid(ctx context.Context, userid string) ([]*SensorBinding, error) {
 	if !r.initiated {
 		return nil, errNotInitiated
 	}
@@ -398,7 +398,7 @@ func (r *Repo) ListTriggerBindingByUserid(ctx context.Context, userid string) ([
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("trigger_binding_repo").Where(e).ToSQL()
+	sql, _, err := goqu.From("sensor_binding_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -406,24 +406,24 @@ func (r *Repo) ListTriggerBindingByUserid(ctx context.Context, userid string) ([
 	if err != nil {
 		return nil, err
 	}
-	res := []*TriggerBinding{}
+	res := []*SensorBinding{}
 	for rows.Next() {
 		var table_id string
 		var table_userid string
 		var table_automation string
-		var table_trigger string
+		var table_sensor string
 		var table_info string
 
 		if err := rows.Scan(
 			&table_id,
 			&table_userid,
 			&table_automation,
-			&table_trigger,
+			&table_sensor,
 			&table_info,
 		); err != nil {
 			return nil, err
 		}
-		resource := &TriggerBinding{}
+		resource := &SensorBinding{}
 		// info column must exist
 		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
 			return nil, err
@@ -433,14 +433,14 @@ func (r *Repo) ListTriggerBindingByUserid(ctx context.Context, userid string) ([
 	return res, rows.Close()
 }
 
-func (r *Repo) GetTriggerBindingByUseridTrigger(ctx context.Context, userid string, trigger string) (*TriggerBinding, error) {
+func (r *Repo) GetSensorBindingByUseridSensor(ctx context.Context, userid string, sensor string) (*SensorBinding, error) {
 	if !r.initiated {
 		return nil, errNotInitiated
 	}
 	e := exp.Ex{}
 	e["userid"] = userid
 
-	e["trigger"] = trigger
+	e["sensor"] = sensor
 	if r.def.Tenant != "" {
 		u := tenant.UserFromContext(ctx)
 		if u == nil {
@@ -449,7 +449,7 @@ func (r *Repo) GetTriggerBindingByUseridTrigger(ctx context.Context, userid stri
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("trigger_binding_repo").Where(e).ToSQL()
+	query, _, err := goqu.From("sensor_binding_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -460,14 +460,14 @@ func (r *Repo) GetTriggerBindingByUseridTrigger(ctx context.Context, userid stri
 	var table_id string
 	var table_userid string
 	var table_automation string
-	var table_trigger string
+	var table_sensor string
 	var table_info string
 
 	if err := row.Scan(
 		&table_id,
 		&table_userid,
 		&table_automation,
-		&table_trigger,
+		&table_sensor,
 		&table_info,
 	); err != nil {
 		if err == sql.ErrNoRows {
@@ -475,7 +475,7 @@ func (r *Repo) GetTriggerBindingByUseridTrigger(ctx context.Context, userid stri
 		}
 		return nil, err
 	}
-	resource := &TriggerBinding{}
+	resource := &SensorBinding{}
 	// info column must exist
 	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
 		return nil, err

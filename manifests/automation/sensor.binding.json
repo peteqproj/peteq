@@ -1,7 +1,7 @@
 {
   "id": "http://json-schema.org/geo",
   "$schema": "http://json-schema.org/draft-06/schema#",
-  "description": "Trigger binding aggregate",
+  "description": "Sensor binding aggregate",
   "type": "object",
   "properties": {
     "metadata": {
@@ -11,13 +11,13 @@
         "type": "object",
         "required": [
             "automation",
-            "trigger"
+            "sensor"
         ],
         "properties": {
             "automation": {
                 "type": "string"
             },
-            "trigger": {
+            "sensor": {
                 "type": "string"
             }
         }

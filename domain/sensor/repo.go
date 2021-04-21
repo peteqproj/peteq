@@ -1,4 +1,4 @@
-package trigger
+package sensor
 
 import (
 	"context"
@@ -19,14 +19,14 @@ import (
 	"github.com/peteqproj/peteq/pkg/tenant"
 )
 
-var ErrNotFound = errors.New("Trigger not found")
+var ErrNotFound = errors.New("Sensor not found")
 var errNotInitiated = errors.New("Repository was not initialized, make sure to call Initiate function")
-var repoDefEmbed = `name: trigger
+var repoDefEmbed = `name: sensor
 tenant: user
 root:
-  resource: Trigger
+  resource: Sensor
   database:
-    name: trigger_repo
+    name: sensor_repo
     postgres:
       columns:
       - name: id
@@ -52,8 +52,8 @@ root:
 aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS trigger_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON trigger_repo ( userid);",
+	"CREATE TABLE IF NOT EXISTS sensor_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON sensor_repo ( userid);",
 }
 
 type (
@@ -85,7 +85,7 @@ func (r *Repo) Initiate(ctx context.Context) error {
 
 /* PrimeryKey functions*/
 
-func (r *Repo) Create(ctx context.Context, resource *Trigger) error {
+func (r *Repo) Create(ctx context.Context, resource *Sensor) error {
 	if !r.initiated {
 		return errNotInitiated
 	}
@@ -105,7 +105,7 @@ func (r *Repo) Create(ctx context.Context, resource *Trigger) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("trigger_repo").
+		Insert("sensor_repo").
 		Cols(
 			"id",
 			"userid",
@@ -126,7 +126,7 @@ func (r *Repo) Create(ctx context.Context, resource *Trigger) error {
 	}
 	return nil
 }
-func (r *Repo) GetById(ctx context.Context, id string) (*Trigger, error) {
+func (r *Repo) GetById(ctx context.Context, id string) (*Sensor, error) {
 	if !r.initiated {
 		return nil, errNotInitiated
 	}
@@ -140,7 +140,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Trigger, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("trigger_repo").Where(e).ToSQL()
+	query, _, err := goqu.From("sensor_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -162,14 +162,14 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Trigger, error) {
 		}
 		return nil, err
 	}
-	resource := &Trigger{}
+	resource := &Sensor{}
 	// info column must exist
 	if err := json.Unmarshal([]byte(table_info), resource); err != nil {
 		return nil, err
 	}
 	return resource, nil
 }
-func (r *Repo) UpdateTrigger(ctx context.Context, resource *Trigger) error {
+func (r *Repo) UpdateSensor(ctx context.Context, resource *Sensor) error {
 	if !r.initiated {
 		return errNotInitiated
 	}
@@ -189,7 +189,7 @@ func (r *Repo) UpdateTrigger(ctx context.Context, resource *Trigger) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update("trigger_repo").
+		Update("sensor_repo").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -223,7 +223,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete("trigger_repo").
+		Delete("sensor_repo").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -237,7 +237,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 
 /*Index functions*/
 
-func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Trigger, error) {
+func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Sensor, error) {
 	if !r.initiated {
 		return nil, errNotInitiated
 	}
@@ -251,7 +251,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Trigger, err
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("trigger_repo").Where(e).ToSQL()
+	sql, _, err := goqu.From("sensor_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Trigger, err
 	if err != nil {
 		return nil, err
 	}
-	res := []*Trigger{}
+	res := []*Sensor{}
 	for rows.Next() {
 		var table_id string
 		var table_userid string
@@ -272,7 +272,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Trigger, err
 		); err != nil {
 			return nil, err
 		}
-		resource := &Trigger{}
+		resource := &Sensor{}
 		// info column must exist
 		if err := json.Unmarshal([]byte(table_info), resource); err != nil {
 			return nil, err

@@ -1,11 +1,11 @@
 package handler
 
 type (
-	// TriggerBindingCreatedSpec is the event.spec for this event
-	TriggerBindingCreatedSpec struct {
+	// SensorBindingCreatedSpec is the event.spec for this event
+	SensorBindingCreatedSpec struct {
 		ID         string `json:"id" yaml:"id"`
 		Name       string `json:"name" yaml:"name"`
-		Trigger    string `json:"trigger" yaml:"trigger"`
+		Sensor     string `json:"sensor" yaml:"sensor"`
 		Automation string `json:"automation" yaml:"automation"`
 	}
 )

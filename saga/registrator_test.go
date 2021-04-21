@@ -91,13 +91,13 @@ func Test_registrator_Run(t *testing.T) {
 			},
 		},
 		{
-			name:         "Failed to create trigger -> return an error",
-			errorMessage: "Failed to create trigger Task Archiver: Failed to run command bus",
+			name:         "Failed to create sensor -> return an error",
+			errorMessage: "Failed to create sensor Task Archiver: Failed to run command bus",
 			fields: fields{
 				CommandbusFn: func() commandbus.CommandBus {
 					cb := &commandbus.MockCommandBus{}
 					cb.On("Execute", mock.Anything, "list.create", mock.Anything).Return(nil)
-					cb.On("Execute", mock.Anything, "trigger.create", mock.Anything).Return(errRunCommandBus)
+					cb.On("Execute", mock.Anything, "sensor.create", mock.Anything).Return(errRunCommandBus)
 					return cb
 				},
 				LoggerFn:      buildMockLogger,
@@ -115,7 +115,7 @@ func Test_registrator_Run(t *testing.T) {
 				CommandbusFn: func() commandbus.CommandBus {
 					cb := &commandbus.MockCommandBus{}
 					cb.On("Execute", mock.Anything, "list.create", mock.Anything).Return(nil)
-					cb.On("Execute", mock.Anything, "trigger.create", mock.Anything).Return(nil)
+					cb.On("Execute", mock.Anything, "sensor.create", mock.Anything).Return(nil)
 					cb.On("Execute", mock.Anything, "automation.create", mock.Anything).Return(errRunCommandBus)
 					return cb
 				},
@@ -128,15 +128,15 @@ func Test_registrator_Run(t *testing.T) {
 			},
 		},
 		{
-			name:         "Failed to create trigger-binding -> return an error",
-			errorMessage: "Failed to automation-trigger-binding for Task Archiver trigger: Failed to run command bus",
+			name:         "Failed to create sensor-binding -> return an error",
+			errorMessage: "Failed to automation-sensor-binding for Task Archiver sensor: Failed to run command bus",
 			fields: fields{
 				CommandbusFn: func() commandbus.CommandBus {
 					cb := &commandbus.MockCommandBus{}
 					cb.On("Execute", mock.Anything, "list.create", mock.Anything).Return(nil)
-					cb.On("Execute", mock.Anything, "trigger.create", mock.Anything).Return(nil)
+					cb.On("Execute", mock.Anything, "sensor.create", mock.Anything).Return(nil)
 					cb.On("Execute", mock.Anything, "automation.create", mock.Anything).Return(nil)
-					cb.On("Execute", mock.Anything, "automation.bindTrigger", mock.Anything).Return(errRunCommandBus)
+					cb.On("Execute", mock.Anything, "automation.bindSensor", mock.Anything).Return(errRunCommandBus)
 					return cb
 				},
 				LoggerFn:      buildMockLogger,
@@ -165,11 +165,11 @@ func Test_registrator_Run(t *testing.T) {
 			},
 		},
 		// {
-		// 	name:    "Trigger already exists -> do not attempt to create one",
+		// 	name:    "Sensor already exists -> do not attempt to create one",
 		// 	wantErr: false,
 		// },
 		// {
-		// 	name:    "Trigger-binding already exists -> do not attempt to create one",
+		// 	name:    "Sensor-binding already exists -> do not attempt to create one",
 		// 	wantErr: false,
 		// },
 		// {

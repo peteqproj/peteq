@@ -22,8 +22,8 @@ gen-domain:
 	./dist/peteq-dev create aggregate --package user --schema manifests/user/user.json
 	./dist/peteq-dev create aggregate --package list --schema manifests/list/list.json
 	./dist/peteq-dev create aggregate --package project --schema manifests/project/project.json
-	./dist/peteq-dev create aggregate --package trigger --schema manifests/trigger/trigger.json
-	./dist/peteq-dev create aggregate --package automation --schema manifests/automation/automation.json --schema manifests/automation/trigger.binding.json
+	./dist/peteq-dev create aggregate --package sensor --schema manifests/sensor/sensor.json
+	./dist/peteq-dev create aggregate --package automation --schema manifests/automation/automation.json --schema manifests/automation/sensor.binding.json
 
 .PHONY: gen-repo
 gen-repo:
@@ -31,7 +31,7 @@ gen-repo:
 	./dist/peteq-dev create repo --repo manifests/user/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/list/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/project/repo.yaml
-	./dist/peteq-dev create repo --repo manifests/trigger/repo.yaml
+	./dist/peteq-dev create repo --repo manifests/sensor/repo.yaml
 	./dist/peteq-dev create repo --repo manifests/automation/repo.yaml
 	gofmt -w -s .
 	# go get golang.org/x/tools/cmd/goimports

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/trigger"
-	"github.com/peteqproj/peteq/domain/trigger/event/types"
+	"github.com/peteqproj/peteq/domain/sensor"
+	"github.com/peteqproj/peteq/domain/sensor/event/types"
 	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
@@ -15,25 +15,25 @@ import (
 )
 
 type (
-	// RunCommand to create task
-	RunCommand struct {
+	// TriggerCommand to create task
+	TriggerCommand struct {
 		Eventbus bus.EventPublisher
-		Repo     *trigger.Repo
+		Repo     *sensor.Repo
 	}
 
-	// TriggerRunCommandOptions options to trigger the trigger
-	TriggerRunCommandOptions struct {
+	// SensorTriggerCommandOptions options to sensor the sensor
+	SensorTriggerCommandOptions struct {
 		ID   string      `json:"id"`
 		Data interface{} `json:"data"`
 	}
 )
 
-// Handle runs RunCommand to create task
-func (m *RunCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &TriggerRunCommandOptions{}
+// Handle runs TriggerCommand to create task
+func (m *TriggerCommand) Handle(ctx context.Context, arguments interface{}) error {
+	opt := &SensorTriggerCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
-		return fmt.Errorf("Failed to convert arguments to TriggerRunCommandOptions object")
+		return fmt.Errorf("Failed to convert arguments to SensorTriggerCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
@@ -46,9 +46,9 @@ func (m *RunCommand) Handle(ctx context.Context, arguments interface{}) error {
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           types.TriggerTriggeredEvent,
+			Name:           types.SensorTriggeredEvent,
 			CreatedAt:      time.Now(),
-			AggregatorRoot: "trigger",
+			AggregatorRoot: "sensor",
 			AggregatorID:   opt.ID,
 		},
 		Spec: opt.Data,

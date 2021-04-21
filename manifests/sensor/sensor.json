@@ -1,7 +1,7 @@
 {
   "id": "http://json-schema.org/geo",
   "$schema": "http://json-schema.org/draft-06/schema#",
-  "description": "trigger",
+  "description": "sensor",
   "type": "object",
   "properties": {
     "metadata": {

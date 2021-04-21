@@ -6,9 +6,9 @@ import (
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
+	sensorDomain "github.com/peteqproj/peteq/domain/sensor"
+	sensorEventTypes "github.com/peteqproj/peteq/domain/sensor/event/types"
 	"github.com/peteqproj/peteq/domain/task"
-	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
-	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/internal/errors"
@@ -32,7 +32,7 @@ type (
 		TaskRepo       *task.Repo
 		AutomationRepo *automationDomain.Repo
 		ProjectRepo    *project.Repo
-		TriggerRepo    *triggerDomain.Repo
+		SensorRepo     *sensorDomain.Repo
 		UserRepo       *userDomain.Repo
 		CommandBus     commandbus.CommandBus
 	}
@@ -54,9 +54,9 @@ func (e *EventHandler) Handle(ctx context.Context, ev event.Event, logger logger
 				IDGenerator: utils.NewGenerator(),
 			}).Run(ctx)
 		}
-	case triggerEventTypes.TriggerTriggeredEvent:
+	case sensorEventTypes.SensorTriggeredEvent:
 		{
-			tb, err := e.AutomationRepo.GetTriggerBindingByUseridTrigger(ctx, u.Metadata.ID, ev.Metadata.AggregatorID)
+			tb, err := e.AutomationRepo.GetSensorBindingByUseridSensor(ctx, u.Metadata.ID, ev.Metadata.AggregatorID)
 			if err != nil {
 				return err
 			}

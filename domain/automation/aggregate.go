@@ -4,8 +4,8 @@
 //    automation, err := UnmarshalAutomation(bytes)
 //    bytes, err = automation.Marshal()
 //
-//    triggerBinding, err := UnmarshalTriggerBinding(bytes)
-//    bytes, err = triggerBinding.Marshal()
+//    sensorBinding, err := UnmarshalSensorBinding(bytes)
+//    bytes, err = sensorBinding.Marshal()
 
 package automation
 
@@ -21,13 +21,13 @@ func (r *Automation) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-func UnmarshalTriggerBinding(data []byte) (TriggerBinding, error) {
-	var r TriggerBinding
+func UnmarshalSensorBinding(data []byte) (SensorBinding, error) {
+	var r SensorBinding
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *TriggerBinding) Marshal() ([]byte, error) {
+func (r *SensorBinding) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
@@ -49,13 +49,13 @@ type AutomationSpec struct {
 	Type            string `json:"type"`
 }
 
-// Trigger binding aggregate
-type TriggerBinding struct {
-	Metadata Metadata           `json:"metadata"`
-	Spec     TriggerBindingSpec `json:"spec"`
+// Sensor binding aggregate
+type SensorBinding struct {
+	Metadata Metadata          `json:"metadata"`
+	Spec     SensorBindingSpec `json:"spec"`
 }
 
-type TriggerBindingSpec struct {
+type SensorBindingSpec struct {
 	Automation string `json:"automation"`
-	Trigger    string `json:"trigger"`
+	Sensor     string `json:"sensor"`
 }

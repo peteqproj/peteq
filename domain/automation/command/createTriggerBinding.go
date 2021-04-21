@@ -16,43 +16,43 @@ import (
 )
 
 type (
-	// CreateTriggerBindingCommand to create task
-	CreateTriggerBindingCommand struct {
+	// CreateSensorBindingCommand to create task
+	CreateSensorBindingCommand struct {
 		Eventbus bus.EventPublisher
 		Repo     *automation.Repo
 	}
 
-	// TriggerBindingCreateCommandOptions options to create automation
-	TriggerBindingCreateCommandOptions struct {
+	// SensorBindingCreateCommandOptions options to create automation
+	SensorBindingCreateCommandOptions struct {
 		ID         string `json:"id"`
 		Name       string `json:"name"`
-		Trigger    string `json:"trigger"`
+		Sensor     string `json:"sensor"`
 		Automation string `json:"automation"`
 	}
 )
 
-// Handle runs CreateTriggerBindingCommand to create task
-func (m *CreateTriggerBindingCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &TriggerBindingCreateCommandOptions{}
+// Handle runs CreateSensorBindingCommand to create task
+func (m *CreateSensorBindingCommand) Handle(ctx context.Context, arguments interface{}) error {
+	opt := &SensorBindingCreateCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
-		return fmt.Errorf("Failed to convert arguments to TriggerBindingCreateCommandOptions object")
+		return fmt.Errorf("Failed to convert arguments to SensorBindingCreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
 		return errors.ErrMissingUserInContext
 	}
-	if err := m.Repo.CreateTriggerBinding(ctx, &automation.TriggerBinding{
+	if err := m.Repo.CreateSensorBinding(ctx, &automation.SensorBinding{
 		Metadata: automation.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,
 			Labels:      map[string]string{},
 			Description: utils.PtrString(""),
 		},
-		Spec: automation.TriggerBindingSpec{
+		Spec: automation.SensorBindingSpec{
 			Automation: opt.Automation,
-			Trigger:    opt.Trigger,
+			Sensor:     opt.Sensor,
 		},
 	}); err != nil {
 		return err
@@ -63,16 +63,16 @@ func (m *CreateTriggerBindingCommand) Handle(ctx context.Context, arguments inte
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           types.TriggerBindingCreatedEvent,
+			Name:           types.SensorBindingCreatedEvent,
 			CreatedAt:      time.Now(),
 			AggregatorRoot: "automation",
 			AggregatorID:   opt.ID,
 		},
-		Spec: handler.TriggerBindingCreatedSpec{
+		Spec: handler.SensorBindingCreatedSpec{
 			ID:         opt.ID,
 			Name:       opt.Name,
 			Automation: opt.Automation,
-			Trigger:    opt.Trigger,
+			Sensor:     opt.Sensor,
 		},
 	})
 	return err
