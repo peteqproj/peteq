@@ -1,13 +1,12 @@
-package triggers
+package sensors
 
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	triggerEvent "github.com/peteqproj/peteq/domain/trigger/event/handler"
-	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
+	sensorEvent "github.com/peteqproj/peteq/domain/sensor/event/handler"
+	sensorEventTypes "github.com/peteqproj/peteq/domain/sensor/event/types"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
 	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/event"
@@ -17,36 +16,30 @@ import (
 )
 
 type (
-	// ViewAPI for triggers view
+	// ViewAPI for sensors view
 	ViewAPI struct {
 		DAL *DAL
 	}
 
-	triggersView struct {
-		Triggers []triggerViewItem `json:"triggers"`
+	sensorsView struct {
+		Sensors []sensorViewItem `json:"sensors"`
 	}
 
-	triggerViewItem struct {
-		ID          string                        `json:"id"`
-		Name        string                        `json:"name"`
-		Description string                        `json:"description"`
-		Type        string                        `json:"type"`
-		Spec        interface{}                   `json:"spec"`
-		History     []triggerExecutionHistoryItem `json:"history"`
-	}
-
-	triggerExecutionHistoryItem struct {
-		TriggeredAt time.Time `json:"triggeredAt"`
-		Manual      bool      `json:"manual"`
+	sensorViewItem struct {
+		ID          string      `json:"id"`
+		Name        string      `json:"name"`
+		Description string      `json:"description"`
+		Type        string      `json:"type"`
+		Spec        interface{} `json:"spec"`
 	}
 )
 
-// Get build triggers view
-// @description Triggers View
+// Get build sensors view
+// @description Sensors View
 // @tags View
 // @produce  json
-// @success 200 {object} triggersView
-// @router /q/triggers [get]
+// @success 200 {object} sensorsView
+// @router /q/sensors [get]
 // @Security ApiKeyAuth
 func (b *ViewAPI) Get(c *gin.Context) {
 	u := tenant.UserFromContext(c.Request.Context())
@@ -64,8 +57,8 @@ func (b *ViewAPI) Get(c *gin.Context) {
 
 func (h *ViewAPI) EventHandlers() map[string]handler.EventHandler {
 	return map[string]handler.EventHandler{
-		userEventTypes.UserRegistredEvent:     h,
-		triggerEventTypes.TriggerCreatedEvent: h,
+		userEventTypes.UserRegistredEvent:   h,
+		sensorEventTypes.SensorCreatedEvent: h,
 	}
 }
 
@@ -85,9 +78,9 @@ func (h *ViewAPI) Handle(ctx context.Context, ev event.Event, logger logger.Logg
 		return err
 	}
 	switch ev.Metadata.Name {
-	case triggerEventTypes.TriggerCreatedEvent:
+	case sensorEventTypes.SensorCreatedEvent:
 		{
-			updated, err := h.handlerTriggerCreated(ctx, ev, current, logger)
+			updated, err := h.handlerSensorCreated(ctx, ev, current, logger)
 			if err != nil {
 				return err
 			}
@@ -97,33 +90,32 @@ func (h *ViewAPI) Handle(ctx context.Context, ev event.Event, logger logger.Logg
 	return nil
 }
 func (h *ViewAPI) Name() string {
-	return "triggers_view"
+	return "sensors_view"
 }
 
 func (h *ViewAPI) handlerUserRegistration(ctx context.Context, ev event.Event, logger logger.Logger) error {
-	v := triggersView{
-		Triggers: []triggerViewItem{},
+	v := sensorsView{
+		Sensors: []sensorViewItem{},
 	}
 	return h.DAL.create(ctx, ev.Tenant.ID, v)
 }
 
-func (h *ViewAPI) handlerTriggerCreated(ctx context.Context, ev event.Event, view triggersView, looger logger.Logger) (triggersView, error) {
-	spec := triggerEvent.CreatedSpec{}
+func (h *ViewAPI) handlerSensorCreated(ctx context.Context, ev event.Event, view sensorsView, looger logger.Logger) (sensorsView, error) {
+	spec := sensorEvent.CreatedSpec{}
 	err := ev.UnmarshalSpecInto(&spec)
 	if err != nil {
 		return view, fmt.Errorf("Failed to convert event.spec to Task object: %v", err)
 	}
-	triggerSpec := []string{}
+	sensorSpec := []string{}
 	if spec.Cron != nil {
-		triggerSpec = append(triggerSpec, *spec.Cron)
+		sensorSpec = append(sensorSpec, *spec.Cron)
 	}
 
-	view.Triggers = append(view.Triggers, triggerViewItem{
+	view.Sensors = append(view.Sensors, sensorViewItem{
 		ID:          spec.ID,
 		Name:        spec.Name,
 		Description: spec.Description,
-		Spec:        triggerSpec,
-		History:     []triggerExecutionHistoryItem{},
+		Spec:        sensorSpec,
 	})
 	return view, nil
 }

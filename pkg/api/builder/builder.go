@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/domain/sensor"
 	"github.com/peteqproj/peteq/domain/task"
-	"github.com/peteqproj/peteq/domain/trigger"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/api"
 	listAPI "github.com/peteqproj/peteq/pkg/api/apis/list"
 	projectAPI "github.com/peteqproj/peteq/pkg/api/apis/project"
+	sensorAPI "github.com/peteqproj/peteq/pkg/api/apis/sensor"
 	taskAPI "github.com/peteqproj/peteq/pkg/api/apis/task"
-	triggerAPI "github.com/peteqproj/peteq/pkg/api/apis/trigger"
 	userAPI "github.com/peteqproj/peteq/pkg/api/apis/user"
 	"github.com/peteqproj/peteq/pkg/api/auth"
 	"github.com/peteqproj/peteq/pkg/api/view"
@@ -65,10 +65,10 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 		IDGenerator: idGen,
 	}
 
-	triggerCommandAPI := triggerAPI.CommandAPI{
-		Repo:       &trigger.Repo{},
+	sensorCommandAPI := sensorAPI.CommandAPI{
+		Repo:       &sensor.Repo{},
 		Commandbus: b.Commandbus,
-		Logger:     b.Logger.Fork("api", "trigger"),
+		Logger:     b.Logger.Fork("api", "sensor"),
 	}
 	return api.Resource{
 		Path: "/c",
@@ -120,7 +120,7 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 				},
 			},
 			{
-				Path: "/trigger",
+				Path: "/sensor",
 				Midderwares: []gin.HandlerFunc{
 					auth.IsAuthenticated(b.UserRepo),
 				},
@@ -128,7 +128,7 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 					{
 						Path:    "/run",
 						Verb:    "POST",
-						Handler: api.WrapCommandAPI(triggerCommandAPI.Run, b.Logger),
+						Handler: api.WrapCommandAPI(sensorCommandAPI.Run, b.Logger),
 					},
 				},
 			},

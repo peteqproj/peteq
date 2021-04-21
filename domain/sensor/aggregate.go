@@ -1,25 +1,25 @@
 // This file was generated from JSON Schema using quicktype, do not modify it directly.
 // To parse and unparse this JSON data, add this code to your project and do:
 //
-//    trigger, err := UnmarshalTrigger(bytes)
-//    bytes, err = trigger.Marshal()
+//    sensor, err := UnmarshalSensor(bytes)
+//    bytes, err = sensor.Marshal()
 
-package trigger
+package sensor
 
 import "encoding/json"
 
-func UnmarshalTrigger(data []byte) (Trigger, error) {
-	var r Trigger
+func UnmarshalSensor(data []byte) (Sensor, error) {
+	var r Sensor
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *Trigger) Marshal() ([]byte, error) {
+func (r *Sensor) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-// trigger
-type Trigger struct {
+// sensor
+type Sensor struct {
 	Metadata Metadata `json:"metadata"`
 	Spec     Spec     `json:"spec"`
 }

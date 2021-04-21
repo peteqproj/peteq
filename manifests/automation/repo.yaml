@@ -25,9 +25,9 @@ root:
         - [userid]
       primeryKey: [id]
 aggregates:
-- resource: TriggerBinding
+- resource: SensorBinding
   database:
-    name: trigger_binding_repo
+    name: sensor_binding_repo
     postgres:
       columns:
       - name: id
@@ -45,10 +45,10 @@ aggregates:
         fromResource:
           path: Spec.Automation
           as: string
-      - name: trigger
+      - name: sensor
         type: text
         fromResource:
-          path: Spec.Trigger
+          path: Spec.Sensor
           as: string
       - name: info
         type: json
@@ -58,5 +58,5 @@ aggregates:
       indexes:
         - [userid]
       uniqueIndexes:
-        - [userid, trigger]
+        - [userid, sensor]
       primeryKey: [id]

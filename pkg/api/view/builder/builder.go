@@ -11,7 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/view/views/home"
 	proj "github.com/peteqproj/peteq/pkg/api/view/views/project"
 	"github.com/peteqproj/peteq/pkg/api/view/views/projects"
-	"github.com/peteqproj/peteq/pkg/api/view/views/triggers"
+	"github.com/peteqproj/peteq/pkg/api/view/views/sensors"
 	"github.com/peteqproj/peteq/pkg/logger"
 )
 
@@ -80,8 +80,8 @@ func (b *Builder) BuildViews() map[string]view.View {
 		},
 	}
 
-	views["triggers"] = &triggers.ViewAPI{
-		DAL: &triggers.DAL{
+	views["sensors"] = &sensors.ViewAPI{
+		DAL: &sensors.DAL{
 			DB: b.DB,
 		},
 	}

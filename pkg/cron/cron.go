@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/trigger/event/types"
+	"github.com/peteqproj/peteq/domain/sensor/event/types"
 	"github.com/peteqproj/peteq/pkg/event"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -15,7 +15,7 @@ import (
 type (
 	// Cron run tasks continouosly
 	Cron interface {
-		AddFunc(trigger string, cronExp string)
+		AddFunc(sensor string, cronExp string)
 		Start()
 		Stop()
 	}
@@ -45,8 +45,8 @@ func New(opt Options) Cron {
 	}
 }
 
-func (c *cr) AddFunc(trigger string, cronExp string) {
-	if _, err := c.cron.AddFunc(cronExp, c.handleCronTick(trigger)); err != nil {
+func (c *cr) AddFunc(sensor string, cronExp string) {
+	if _, err := c.cron.AddFunc(cronExp, c.handleCronTick(sensor)); err != nil {
 		c.logger.Info("Failed to add cron func", "error", err.Error())
 		return
 	}
@@ -71,18 +71,18 @@ func (c *cr) Stop() {
 	}
 }
 
-func (c *cr) handleCronTick(trigger string) func() {
+func (c *cr) handleCronTick(sensor string) func() {
 	return func() {
-		c.logger.Info("Triggered", "user", c.userID, "trigger", trigger)
+		c.logger.Info("Triggered", "user", c.userID, "sensor", sensor)
 		_, err := c.eventPublisher.Publish(context.Background(), event.Event{
 			Tenant: tenant.Tenant{
 				ID:   c.userID,
 				Type: tenant.User.String(),
 			},
 			Metadata: event.Metadata{
-				AggregatorRoot: "trigger",
-				AggregatorID:   trigger,
-				Name:           types.TriggerTriggeredEvent,
+				AggregatorRoot: "sensor",
+				AggregatorID:   sensor,
+				Name:           types.SensorTriggeredEvent,
 				CreatedAt:      time.Now(),
 			},
 		})

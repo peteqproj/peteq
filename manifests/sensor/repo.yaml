@@ -1,9 +1,9 @@
-name: trigger 
+name: sensor 
 tenant: user
 root:
-  resource: Trigger
+  resource: Sensor 
   database:
-    name: trigger_repo
+    name: sensor_repo
     postgres:
       columns:
       - name: id

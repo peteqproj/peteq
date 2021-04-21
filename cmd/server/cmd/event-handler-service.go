@@ -6,8 +6,8 @@ import (
 	automationDomain "github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	projectDomain "github.com/peteqproj/peteq/domain/project"
+	sensorDomain "github.com/peteqproj/peteq/domain/sensor"
 	"github.com/peteqproj/peteq/domain/task"
-	triggerDomain "github.com/peteqproj/peteq/domain/trigger"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/internal"
 	"github.com/peteqproj/peteq/pkg/config"
@@ -87,12 +87,12 @@ var eventHandlerServiceCmd = &cobra.Command{
 		if err := automationRepo.Initiate(context.Background()); err != nil {
 			utils.DieOnError(err, "Failed to init automation repo")
 		}
-		triggerRepo := &triggerDomain.Repo{
+		sensorRepo := &sensorDomain.Repo{
 			DB:     db,
-			Logger: logr.Fork("repo", "trigger"),
+			Logger: logr.Fork("repo", "sensor"),
 		}
-		if err := triggerRepo.Initiate(context.Background()); err != nil {
-			utils.DieOnError(err, "Failed to init trigger repo")
+		if err := sensorRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init sensor repo")
 		}
 
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, true, logr.Fork("module", "eventbus"))
@@ -101,7 +101,7 @@ var eventHandlerServiceCmd = &cobra.Command{
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, triggerRepo, automationRepo)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, sensorRepo, automationRepo)
 
 		registerViewEventHandlers(ebus, db, taskRepo, listRepo, projectRepo, logr)
 		sagaEventHandler := &saga.EventHandler{
@@ -110,7 +110,7 @@ var eventHandlerServiceCmd = &cobra.Command{
 			ListRepo:       listRepo,
 			AutomationRepo: automationRepo,
 			ProjectRepo:    projectRepo,
-			TriggerRepo:    triggerRepo,
+			SensorRepo:     sensorRepo,
 			UserRepo:       userRepo,
 		}
 		registerSagas(ebus, sagaEventHandler)

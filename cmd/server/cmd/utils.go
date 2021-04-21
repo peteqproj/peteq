@@ -15,11 +15,11 @@ import (
 	"github.com/peteqproj/peteq/domain/project"
 	projectDomain "github.com/peteqproj/peteq/domain/project"
 	projectCommands "github.com/peteqproj/peteq/domain/project/command"
+	"github.com/peteqproj/peteq/domain/sensor"
+	sensorCommands "github.com/peteqproj/peteq/domain/sensor/command"
+	sensorEventTypes "github.com/peteqproj/peteq/domain/sensor/event/types"
 	"github.com/peteqproj/peteq/domain/task"
 	taskCommands "github.com/peteqproj/peteq/domain/task/command"
-	"github.com/peteqproj/peteq/domain/trigger"
-	triggerCommands "github.com/peteqproj/peteq/domain/trigger/command"
-	triggerEventTypes "github.com/peteqproj/peteq/domain/trigger/event/types"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	userCommands "github.com/peteqproj/peteq/domain/user/command"
 	userEventTypes "github.com/peteqproj/peteq/domain/user/event/types"
@@ -33,7 +33,7 @@ func DieOnError(err error, msg string) {
 	utils.DieOnError(err, msg)
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo, triggerRepo *trigger.Repo, automationRepo *automation.Repo) {
+func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPublisher, userRepo *userDomain.Repo, taskRepo *task.Repo, listRepo *list.Repo, projectRepo *project.Repo, sensorRepo *sensor.Repo, automationRepo *automation.Repo) {
 	// Task related commands
 	cb.RegisterHandler("task.create", &taskCommands.CreateCommand{
 		Eventbus: eventbus,
@@ -88,14 +88,14 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 		Repo:     userRepo,
 	})
 
-	// Trigger related commands
-	cb.RegisterHandler("trigger.create", &triggerCommands.CreateCommand{
+	// Sensor related commands
+	cb.RegisterHandler("sensor.create", &sensorCommands.CreateCommand{
 		Eventbus: eventbus,
-		Repo:     triggerRepo,
+		Repo:     sensorRepo,
 	})
-	cb.RegisterHandler("trigger.run", &triggerCommands.RunCommand{
+	cb.RegisterHandler("sensor.trigger", &sensorCommands.TriggerCommand{
 		Eventbus: eventbus,
-		Repo:     triggerRepo,
+		Repo:     sensorRepo,
 	})
 
 	// Automation related commands
@@ -103,14 +103,14 @@ func registerCommandHandlers(cb commandbus.CommandBus, eventbus eventbus.EventPu
 		Eventbus: eventbus,
 		Repo:     automationRepo,
 	})
-	cb.RegisterHandler("automation.bindTrigger", &automationCommands.CreateTriggerBindingCommand{
+	cb.RegisterHandler("automation.bindSensor", &automationCommands.CreateSensorBindingCommand{
 		Eventbus: eventbus,
 		Repo:     automationRepo,
 	})
 }
 
 func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
-	eventbus.Subscribe(triggerEventTypes.TriggerTriggeredEvent, eh)
+	eventbus.Subscribe(sensorEventTypes.SensorTriggeredEvent, eh)
 	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
 }
 

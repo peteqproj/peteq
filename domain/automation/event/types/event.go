@@ -8,6 +8,6 @@ const (
 	// AutomationExecutionFinishedEvent event
 	AutomationExecutionFinishedEvent = "automation.execution.finished"
 
-	// TriggerBindingCreatedEvent event
-	TriggerBindingCreatedEvent = "automation.triggerBinding.created"
+	// SensorBindingCreatedEvent event
+	SensorBindingCreatedEvent = "automation.sensorBinding.created"
 )

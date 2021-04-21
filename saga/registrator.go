@@ -6,7 +6,7 @@ import (
 
 	automationCommand "github.com/peteqproj/peteq/domain/automation/command"
 	listCommand "github.com/peteqproj/peteq/domain/list/command"
-	triggerCommand "github.com/peteqproj/peteq/domain/trigger/command"
+	sensorCommand "github.com/peteqproj/peteq/domain/sensor/command"
 	"github.com/peteqproj/peteq/internal/errors"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
@@ -33,7 +33,7 @@ func (a *registrator) Run(ctx context.Context) error {
 		return err
 	}
 
-	if err := a.createBasicTriggerAndAutomation(ctx); err != nil {
+	if err := a.createBasicSensorAndAutomation(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -57,19 +57,19 @@ func (a *registrator) createBasicLists(ctx context.Context) error {
 	return nil
 }
 
-func (a *registrator) createBasicTriggerAndAutomation(ctx context.Context) error {
+func (a *registrator) createBasicSensorAndAutomation(ctx context.Context) error {
 
 	tid, err := a.IDGenerator.GenerateV4()
 	if err != nil {
 		return err
 	}
-	if err := a.Commandbus.Execute(ctx, "trigger.create", triggerCommand.TriggerCreateCommandOptions{
+	if err := a.Commandbus.Execute(ctx, "sensor.create", sensorCommand.SensorCreateCommandOptions{
 		ID:          tid,
 		Name:        "Task Archiver",
 		Description: "Runs at 00:00 every day",
 		Cron:        utils.PtrString("0 00 * * 0-4"), // “At 00:00 on every day-of-week from Sunday through Thursday.”
 	}); err != nil {
-		return fmt.Errorf("Failed to create trigger Task Archiver: %w", err)
+		return fmt.Errorf("Failed to create sensor Task Archiver: %w", err)
 	}
 
 	tid2, err := a.IDGenerator.GenerateV4()
@@ -90,13 +90,13 @@ func (a *registrator) createBasicTriggerAndAutomation(ctx context.Context) error
 	if err != nil {
 		return err
 	}
-	if err := a.Commandbus.Execute(ctx, "automation.bindTrigger", automationCommand.TriggerBindingCreateCommandOptions{
+	if err := a.Commandbus.Execute(ctx, "automation.bindSensor", automationCommand.SensorBindingCreateCommandOptions{
 		ID:         tid3,
-		Name:       fmt.Sprintf("Bind Trigger \"%s\" to Automation \"%s\" ", "Task Archiver", "Task Archiver"),
+		Name:       fmt.Sprintf("Bind Sensor \"%s\" to Automation \"%s\" ", "Task Archiver", "Task Archiver"),
 		Automation: tid2,
-		Trigger:    tid,
+		Sensor:     tid,
 	}); err != nil {
-		return fmt.Errorf("Failed to automation-trigger-binding for Task Archiver trigger: %w", err)
+		return fmt.Errorf("Failed to automation-sensor-binding for Task Archiver sensor: %w", err)
 	}
 	return nil
 }

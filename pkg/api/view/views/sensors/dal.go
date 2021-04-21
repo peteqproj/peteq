@@ -1,4 +1,4 @@
-package triggers
+package sensors
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/db"
 )
 
-const dbTableName = "view_triggers"
+const dbTableName = "view_sensors"
 
 type (
 	DAL struct {
@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func (d *DAL) create(ctx context.Context, user string, view triggersView) error {
+func (d *DAL) create(ctx context.Context, user string, view sensorsView) error {
 	b, err := json.Marshal(view)
 	if err != nil {
 		return err
@@ -34,27 +34,27 @@ func (d *DAL) create(ctx context.Context, user string, view triggersView) error 
 	return rows.Close()
 }
 
-func (d *DAL) load(ctx context.Context, user string) (triggersView, error) {
+func (d *DAL) load(ctx context.Context, user string) (sensorsView, error) {
 	q, _, err := goqu.From(dbTableName).Where(exp.Ex{
 		"userid": user,
 	}).ToSQL()
 	if err != nil {
-		return triggersView{}, fmt.Errorf("Failed to build SQL query: %w", err)
+		return sensorsView{}, fmt.Errorf("Failed to build SQL query: %w", err)
 	}
 	row := d.DB.QueryRowContext(ctx, q)
 	view := ""
 	userid := ""
 	if err := row.Scan(&userid, &view); err != nil {
-		return triggersView{}, fmt.Errorf("Failed to scan into triggersView object: %v", err)
+		return sensorsView{}, fmt.Errorf("Failed to scan into sensorsView object: %v", err)
 	}
-	v := triggersView{}
+	v := sensorsView{}
 	if err := json.Unmarshal([]byte(view), &v); err != nil {
 		return v, err
 	}
 	return v, nil
 }
 
-func (d *DAL) update(ctx context.Context, user string, view triggersView) error {
+func (d *DAL) update(ctx context.Context, user string, view sensorsView) error {
 	res, err := json.Marshal(view)
 	if err != nil {
 		return err

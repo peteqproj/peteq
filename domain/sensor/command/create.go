@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/peteqproj/peteq/domain/trigger"
-	"github.com/peteqproj/peteq/domain/trigger/event/handler"
-	"github.com/peteqproj/peteq/domain/trigger/event/types"
+	"github.com/peteqproj/peteq/domain/sensor"
+	"github.com/peteqproj/peteq/domain/sensor/event/handler"
+	"github.com/peteqproj/peteq/domain/sensor/event/types"
 	"github.com/peteqproj/peteq/internal/errors"
 	"github.com/peteqproj/peteq/pkg/event"
 	"github.com/peteqproj/peteq/pkg/event/bus"
@@ -19,11 +19,11 @@ type (
 	// CreateCommand to create task
 	CreateCommand struct {
 		Eventbus bus.EventPublisher
-		Repo     *trigger.Repo
+		Repo     *sensor.Repo
 	}
 
-	// TriggerCreateCommandOptions options to create trigger
-	TriggerCreateCommandOptions struct {
+	// SensorCreateCommandOptions options to create sensor
+	SensorCreateCommandOptions struct {
 		ID          string  `json:"id"`
 		Name        string  `json:"name"`
 		Description string  `json:"description"`
@@ -34,24 +34,24 @@ type (
 
 // Handle runs CreateCommand to create task
 func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error {
-	opt := &TriggerCreateCommandOptions{}
+	opt := &SensorCreateCommandOptions{}
 	err := utils.UnmarshalInto(arguments, opt)
 	if err != nil {
-		return fmt.Errorf("Failed to convert arguments to TriggerCreateCommandOptions object")
+		return fmt.Errorf("Failed to convert arguments to SensorCreateCommandOptions object")
 	}
 
 	u := tenant.UserFromContext(ctx)
 	if u == nil {
 		return errors.ErrMissingUserInContext
 	}
-	if err := m.Repo.Create(ctx, &trigger.Trigger{
-		Metadata: trigger.Metadata{
+	if err := m.Repo.Create(ctx, &sensor.Sensor{
+		Metadata: sensor.Metadata{
 			ID:          opt.ID,
 			Name:        opt.Name,
 			Labels:      map[string]string{},
 			Description: utils.PtrString(""),
 		},
-		Spec: trigger.Spec{
+		Spec: sensor.Spec{
 			Cron: opt.Cron,
 		},
 	}); err != nil {
@@ -63,9 +63,9 @@ func (m *CreateCommand) Handle(ctx context.Context, arguments interface{}) error
 			Type: tenant.User.String(),
 		},
 		Metadata: event.Metadata{
-			Name:           types.TriggerCreatedEvent,
+			Name:           types.SensorCreatedEvent,
 			CreatedAt:      time.Now(),
-			AggregatorRoot: "trigger",
+			AggregatorRoot: "sensor",
 			AggregatorID:   opt.ID,
 		},
 		Spec: handler.CreatedSpec{

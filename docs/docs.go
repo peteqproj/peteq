@@ -265,6 +265,50 @@ var doc = `{
                 }
             }
         },
+        "/c/sensor/run": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Sensor run",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sensor Command API"
+                ],
+                "parameters": [
+                    {
+                        "description": "Sensor trigger",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SensorRunRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/c/task/complete": {
             "post": {
                 "security": [
@@ -485,50 +529,6 @@ var doc = `{
                 }
             }
         },
-        "/c/trigger/run": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Trigger run",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trigger Command API"
-                ],
-                "parameters": [
-                    {
-                        "description": "Trigger run",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/TriggerRunRequestBody"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/CommandResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/CommandResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/c/user/login": {
             "post": {
                 "description": "Login",
@@ -712,14 +712,14 @@ var doc = `{
                 }
             }
         },
-        "/q/triggers": {
+        "/q/sensors": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Triggers View",
+                "description": "Sensors View",
                 "produces": [
                     "application/json"
                 ],
@@ -730,7 +730,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/triggers.triggersView"
+                            "$ref": "#/definitions/sensors.sensorsView"
                         }
                     }
                 }
@@ -871,7 +871,7 @@ var doc = `{
                 }
             }
         },
-        "TriggerRunRequestBody": {
+        "SensorRunRequestBody": {
             "type": "object",
             "required": [
                 "id"
@@ -1115,6 +1115,37 @@ var doc = `{
                 }
             }
         },
+        "sensors.sensorViewItem": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "object"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "sensors.sensorsView": {
+            "type": "object",
+            "properties": {
+                "sensors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sensors.sensorViewItem"
+                    }
+                }
+            }
+        },
         "task.Metadata": {
             "type": "object",
             "properties": {
@@ -1167,54 +1198,6 @@ var doc = `{
             "properties": {
                 "id": {
                     "type": "string"
-                }
-            }
-        },
-        "triggers.triggerExecutionHistoryItem": {
-            "type": "object",
-            "properties": {
-                "manual": {
-                    "type": "boolean"
-                },
-                "triggeredAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "triggers.triggerViewItem": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "history": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/triggers.triggerExecutionHistoryItem"
-                    }
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "spec": {
-                    "type": "object"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "triggers.triggersView": {
-            "type": "object",
-            "properties": {
-                "triggers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/triggers.triggerViewItem"
-                    }
                 }
             }
         }
