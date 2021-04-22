@@ -16,11 +16,10 @@ import (
 
 // ProjectMetadata struct for ProjectMetadata
 type ProjectMetadata struct {
-	Color       *string `json:"color,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Id          *string `json:"id,omitempty"`
-	ImageUrl    *string `json:"imageUrl,omitempty"`
-	Name        *string `json:"name,omitempty"`
+	Description *string            `json:"description,omitempty"`
+	Id          *string            `json:"id,omitempty"`
+	Labels      *map[string]string `json:"labels,omitempty"`
+	Name        *string            `json:"name,omitempty"`
 }
 
 // NewProjectMetadata instantiates a new ProjectMetadata object
@@ -38,38 +37,6 @@ func NewProjectMetadata() *ProjectMetadata {
 func NewProjectMetadataWithDefaults() *ProjectMetadata {
 	this := ProjectMetadata{}
 	return &this
-}
-
-// GetColor returns the Color field value if set, zero value otherwise.
-func (o *ProjectMetadata) GetColor() string {
-	if o == nil || o.Color == nil {
-		var ret string
-		return ret
-	}
-	return *o.Color
-}
-
-// GetColorOk returns a tuple with the Color field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ProjectMetadata) GetColorOk() (*string, bool) {
-	if o == nil || o.Color == nil {
-		return nil, false
-	}
-	return o.Color, true
-}
-
-// HasColor returns a boolean if a field has been set.
-func (o *ProjectMetadata) HasColor() bool {
-	if o != nil && o.Color != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetColor gets a reference to the given string and assigns it to the Color field.
-func (o *ProjectMetadata) SetColor(v string) {
-	o.Color = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
@@ -136,36 +103,36 @@ func (o *ProjectMetadata) SetId(v string) {
 	o.Id = &v
 }
 
-// GetImageUrl returns the ImageUrl field value if set, zero value otherwise.
-func (o *ProjectMetadata) GetImageUrl() string {
-	if o == nil || o.ImageUrl == nil {
-		var ret string
+// GetLabels returns the Labels field value if set, zero value otherwise.
+func (o *ProjectMetadata) GetLabels() map[string]string {
+	if o == nil || o.Labels == nil {
+		var ret map[string]string
 		return ret
 	}
-	return *o.ImageUrl
+	return *o.Labels
 }
 
-// GetImageUrlOk returns a tuple with the ImageUrl field value if set, nil otherwise
+// GetLabelsOk returns a tuple with the Labels field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ProjectMetadata) GetImageUrlOk() (*string, bool) {
-	if o == nil || o.ImageUrl == nil {
+func (o *ProjectMetadata) GetLabelsOk() (*map[string]string, bool) {
+	if o == nil || o.Labels == nil {
 		return nil, false
 	}
-	return o.ImageUrl, true
+	return o.Labels, true
 }
 
-// HasImageUrl returns a boolean if a field has been set.
-func (o *ProjectMetadata) HasImageUrl() bool {
-	if o != nil && o.ImageUrl != nil {
+// HasLabels returns a boolean if a field has been set.
+func (o *ProjectMetadata) HasLabels() bool {
+	if o != nil && o.Labels != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetImageUrl gets a reference to the given string and assigns it to the ImageUrl field.
-func (o *ProjectMetadata) SetImageUrl(v string) {
-	o.ImageUrl = &v
+// SetLabels gets a reference to the given map[string]string and assigns it to the Labels field.
+func (o *ProjectMetadata) SetLabels(v map[string]string) {
+	o.Labels = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
@@ -202,17 +169,14 @@ func (o *ProjectMetadata) SetName(v string) {
 
 func (o ProjectMetadata) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Color != nil {
-		toSerialize["color"] = o.Color
-	}
 	if o.Description != nil {
 		toSerialize["description"] = o.Description
 	}
 	if o.Id != nil {
 		toSerialize["id"] = o.Id
 	}
-	if o.ImageUrl != nil {
-		toSerialize["imageUrl"] = o.ImageUrl
+	if o.Labels != nil {
+		toSerialize["labels"] = o.Labels
 	}
 	if o.Name != nil {
 		toSerialize["name"] = o.Name

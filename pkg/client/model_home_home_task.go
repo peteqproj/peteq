@@ -16,22 +16,16 @@ import (
 
 // HomeHomeTask struct for HomeHomeTask
 type HomeHomeTask struct {
-	Id       *string         `json:"id,omitempty"`
-	Metadata TaskMetadata    `json:"metadata"`
-	Project  *ProjectProject `json:"project,omitempty"`
-	Spec     TaskSpec        `json:"spec"`
-	Status   *TaskStatus     `json:"status,omitempty"`
-	Type     *string         `json:"type,omitempty"`
+	Project *ProjectProject `json:"project,omitempty"`
+	Task    *TaskTask       `json:"task,omitempty"`
 }
 
 // NewHomeHomeTask instantiates a new HomeHomeTask object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewHomeHomeTask(metadata TaskMetadata, spec TaskSpec) *HomeHomeTask {
+func NewHomeHomeTask() *HomeHomeTask {
 	this := HomeHomeTask{}
-	this.Metadata = metadata
-	this.Spec = spec
 	return &this
 }
 
@@ -41,62 +35,6 @@ func NewHomeHomeTask(metadata TaskMetadata, spec TaskSpec) *HomeHomeTask {
 func NewHomeHomeTaskWithDefaults() *HomeHomeTask {
 	this := HomeHomeTask{}
 	return &this
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *HomeHomeTask) GetId() string {
-	if o == nil || o.Id == nil {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *HomeHomeTask) GetIdOk() (*string, bool) {
-	if o == nil || o.Id == nil {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *HomeHomeTask) HasId() bool {
-	if o != nil && o.Id != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *HomeHomeTask) SetId(v string) {
-	o.Id = &v
-}
-
-// GetMetadata returns the Metadata field value
-func (o *HomeHomeTask) GetMetadata() TaskMetadata {
-	if o == nil {
-		var ret TaskMetadata
-		return ret
-	}
-
-	return o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value
-// and a boolean to check if the value has been set.
-func (o *HomeHomeTask) GetMetadataOk() (*TaskMetadata, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Metadata, true
-}
-
-// SetMetadata sets field value
-func (o *HomeHomeTask) SetMetadata(v TaskMetadata) {
-	o.Metadata = v
 }
 
 // GetProject returns the Project field value if set, zero value otherwise.
@@ -131,113 +69,45 @@ func (o *HomeHomeTask) SetProject(v ProjectProject) {
 	o.Project = &v
 }
 
-// GetSpec returns the Spec field value
-func (o *HomeHomeTask) GetSpec() TaskSpec {
-	if o == nil {
-		var ret TaskSpec
+// GetTask returns the Task field value if set, zero value otherwise.
+func (o *HomeHomeTask) GetTask() TaskTask {
+	if o == nil || o.Task == nil {
+		var ret TaskTask
 		return ret
 	}
-
-	return o.Spec
+	return *o.Task
 }
 
-// GetSpecOk returns a tuple with the Spec field value
+// GetTaskOk returns a tuple with the Task field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *HomeHomeTask) GetSpecOk() (*TaskSpec, bool) {
-	if o == nil {
+func (o *HomeHomeTask) GetTaskOk() (*TaskTask, bool) {
+	if o == nil || o.Task == nil {
 		return nil, false
 	}
-	return &o.Spec, true
+	return o.Task, true
 }
 
-// SetSpec sets field value
-func (o *HomeHomeTask) SetSpec(v TaskSpec) {
-	o.Spec = v
-}
-
-// GetStatus returns the Status field value if set, zero value otherwise.
-func (o *HomeHomeTask) GetStatus() TaskStatus {
-	if o == nil || o.Status == nil {
-		var ret TaskStatus
-		return ret
-	}
-	return *o.Status
-}
-
-// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *HomeHomeTask) GetStatusOk() (*TaskStatus, bool) {
-	if o == nil || o.Status == nil {
-		return nil, false
-	}
-	return o.Status, true
-}
-
-// HasStatus returns a boolean if a field has been set.
-func (o *HomeHomeTask) HasStatus() bool {
-	if o != nil && o.Status != nil {
+// HasTask returns a boolean if a field has been set.
+func (o *HomeHomeTask) HasTask() bool {
+	if o != nil && o.Task != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetStatus gets a reference to the given TaskStatus and assigns it to the Status field.
-func (o *HomeHomeTask) SetStatus(v TaskStatus) {
-	o.Status = &v
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *HomeHomeTask) GetType() string {
-	if o == nil || o.Type == nil {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *HomeHomeTask) GetTypeOk() (*string, bool) {
-	if o == nil || o.Type == nil {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *HomeHomeTask) HasType() bool {
-	if o != nil && o.Type != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *HomeHomeTask) SetType(v string) {
-	o.Type = &v
+// SetTask gets a reference to the given TaskTask and assigns it to the Task field.
+func (o *HomeHomeTask) SetTask(v TaskTask) {
+	o.Task = &v
 }
 
 func (o HomeHomeTask) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Id != nil {
-		toSerialize["id"] = o.Id
-	}
-	if true {
-		toSerialize["metadata"] = o.Metadata
-	}
 	if o.Project != nil {
 		toSerialize["project"] = o.Project
 	}
-	if true {
-		toSerialize["spec"] = o.Spec
-	}
-	if o.Status != nil {
-		toSerialize["status"] = o.Status
-	}
-	if o.Type != nil {
-		toSerialize["type"] = o.Type
+	if o.Task != nil {
+		toSerialize["task"] = o.Task
 	}
 	return json.Marshal(toSerialize)
 }

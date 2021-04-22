@@ -16,10 +16,8 @@ import (
 
 // ProjectProject struct for ProjectProject
 type ProjectProject struct {
-	Id       *string          `json:"id,omitempty"`
 	Metadata *ProjectMetadata `json:"metadata,omitempty"`
-	Tasks    *[]string        `json:"tasks,omitempty"`
-	Type     *string          `json:"type,omitempty"`
+	Spec     *ProjectSpec     `json:"spec,omitempty"`
 }
 
 // NewProjectProject instantiates a new ProjectProject object
@@ -37,38 +35,6 @@ func NewProjectProject() *ProjectProject {
 func NewProjectProjectWithDefaults() *ProjectProject {
 	this := ProjectProject{}
 	return &this
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *ProjectProject) GetId() string {
-	if o == nil || o.Id == nil {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ProjectProject) GetIdOk() (*string, bool) {
-	if o == nil || o.Id == nil {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *ProjectProject) HasId() bool {
-	if o != nil && o.Id != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *ProjectProject) SetId(v string) {
-	o.Id = &v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise.
@@ -103,83 +69,45 @@ func (o *ProjectProject) SetMetadata(v ProjectMetadata) {
 	o.Metadata = &v
 }
 
-// GetTasks returns the Tasks field value if set, zero value otherwise.
-func (o *ProjectProject) GetTasks() []string {
-	if o == nil || o.Tasks == nil {
-		var ret []string
+// GetSpec returns the Spec field value if set, zero value otherwise.
+func (o *ProjectProject) GetSpec() ProjectSpec {
+	if o == nil || o.Spec == nil {
+		var ret ProjectSpec
 		return ret
 	}
-	return *o.Tasks
+	return *o.Spec
 }
 
-// GetTasksOk returns a tuple with the Tasks field value if set, nil otherwise
+// GetSpecOk returns a tuple with the Spec field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ProjectProject) GetTasksOk() (*[]string, bool) {
-	if o == nil || o.Tasks == nil {
+func (o *ProjectProject) GetSpecOk() (*ProjectSpec, bool) {
+	if o == nil || o.Spec == nil {
 		return nil, false
 	}
-	return o.Tasks, true
+	return o.Spec, true
 }
 
-// HasTasks returns a boolean if a field has been set.
-func (o *ProjectProject) HasTasks() bool {
-	if o != nil && o.Tasks != nil {
+// HasSpec returns a boolean if a field has been set.
+func (o *ProjectProject) HasSpec() bool {
+	if o != nil && o.Spec != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetTasks gets a reference to the given []string and assigns it to the Tasks field.
-func (o *ProjectProject) SetTasks(v []string) {
-	o.Tasks = &v
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ProjectProject) GetType() string {
-	if o == nil || o.Type == nil {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ProjectProject) GetTypeOk() (*string, bool) {
-	if o == nil || o.Type == nil {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ProjectProject) HasType() bool {
-	if o != nil && o.Type != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ProjectProject) SetType(v string) {
-	o.Type = &v
+// SetSpec gets a reference to the given ProjectSpec and assigns it to the Spec field.
+func (o *ProjectProject) SetSpec(v ProjectSpec) {
+	o.Spec = &v
 }
 
 func (o ProjectProject) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Id != nil {
-		toSerialize["id"] = o.Id
-	}
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
-	if o.Tasks != nil {
-		toSerialize["tasks"] = o.Tasks
-	}
-	if o.Type != nil {
-		toSerialize["type"] = o.Type
+	if o.Spec != nil {
+		toSerialize["spec"] = o.Spec
 	}
 	return json.Marshal(toSerialize)
 }

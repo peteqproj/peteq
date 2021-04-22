@@ -177,6 +177,92 @@ var doc = `{
                 }
             }
         },
+        "/c/automation/bindSensor": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Automation Command API"
+                ],
+                "parameters": [
+                    {
+                        "description": "Binds Sensor to Automation",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateSensorAutomationBindingRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/c/automation/create": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Automation Command API"
+                ],
+                "parameters": [
+                    {
+                        "description": "Creates automation",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateAutomationRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/c/list/moveTasks": {
             "post": {
                 "security": [
@@ -265,7 +351,51 @@ var doc = `{
                 }
             }
         },
-        "/c/sensor/run": {
+        "/c/sensor/create": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "returns the creates sensor id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sensor Command API"
+                ],
+                "parameters": [
+                    {
+                        "description": "Create sensor",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sensor.createRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/CommandResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/c/sensor/trigger": {
             "post": {
                 "security": [
                     {
@@ -284,7 +414,7 @@ var doc = `{
                 ],
                 "parameters": [
                     {
-                        "description": "Sensor trigger",
+                        "description": "Trigger sensor",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -781,6 +911,17 @@ var doc = `{
                 }
             }
         },
+        "CreateAutomationRequestBody": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "CreateProjectRequestBody": {
             "type": "object",
             "required": [
@@ -797,6 +938,25 @@ var doc = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "CreateSensorAutomationBindingRequestBody": {
+            "type": "object",
+            "required": [
+                "automation",
+                "name",
+                "sensor"
+            ],
+            "properties": {
+                "automation": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensor": {
                     "type": "string"
                 }
             }
@@ -1112,6 +1272,17 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/projects.populatedProject"
                     }
+                }
+            }
+        },
+        "sensor.createRequestBody": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
                 }
             }
         },

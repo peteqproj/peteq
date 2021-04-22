@@ -491,23 +491,23 @@ func (a *ViewApiService) QProjectIdGetExecute(r ApiQProjectIdGetRequest) (Projec
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiQTriggersGetRequest struct {
+type ApiQSensorsGetRequest struct {
 	ctx        _context.Context
 	ApiService *ViewApiService
 }
 
-func (r ApiQTriggersGetRequest) Execute() (TriggersTriggersView, *_nethttp.Response, error) {
-	return r.ApiService.QTriggersGetExecute(r)
+func (r ApiQSensorsGetRequest) Execute() (SensorsSensorsView, *_nethttp.Response, error) {
+	return r.ApiService.QSensorsGetExecute(r)
 }
 
 /*
- * QTriggersGet Method for QTriggersGet
- * Triggers View
+ * QSensorsGet Method for QSensorsGet
+ * Sensors View
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @return ApiQTriggersGetRequest
+ * @return ApiQSensorsGetRequest
  */
-func (a *ViewApiService) QTriggersGet(ctx _context.Context) ApiQTriggersGetRequest {
-	return ApiQTriggersGetRequest{
+func (a *ViewApiService) QSensorsGet(ctx _context.Context) ApiQSensorsGetRequest {
+	return ApiQSensorsGetRequest{
 		ApiService: a,
 		ctx:        ctx,
 	}
@@ -515,24 +515,24 @@ func (a *ViewApiService) QTriggersGet(ctx _context.Context) ApiQTriggersGetReque
 
 /*
  * Execute executes the request
- * @return TriggersTriggersView
+ * @return SensorsSensorsView
  */
-func (a *ViewApiService) QTriggersGetExecute(r ApiQTriggersGetRequest) (TriggersTriggersView, *_nethttp.Response, error) {
+func (a *ViewApiService) QSensorsGetExecute(r ApiQSensorsGetRequest) (SensorsSensorsView, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  TriggersTriggersView
+		localVarReturnValue  SensorsSensorsView
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ViewApiService.QTriggersGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ViewApiService.QSensorsGet")
 	if err != nil {
 		return localVarReturnValue, nil, GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/q/triggers"
+	localVarPath := localBasePath + "/q/sensors"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
