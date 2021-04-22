@@ -28,7 +28,9 @@ type (
 	} //@name SensorRunRequestBody
 
 	createRequestBody struct {
-		Name string `json:"name" validate:"required"`
+		Name        string `json:"name" validate:"required"`
+		Description string `json:"description"`
+		Cron        string `json:"cron"`
 	}
 )
 
@@ -77,8 +79,10 @@ func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Command
 		return api.NewRejectedCommandResponse(err)
 	}
 	if err := c.Commandbus.Execute(ctx, "sensor.create", command.SensorCreateCommandOptions{
-		ID:   id,
-		Name: spec.Name,
+		ID:          id,
+		Name:        spec.Name,
+		Description: spec.Description,
+		Cron:        &spec.Cron,
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}

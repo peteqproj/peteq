@@ -33,8 +33,11 @@ definitions:
     properties:
       name:
         type: string
+      type:
+        type: string
     required:
     - name
+    - type
     type: object
   CreateProjectRequestBody:
     properties:
@@ -267,6 +270,10 @@ definitions:
     type: object
   sensor.createRequestBody:
     properties:
+      cron:
+        type: string
+      description:
+        type: string
       name:
         type: string
     required:

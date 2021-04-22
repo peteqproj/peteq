@@ -98,5 +98,6 @@ func newRSSImporter(cb commandbus.CommandBus, taskRepo *task.Repo, projectRepo *
 		ProjectRepo: projectRepo,
 		Logger:      lgr,
 		Event:       ev,
+		IDGenerator: utils.NewGenerator(),
 	}
 }

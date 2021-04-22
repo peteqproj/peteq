@@ -914,10 +914,14 @@ var doc = `{
         "CreateAutomationRequestBody": {
             "type": "object",
             "required": [
-                "name"
+                "name",
+                "type"
             ],
             "properties": {
                 "name": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -1281,6 +1285,12 @@ var doc = `{
                 "name"
             ],
             "properties": {
+                "cron": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 }
