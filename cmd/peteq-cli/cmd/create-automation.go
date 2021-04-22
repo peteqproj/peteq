@@ -7,6 +7,7 @@ import (
 )
 
 var createAutomationFlags struct {
+	Type string
 }
 
 var createAutomationCmd = &cobra.Command{
@@ -24,6 +25,7 @@ var createAutomationCmd = &cobra.Command{
 		for _, name := range args {
 			resp, _, err := c.AutomationCommandAPIApi.CAutomationCreatePost(auth).Body(client.CreateAutomationRequestBody{
 				Name: name,
+				Type: createAutomationFlags.Type,
 			}).Execute()
 			if err != nil {
 				return err
@@ -36,5 +38,5 @@ var createAutomationCmd = &cobra.Command{
 
 func init() {
 	createCmd.AddCommand(createAutomationCmd)
-	// createAutomationCmd.Flags().StringVar(&createAutomationFlags.project, "project", "", "Assign the automation to project")
+	createAutomationCmd.Flags().StringVar(&createAutomationFlags.Type, "type", "", "Automation type")
 }

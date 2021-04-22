@@ -23,6 +23,7 @@ type (
 
 	CreateAutomationRequestBody struct {
 		Name string `json:"name" validate:"required"`
+		Type string `json:"type" validate:"required"`
 	} //@name CreateAutomationRequestBody
 
 	CreateSensorAutomationBindingRequestBody struct {
@@ -53,7 +54,7 @@ func (ca *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.Comman
 	if err := ca.Commandbus.Execute(ctx, "automation.create", automationCommands.AutomationCreateCommandOptions{
 		ID:   id,
 		Name: opt.Name,
-		Type: "rss-importer",
+		Type: opt.Type,
 	}); err != nil {
 		return api.NewRejectedCommandResponse(err)
 	}

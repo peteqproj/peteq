@@ -16,7 +16,9 @@ import (
 
 // SensorCreateRequestBody struct for SensorCreateRequestBody
 type SensorCreateRequestBody struct {
-	Name string `json:"name"`
+	Cron        *string `json:"cron,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
 }
 
 // NewSensorCreateRequestBody instantiates a new SensorCreateRequestBody object
@@ -35,6 +37,70 @@ func NewSensorCreateRequestBody(name string) *SensorCreateRequestBody {
 func NewSensorCreateRequestBodyWithDefaults() *SensorCreateRequestBody {
 	this := SensorCreateRequestBody{}
 	return &this
+}
+
+// GetCron returns the Cron field value if set, zero value otherwise.
+func (o *SensorCreateRequestBody) GetCron() string {
+	if o == nil || o.Cron == nil {
+		var ret string
+		return ret
+	}
+	return *o.Cron
+}
+
+// GetCronOk returns a tuple with the Cron field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *SensorCreateRequestBody) GetCronOk() (*string, bool) {
+	if o == nil || o.Cron == nil {
+		return nil, false
+	}
+	return o.Cron, true
+}
+
+// HasCron returns a boolean if a field has been set.
+func (o *SensorCreateRequestBody) HasCron() bool {
+	if o != nil && o.Cron != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetCron gets a reference to the given string and assigns it to the Cron field.
+func (o *SensorCreateRequestBody) SetCron(v string) {
+	o.Cron = &v
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise.
+func (o *SensorCreateRequestBody) GetDescription() string {
+	if o == nil || o.Description == nil {
+		var ret string
+		return ret
+	}
+	return *o.Description
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *SensorCreateRequestBody) GetDescriptionOk() (*string, bool) {
+	if o == nil || o.Description == nil {
+		return nil, false
+	}
+	return o.Description, true
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *SensorCreateRequestBody) HasDescription() bool {
+	if o != nil && o.Description != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
+func (o *SensorCreateRequestBody) SetDescription(v string) {
+	o.Description = &v
 }
 
 // GetName returns the Name field value
@@ -63,6 +129,12 @@ func (o *SensorCreateRequestBody) SetName(v string) {
 
 func (o SensorCreateRequestBody) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.Cron != nil {
+		toSerialize["cron"] = o.Cron
+	}
+	if o.Description != nil {
+		toSerialize["description"] = o.Description
+	}
 	if true {
 		toSerialize["name"] = o.Name
 	}

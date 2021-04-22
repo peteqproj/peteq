@@ -3,10 +3,13 @@ package cmd
 import (
 	"github.com/peteqproj/peteq/pkg/client"
 	"github.com/peteqproj/peteq/pkg/logger"
+	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
 var createSensorFlags struct {
+	description string
+	cron        string
 }
 
 var createSensorCmd = &cobra.Command{
@@ -23,7 +26,9 @@ var createSensorCmd = &cobra.Command{
 
 		for _, name := range args {
 			resp, _, err := c.SensorCommandAPIApi.CSensorCreatePost(auth).Body(client.SensorCreateRequestBody{
-				Name: name,
+				Name:        name,
+				Cron:        utils.PtrString(createSensorFlags.cron),
+				Description: &createProjectFlags.description,
 			}).Execute()
 			if err != nil {
 				return err
@@ -36,5 +41,6 @@ var createSensorCmd = &cobra.Command{
 
 func init() {
 	createCmd.AddCommand(createSensorCmd)
-	// createSensorCmd.Flags().StringVar(&createSensorFlags.project, "project", "", "Assign the sensor to project")
+	createSensorCmd.Flags().StringVar(&createSensorFlags.cron, "cron", "", "Cron expression to trigger the sensor")
+	createSensorCmd.Flags().StringVar(&createSensorFlags.description, "description", "", "Description")
 }

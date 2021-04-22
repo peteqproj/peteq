@@ -34,6 +34,15 @@ type (
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
+
+	rssGUID          string
+	rssImporterState struct {
+		tasks map[rssGUID]struct {
+			taskID            string
+			assignedToProject bool
+		}
+		project string
+	}
 )
 
 func (r *rssImporter) Run(ctx context.Context) error {
@@ -44,15 +53,19 @@ func (r *rssImporter) Run(ctx context.Context) error {
 	}
 	list, err := r.ProjectRepo.ListByUserid(ctx, u.Metadata.ID)
 	if err != nil {
-		return fmt.Errorf("Failed to list projects: %w", err)
+		return fmt.Errorf("failed to list projects: %w", err)
 	}
 	input := &rssImporterInput{}
 
-	s, ok := r.Event.Spec.(string)
+	s, ok := r.Event.Spec.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Given input is not a JSON like string")
+		return fmt.Errorf("given input is not a JSON like string")
 	}
-	err = json.Unmarshal([]byte(s), input)
+	bytes, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, input)
 	if err != nil {
 		return err
 	}
@@ -70,7 +83,7 @@ func (r *rssImporter) Run(ctx context.Context) error {
 				projectID = p.Metadata.ID
 			}
 		}
-		if projectID != "" {
+		if projectID == "" {
 			id, err := r.IDGenerator.GenerateV4()
 			if err != nil {
 				return err
@@ -95,6 +108,13 @@ func (r *rssImporter) Run(ctx context.Context) error {
 				ID:          id,
 				Name:        i.Title,
 				Description: fmt.Sprintf("Link %s\n", i.Link),
+			}); err != nil {
+				return err
+			}
+
+			if err := r.Commandbus.Execute(ctx, "project.add-task", projectCommand.AddTasksCommandOptions{
+				Project: projectID,
+				TaskID:  id,
 			}); err != nil {
 				return err
 			}
