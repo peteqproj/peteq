@@ -3,8 +3,10 @@ package cmd
 import (
 	"context"
 
+	"github.com/peteqproj/peteq/domain/automation"
 	listDomain "github.com/peteqproj/peteq/domain/list"
 	projectDomain "github.com/peteqproj/peteq/domain/project"
+	"github.com/peteqproj/peteq/domain/sensor"
 	"github.com/peteqproj/peteq/domain/task"
 	userDomain "github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/internal"
@@ -80,13 +82,29 @@ var commandServiceCmd = &cobra.Command{
 			utils.DieOnError(err, "Failed to init user repo")
 		}
 
+		sensorRepo := &sensor.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "sensor"),
+		}
+		if err := sensorRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init sensor repo")
+		}
+
+		automationRepo := &automation.Repo{
+			DB:     db,
+			Logger: logr.Fork("repo", "sensor"),
+		}
+		if err := automationRepo.Initiate(context.Background()); err != nil {
+			utils.DieOnError(err, "Failed to init automation repo")
+		}
+
 		ebus := internal.NewEventBusFromFlagsOrDie(db, userRepo, false, logr.Fork("module", "eventbus"))
 		defer ebus.Stop()
 		logr.Info("Eventbus connected")
 		cb := internal.NewCommandBusFromFlagsOrDie(userRepo, logr.Fork("module", "commandbus"))
 		err = cb.Start()
 		logr.Info("Commandbus connected")
-		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, nil, nil)
+		registerCommandHandlers(cb, ebus, userRepo, taskRepo, listRepo, projectRepo, sensorRepo, automationRepo)
 
 		apiBuilder := builder.Builder{
 			UserRepo:    userRepo,

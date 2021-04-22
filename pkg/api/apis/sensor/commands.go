@@ -26,17 +26,21 @@ type (
 		ID   string      `json:"id" validate:"required"`
 		Data interface{} `json:"data"`
 	} //@name SensorRunRequestBody
+
+	createRequestBody struct {
+		Name string `json:"name" validate:"required"`
+	}
 )
 
-// Run runs sensor
+// Triggers sensor and executes all the bound automations
 // @Description Sensor run
 // @Tags Sensor Command API
 // @Accept  json
 // @Produce  json
-// @Param body body sensorRunRequestBody true "Sensor trigger"
+// @Param body body sensorRunRequestBody true "Trigger sensor"
 // @Success 200 {object} api.CommandResponse
 // @Success 400 {object} api.CommandResponse
-// @Router /c/sensor/run [post]
+// @Router /c/sensor/trigger [post]
 // @Security ApiKeyAuth
 func (c *CommandAPI) Run(ctx context.Context, body io.ReadCloser) api.CommandResponse {
 	spec := sensorRunRequestBody{}
@@ -51,6 +55,34 @@ func (c *CommandAPI) Run(ctx context.Context, body io.ReadCloser) api.CommandRes
 		return api.NewRejectedCommandResponse(err)
 	}
 	return api.NewAcceptedCommandResponse("sensor", spec.ID)
+}
+
+// Create sensor
+// @Description returns the creates sensor id
+// @Tags Sensor Command API
+// @Accept  json
+// @Produce  json
+// @Param body body createRequestBody true "Create sensor"
+// @Success 200 {object} api.CommandResponse
+// @Success 400 {object} api.CommandResponse
+// @Router /c/sensor/create [post]
+// @Security ApiKeyAuth
+func (c *CommandAPI) Create(ctx context.Context, body io.ReadCloser) api.CommandResponse {
+	spec := createRequestBody{}
+	if err := api.UnmarshalInto(body, &spec); err != nil {
+		return api.NewRejectedCommandResponse(err)
+	}
+	id, err := c.IDGenerator.GenerateV4()
+	if err != nil {
+		return api.NewRejectedCommandResponse(err)
+	}
+	if err := c.Commandbus.Execute(ctx, "sensor.create", command.SensorCreateCommandOptions{
+		ID:   id,
+		Name: spec.Name,
+	}); err != nil {
+		return api.NewRejectedCommandResponse(err)
+	}
+	return api.NewAcceptedCommandResponse("sensor", id)
 }
 
 func handleError(code int, err error, c *gin.Context) {

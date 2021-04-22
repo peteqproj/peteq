@@ -16,23 +16,17 @@ import (
 
 // BacklogBacklogTask struct for BacklogBacklogTask
 type BacklogBacklogTask struct {
-	Id       *string                    `json:"id,omitempty"`
-	List     *BacklogBacklogTaskList    `json:"list,omitempty"`
-	Metadata TaskMetadata               `json:"metadata"`
-	Project  *BacklogBacklogTaskProject `json:"project,omitempty"`
-	Spec     TaskSpec                   `json:"spec"`
-	Status   *TaskStatus                `json:"status,omitempty"`
-	Type     *string                    `json:"type,omitempty"`
+	List    *BacklogBacklogTaskList    `json:"list,omitempty"`
+	Project *BacklogBacklogTaskProject `json:"project,omitempty"`
+	Task    *TaskTask                  `json:"task,omitempty"`
 }
 
 // NewBacklogBacklogTask instantiates a new BacklogBacklogTask object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewBacklogBacklogTask(metadata TaskMetadata, spec TaskSpec) *BacklogBacklogTask {
+func NewBacklogBacklogTask() *BacklogBacklogTask {
 	this := BacklogBacklogTask{}
-	this.Metadata = metadata
-	this.Spec = spec
 	return &this
 }
 
@@ -42,38 +36,6 @@ func NewBacklogBacklogTask(metadata TaskMetadata, spec TaskSpec) *BacklogBacklog
 func NewBacklogBacklogTaskWithDefaults() *BacklogBacklogTask {
 	this := BacklogBacklogTask{}
 	return &this
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *BacklogBacklogTask) GetId() string {
-	if o == nil || o.Id == nil {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BacklogBacklogTask) GetIdOk() (*string, bool) {
-	if o == nil || o.Id == nil {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *BacklogBacklogTask) HasId() bool {
-	if o != nil && o.Id != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *BacklogBacklogTask) SetId(v string) {
-	o.Id = &v
 }
 
 // GetList returns the List field value if set, zero value otherwise.
@@ -108,30 +70,6 @@ func (o *BacklogBacklogTask) SetList(v BacklogBacklogTaskList) {
 	o.List = &v
 }
 
-// GetMetadata returns the Metadata field value
-func (o *BacklogBacklogTask) GetMetadata() TaskMetadata {
-	if o == nil {
-		var ret TaskMetadata
-		return ret
-	}
-
-	return o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value
-// and a boolean to check if the value has been set.
-func (o *BacklogBacklogTask) GetMetadataOk() (*TaskMetadata, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Metadata, true
-}
-
-// SetMetadata sets field value
-func (o *BacklogBacklogTask) SetMetadata(v TaskMetadata) {
-	o.Metadata = v
-}
-
 // GetProject returns the Project field value if set, zero value otherwise.
 func (o *BacklogBacklogTask) GetProject() BacklogBacklogTaskProject {
 	if o == nil || o.Project == nil {
@@ -164,116 +102,48 @@ func (o *BacklogBacklogTask) SetProject(v BacklogBacklogTaskProject) {
 	o.Project = &v
 }
 
-// GetSpec returns the Spec field value
-func (o *BacklogBacklogTask) GetSpec() TaskSpec {
-	if o == nil {
-		var ret TaskSpec
+// GetTask returns the Task field value if set, zero value otherwise.
+func (o *BacklogBacklogTask) GetTask() TaskTask {
+	if o == nil || o.Task == nil {
+		var ret TaskTask
 		return ret
 	}
-
-	return o.Spec
+	return *o.Task
 }
 
-// GetSpecOk returns a tuple with the Spec field value
+// GetTaskOk returns a tuple with the Task field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *BacklogBacklogTask) GetSpecOk() (*TaskSpec, bool) {
-	if o == nil {
+func (o *BacklogBacklogTask) GetTaskOk() (*TaskTask, bool) {
+	if o == nil || o.Task == nil {
 		return nil, false
 	}
-	return &o.Spec, true
+	return o.Task, true
 }
 
-// SetSpec sets field value
-func (o *BacklogBacklogTask) SetSpec(v TaskSpec) {
-	o.Spec = v
-}
-
-// GetStatus returns the Status field value if set, zero value otherwise.
-func (o *BacklogBacklogTask) GetStatus() TaskStatus {
-	if o == nil || o.Status == nil {
-		var ret TaskStatus
-		return ret
-	}
-	return *o.Status
-}
-
-// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BacklogBacklogTask) GetStatusOk() (*TaskStatus, bool) {
-	if o == nil || o.Status == nil {
-		return nil, false
-	}
-	return o.Status, true
-}
-
-// HasStatus returns a boolean if a field has been set.
-func (o *BacklogBacklogTask) HasStatus() bool {
-	if o != nil && o.Status != nil {
+// HasTask returns a boolean if a field has been set.
+func (o *BacklogBacklogTask) HasTask() bool {
+	if o != nil && o.Task != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetStatus gets a reference to the given TaskStatus and assigns it to the Status field.
-func (o *BacklogBacklogTask) SetStatus(v TaskStatus) {
-	o.Status = &v
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *BacklogBacklogTask) GetType() string {
-	if o == nil || o.Type == nil {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BacklogBacklogTask) GetTypeOk() (*string, bool) {
-	if o == nil || o.Type == nil {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *BacklogBacklogTask) HasType() bool {
-	if o != nil && o.Type != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *BacklogBacklogTask) SetType(v string) {
-	o.Type = &v
+// SetTask gets a reference to the given TaskTask and assigns it to the Task field.
+func (o *BacklogBacklogTask) SetTask(v TaskTask) {
+	o.Task = &v
 }
 
 func (o BacklogBacklogTask) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Id != nil {
-		toSerialize["id"] = o.Id
-	}
 	if o.List != nil {
 		toSerialize["list"] = o.List
-	}
-	if true {
-		toSerialize["metadata"] = o.Metadata
 	}
 	if o.Project != nil {
 		toSerialize["project"] = o.Project
 	}
-	if true {
-		toSerialize["spec"] = o.Spec
-	}
-	if o.Status != nil {
-		toSerialize["status"] = o.Status
-	}
-	if o.Type != nil {
-		toSerialize["type"] = o.Type
+	if o.Task != nil {
+		toSerialize["task"] = o.Task
 	}
 	return json.Marshal(toSerialize)
 }

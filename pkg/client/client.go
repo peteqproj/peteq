@@ -48,15 +48,17 @@ type APIClient struct {
 
 	// API Services
 
+	AutomationCommandAPIApi *AutomationCommandAPIApiService
+
 	ListCommandAPIApi *ListCommandAPIApiService
 
 	ProjectCommandAPIApi *ProjectCommandAPIApiService
 
 	RestAPIApi *RestAPIApiService
 
-	TaskCommandAPIApi *TaskCommandAPIApiService
+	SensorCommandAPIApi *SensorCommandAPIApiService
 
-	TriggerCommandAPIApi *TriggerCommandAPIApiService
+	TaskCommandAPIApi *TaskCommandAPIApiService
 
 	UserCommandAPIApi *UserCommandAPIApiService
 
@@ -79,11 +81,12 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.common.client = c
 
 	// API Services
+	c.AutomationCommandAPIApi = (*AutomationCommandAPIApiService)(&c.common)
 	c.ListCommandAPIApi = (*ListCommandAPIApiService)(&c.common)
 	c.ProjectCommandAPIApi = (*ProjectCommandAPIApiService)(&c.common)
 	c.RestAPIApi = (*RestAPIApiService)(&c.common)
+	c.SensorCommandAPIApi = (*SensorCommandAPIApiService)(&c.common)
 	c.TaskCommandAPIApi = (*TaskCommandAPIApiService)(&c.common)
-	c.TriggerCommandAPIApi = (*TriggerCommandAPIApiService)(&c.common)
 	c.UserCommandAPIApi = (*UserCommandAPIApiService)(&c.common)
 	c.ViewApi = (*ViewApiService)(&c.common)
 
@@ -118,7 +121,7 @@ func selectHeaderAccept(accepts []string) string {
 	return strings.Join(accepts, ",")
 }
 
-// contains is a case insenstive match, finding needle in a haystack
+// contains is a case insensitive match, finding needle in a haystack
 func contains(haystack []string, needle string) bool {
 	for _, a := range haystack {
 		if strings.ToLower(a) == strings.ToLower(needle) {

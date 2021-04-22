@@ -4,12 +4,14 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/peteqproj/peteq/domain/automation"
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/sensor"
 	"github.com/peteqproj/peteq/domain/task"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/api"
+	automationAPI "github.com/peteqproj/peteq/pkg/api/apis/automation"
 	listAPI "github.com/peteqproj/peteq/pkg/api/apis/list"
 	projectAPI "github.com/peteqproj/peteq/pkg/api/apis/project"
 	sensorAPI "github.com/peteqproj/peteq/pkg/api/apis/sensor"
@@ -27,13 +29,15 @@ import (
 type (
 	// Builder builds apis
 	Builder struct {
-		UserRepo    *user.Repo
-		ListRpeo    *list.Repo
-		ProjectRepo *project.Repo
-		TaskRepo    *task.Repo
-		Commandbus  commandbus.CommandBus
-		Logger      logger.Logger
-		DB          db.Database
+		UserRepo       *user.Repo
+		ListRpeo       *list.Repo
+		ProjectRepo    *project.Repo
+		TaskRepo       *task.Repo
+		SensorRepo     *sensor.Repo
+		AutomationRepo *automation.Repo
+		Commandbus     commandbus.CommandBus
+		Logger         logger.Logger
+		DB             db.Database
 	}
 )
 
@@ -66,9 +70,16 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 	}
 
 	sensorCommandAPI := sensorAPI.CommandAPI{
-		Repo:       &sensor.Repo{},
-		Commandbus: b.Commandbus,
-		Logger:     b.Logger.Fork("api", "sensor"),
+		Repo:        b.SensorRepo,
+		Commandbus:  b.Commandbus,
+		Logger:      b.Logger.Fork("api", "sensor"),
+		IDGenerator: idGen,
+	}
+	automationCommandAPI := automationAPI.CommandAPI{
+		Repo:        b.AutomationRepo,
+		Commandbus:  b.Commandbus,
+		Logger:      b.Logger.Fork("api", "automation"),
+		IDGenerator: idGen,
 	}
 	return api.Resource{
 		Path: "/c",
@@ -120,15 +131,38 @@ func (b *Builder) BuildCommandAPI() api.Resource {
 				},
 			},
 			{
+				Path: "/automation",
+				Midderwares: []gin.HandlerFunc{
+					auth.IsAuthenticated(b.UserRepo),
+				},
+				Endpoints: []api.Endpoint{
+					{
+						Verb:    "POST",
+						Path:    "/create",
+						Handler: api.WrapCommandAPI(automationCommandAPI.Create, b.Logger),
+					},
+					{
+						Verb:    "POST",
+						Path:    "/bindSensor",
+						Handler: api.WrapCommandAPI(automationCommandAPI.CreateSensorAutomationBinding, b.Logger),
+					},
+				},
+			},
+			{
 				Path: "/sensor",
 				Midderwares: []gin.HandlerFunc{
 					auth.IsAuthenticated(b.UserRepo),
 				},
 				Endpoints: []api.Endpoint{
 					{
-						Path:    "/run",
+						Path:    "/trigger",
 						Verb:    "POST",
 						Handler: api.WrapCommandAPI(sensorCommandAPI.Run, b.Logger),
+					},
+					{
+						Path:    "/create",
+						Verb:    "POST",
+						Handler: api.WrapCommandAPI(sensorCommandAPI.Create, b.Logger),
 					},
 				},
 			},

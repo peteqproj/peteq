@@ -1,0 +1,4 @@
+* cli create sensor
+* cli create automation
+* cli bind sensor to automation
+* cli trigger sensor (id based) with input

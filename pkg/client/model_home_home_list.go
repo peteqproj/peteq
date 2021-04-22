@@ -16,10 +16,9 @@ import (
 
 // HomeHomeList struct for HomeHomeList
 type HomeHomeList struct {
-	Id       *string         `json:"id,omitempty"`
 	Metadata *ListMetadata   `json:"metadata,omitempty"`
+	Spec     *ListSpec       `json:"spec,omitempty"`
 	Tasks    *[]HomeHomeTask `json:"tasks,omitempty"`
-	Type     *string         `json:"type,omitempty"`
 }
 
 // NewHomeHomeList instantiates a new HomeHomeList object
@@ -37,38 +36,6 @@ func NewHomeHomeList() *HomeHomeList {
 func NewHomeHomeListWithDefaults() *HomeHomeList {
 	this := HomeHomeList{}
 	return &this
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *HomeHomeList) GetId() string {
-	if o == nil || o.Id == nil {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *HomeHomeList) GetIdOk() (*string, bool) {
-	if o == nil || o.Id == nil {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *HomeHomeList) HasId() bool {
-	if o != nil && o.Id != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *HomeHomeList) SetId(v string) {
-	o.Id = &v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise.
@@ -103,6 +70,38 @@ func (o *HomeHomeList) SetMetadata(v ListMetadata) {
 	o.Metadata = &v
 }
 
+// GetSpec returns the Spec field value if set, zero value otherwise.
+func (o *HomeHomeList) GetSpec() ListSpec {
+	if o == nil || o.Spec == nil {
+		var ret ListSpec
+		return ret
+	}
+	return *o.Spec
+}
+
+// GetSpecOk returns a tuple with the Spec field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *HomeHomeList) GetSpecOk() (*ListSpec, bool) {
+	if o == nil || o.Spec == nil {
+		return nil, false
+	}
+	return o.Spec, true
+}
+
+// HasSpec returns a boolean if a field has been set.
+func (o *HomeHomeList) HasSpec() bool {
+	if o != nil && o.Spec != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetSpec gets a reference to the given ListSpec and assigns it to the Spec field.
+func (o *HomeHomeList) SetSpec(v ListSpec) {
+	o.Spec = &v
+}
+
 // GetTasks returns the Tasks field value if set, zero value otherwise.
 func (o *HomeHomeList) GetTasks() []HomeHomeTask {
 	if o == nil || o.Tasks == nil {
@@ -135,51 +134,16 @@ func (o *HomeHomeList) SetTasks(v []HomeHomeTask) {
 	o.Tasks = &v
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *HomeHomeList) GetType() string {
-	if o == nil || o.Type == nil {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *HomeHomeList) GetTypeOk() (*string, bool) {
-	if o == nil || o.Type == nil {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *HomeHomeList) HasType() bool {
-	if o != nil && o.Type != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *HomeHomeList) SetType(v string) {
-	o.Type = &v
-}
-
 func (o HomeHomeList) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Id != nil {
-		toSerialize["id"] = o.Id
-	}
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
+	if o.Spec != nil {
+		toSerialize["spec"] = o.Spec
+	}
 	if o.Tasks != nil {
 		toSerialize["tasks"] = o.Tasks
-	}
-	if o.Type != nil {
-		toSerialize["type"] = o.Type
 	}
 	return json.Marshal(toSerialize)
 }

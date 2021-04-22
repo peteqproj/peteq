@@ -16,19 +16,18 @@ import (
 
 // TaskMetadata struct for TaskMetadata
 type TaskMetadata struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
+	Description *string            `json:"description,omitempty"`
+	Id          *string            `json:"id,omitempty"`
+	Labels      *map[string]string `json:"labels,omitempty"`
+	Name        *string            `json:"name,omitempty"`
 }
 
 // NewTaskMetadata instantiates a new TaskMetadata object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTaskMetadata(id string, name string) *TaskMetadata {
+func NewTaskMetadata() *TaskMetadata {
 	this := TaskMetadata{}
-	this.Id = id
-	this.Name = name
 	return &this
 }
 
@@ -72,52 +71,100 @@ func (o *TaskMetadata) SetDescription(v string) {
 	o.Description = &v
 }
 
-// GetId returns the Id field value
+// GetId returns the Id field value if set, zero value otherwise.
 func (o *TaskMetadata) GetId() string {
-	if o == nil {
+	if o == nil || o.Id == nil {
 		var ret string
 		return ret
 	}
-
-	return o.Id
+	return *o.Id
 }
 
-// GetIdOk returns a tuple with the Id field value
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *TaskMetadata) GetIdOk() (*string, bool) {
-	if o == nil {
+	if o == nil || o.Id == nil {
 		return nil, false
 	}
-	return &o.Id, true
+	return o.Id, true
 }
 
-// SetId sets field value
+// HasId returns a boolean if a field has been set.
+func (o *TaskMetadata) HasId() bool {
+	if o != nil && o.Id != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
 func (o *TaskMetadata) SetId(v string) {
-	o.Id = v
+	o.Id = &v
 }
 
-// GetName returns the Name field value
+// GetLabels returns the Labels field value if set, zero value otherwise.
+func (o *TaskMetadata) GetLabels() map[string]string {
+	if o == nil || o.Labels == nil {
+		var ret map[string]string
+		return ret
+	}
+	return *o.Labels
+}
+
+// GetLabelsOk returns a tuple with the Labels field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TaskMetadata) GetLabelsOk() (*map[string]string, bool) {
+	if o == nil || o.Labels == nil {
+		return nil, false
+	}
+	return o.Labels, true
+}
+
+// HasLabels returns a boolean if a field has been set.
+func (o *TaskMetadata) HasLabels() bool {
+	if o != nil && o.Labels != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetLabels gets a reference to the given map[string]string and assigns it to the Labels field.
+func (o *TaskMetadata) SetLabels(v map[string]string) {
+	o.Labels = &v
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
 func (o *TaskMetadata) GetName() string {
-	if o == nil {
+	if o == nil || o.Name == nil {
 		var ret string
 		return ret
 	}
-
-	return o.Name
+	return *o.Name
 }
 
-// GetNameOk returns a tuple with the Name field value
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *TaskMetadata) GetNameOk() (*string, bool) {
-	if o == nil {
+	if o == nil || o.Name == nil {
 		return nil, false
 	}
-	return &o.Name, true
+	return o.Name, true
 }
 
-// SetName sets field value
+// HasName returns a boolean if a field has been set.
+func (o *TaskMetadata) HasName() bool {
+	if o != nil && o.Name != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
 func (o *TaskMetadata) SetName(v string) {
-	o.Name = v
+	o.Name = &v
 }
 
 func (o TaskMetadata) MarshalJSON() ([]byte, error) {
@@ -125,10 +172,13 @@ func (o TaskMetadata) MarshalJSON() ([]byte, error) {
 	if o.Description != nil {
 		toSerialize["description"] = o.Description
 	}
-	if true {
+	if o.Id != nil {
 		toSerialize["id"] = o.Id
 	}
-	if true {
+	if o.Labels != nil {
+		toSerialize["labels"] = o.Labels
+	}
+	if o.Name != nil {
 		toSerialize["name"] = o.Name
 	}
 	return json.Marshal(toSerialize)

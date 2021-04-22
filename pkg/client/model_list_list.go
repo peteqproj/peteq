@@ -16,10 +16,8 @@ import (
 
 // ListList struct for ListList
 type ListList struct {
-	Id       *string       `json:"id,omitempty"`
 	Metadata *ListMetadata `json:"metadata,omitempty"`
-	Tasks    *[]string     `json:"tasks,omitempty"`
-	Type     *string       `json:"type,omitempty"`
+	Spec     *ListSpec     `json:"spec,omitempty"`
 }
 
 // NewListList instantiates a new ListList object
@@ -37,38 +35,6 @@ func NewListList() *ListList {
 func NewListListWithDefaults() *ListList {
 	this := ListList{}
 	return &this
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *ListList) GetId() string {
-	if o == nil || o.Id == nil {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ListList) GetIdOk() (*string, bool) {
-	if o == nil || o.Id == nil {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *ListList) HasId() bool {
-	if o != nil && o.Id != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *ListList) SetId(v string) {
-	o.Id = &v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise.
@@ -103,83 +69,45 @@ func (o *ListList) SetMetadata(v ListMetadata) {
 	o.Metadata = &v
 }
 
-// GetTasks returns the Tasks field value if set, zero value otherwise.
-func (o *ListList) GetTasks() []string {
-	if o == nil || o.Tasks == nil {
-		var ret []string
+// GetSpec returns the Spec field value if set, zero value otherwise.
+func (o *ListList) GetSpec() ListSpec {
+	if o == nil || o.Spec == nil {
+		var ret ListSpec
 		return ret
 	}
-	return *o.Tasks
+	return *o.Spec
 }
 
-// GetTasksOk returns a tuple with the Tasks field value if set, nil otherwise
+// GetSpecOk returns a tuple with the Spec field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ListList) GetTasksOk() (*[]string, bool) {
-	if o == nil || o.Tasks == nil {
+func (o *ListList) GetSpecOk() (*ListSpec, bool) {
+	if o == nil || o.Spec == nil {
 		return nil, false
 	}
-	return o.Tasks, true
+	return o.Spec, true
 }
 
-// HasTasks returns a boolean if a field has been set.
-func (o *ListList) HasTasks() bool {
-	if o != nil && o.Tasks != nil {
+// HasSpec returns a boolean if a field has been set.
+func (o *ListList) HasSpec() bool {
+	if o != nil && o.Spec != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetTasks gets a reference to the given []string and assigns it to the Tasks field.
-func (o *ListList) SetTasks(v []string) {
-	o.Tasks = &v
-}
-
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ListList) GetType() string {
-	if o == nil || o.Type == nil {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ListList) GetTypeOk() (*string, bool) {
-	if o == nil || o.Type == nil {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ListList) HasType() bool {
-	if o != nil && o.Type != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ListList) SetType(v string) {
-	o.Type = &v
+// SetSpec gets a reference to the given ListSpec and assigns it to the Spec field.
+func (o *ListList) SetSpec(v ListSpec) {
+	o.Spec = &v
 }
 
 func (o ListList) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Id != nil {
-		toSerialize["id"] = o.Id
-	}
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
-	if o.Tasks != nil {
-		toSerialize["tasks"] = o.Tasks
-	}
-	if o.Type != nil {
-		toSerialize["type"] = o.Type
+	if o.Spec != nil {
+		toSerialize["spec"] = o.Spec
 	}
 	return json.Marshal(toSerialize)
 }

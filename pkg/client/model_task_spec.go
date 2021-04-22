@@ -16,7 +16,7 @@ import (
 
 // TaskSpec struct for TaskSpec
 type TaskSpec struct {
-	DueDate *string `json:"dueDate,omitempty"`
+	Completed *bool `json:"completed,omitempty"`
 }
 
 // NewTaskSpec instantiates a new TaskSpec object
@@ -36,42 +36,42 @@ func NewTaskSpecWithDefaults() *TaskSpec {
 	return &this
 }
 
-// GetDueDate returns the DueDate field value if set, zero value otherwise.
-func (o *TaskSpec) GetDueDate() string {
-	if o == nil || o.DueDate == nil {
-		var ret string
+// GetCompleted returns the Completed field value if set, zero value otherwise.
+func (o *TaskSpec) GetCompleted() bool {
+	if o == nil || o.Completed == nil {
+		var ret bool
 		return ret
 	}
-	return *o.DueDate
+	return *o.Completed
 }
 
-// GetDueDateOk returns a tuple with the DueDate field value if set, nil otherwise
+// GetCompletedOk returns a tuple with the Completed field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *TaskSpec) GetDueDateOk() (*string, bool) {
-	if o == nil || o.DueDate == nil {
+func (o *TaskSpec) GetCompletedOk() (*bool, bool) {
+	if o == nil || o.Completed == nil {
 		return nil, false
 	}
-	return o.DueDate, true
+	return o.Completed, true
 }
 
-// HasDueDate returns a boolean if a field has been set.
-func (o *TaskSpec) HasDueDate() bool {
-	if o != nil && o.DueDate != nil {
+// HasCompleted returns a boolean if a field has been set.
+func (o *TaskSpec) HasCompleted() bool {
+	if o != nil && o.Completed != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetDueDate gets a reference to the given string and assigns it to the DueDate field.
-func (o *TaskSpec) SetDueDate(v string) {
-	o.DueDate = &v
+// SetCompleted gets a reference to the given bool and assigns it to the Completed field.
+func (o *TaskSpec) SetCompleted(v bool) {
+	o.Completed = &v
 }
 
 func (o TaskSpec) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.DueDate != nil {
-		toSerialize["dueDate"] = o.DueDate
+	if o.Completed != nil {
+		toSerialize["completed"] = o.Completed
 	}
 	return json.Marshal(toSerialize)
 }

@@ -29,6 +29,13 @@ definitions:
         description: Type the type of the related entity
         type: string
     type: object
+  CreateAutomationRequestBody:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   CreateProjectRequestBody:
     properties:
       color:
@@ -41,6 +48,19 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  CreateSensorAutomationBindingRequestBody:
+    properties:
+      automation:
+        type: string
+      name:
+        type: string
+      sensor:
+        type: string
+    required:
+    - automation
+    - name
+    - sensor
     type: object
   CreateTaskResponse:
     properties:
@@ -245,6 +265,13 @@ definitions:
           $ref: '#/definitions/projects.populatedProject'
         type: array
     type: object
+  sensor.createRequestBody:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   sensors.sensorViewItem:
     properties:
       description:
@@ -399,6 +426,58 @@ paths:
       - ApiKeyAuth: []
       tags:
       - RestAPI
+  /c/automation/bindSensor:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Binds Sensor to Automation
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateSensorAutomationBindingRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Automation Command API
+  /c/automation/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Creates automation
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateAutomationRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Automation Command API
   /c/list/moveTasks:
     post:
       consumes:
@@ -453,13 +532,40 @@ paths:
       - ApiKeyAuth: []
       tags:
       - Project Command API
-  /c/sensor/run:
+  /c/sensor/create:
+    post:
+      consumes:
+      - application/json
+      description: returns the creates sensor id
+      parameters:
+      - description: Create sensor
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/sensor.createRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/CommandResponse'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Sensor Command API
+  /c/sensor/trigger:
     post:
       consumes:
       - application/json
       description: Sensor run
       parameters:
-      - description: Sensor trigger
+      - description: Trigger sensor
         in: body
         name: body
         required: true

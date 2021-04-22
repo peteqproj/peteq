@@ -16,9 +16,10 @@ import (
 
 // ListMetadata struct for ListMetadata
 type ListMetadata struct {
-	Id    *string `json:"id,omitempty"`
-	Index *int32  `json:"index,omitempty"`
-	Name  *string `json:"name,omitempty"`
+	Description *string            `json:"description,omitempty"`
+	Id          *string            `json:"id,omitempty"`
+	Labels      *map[string]string `json:"labels,omitempty"`
+	Name        *string            `json:"name,omitempty"`
 }
 
 // NewListMetadata instantiates a new ListMetadata object
@@ -36,6 +37,38 @@ func NewListMetadata() *ListMetadata {
 func NewListMetadataWithDefaults() *ListMetadata {
 	this := ListMetadata{}
 	return &this
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise.
+func (o *ListMetadata) GetDescription() string {
+	if o == nil || o.Description == nil {
+		var ret string
+		return ret
+	}
+	return *o.Description
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ListMetadata) GetDescriptionOk() (*string, bool) {
+	if o == nil || o.Description == nil {
+		return nil, false
+	}
+	return o.Description, true
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *ListMetadata) HasDescription() bool {
+	if o != nil && o.Description != nil {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
+func (o *ListMetadata) SetDescription(v string) {
+	o.Description = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -70,36 +103,36 @@ func (o *ListMetadata) SetId(v string) {
 	o.Id = &v
 }
 
-// GetIndex returns the Index field value if set, zero value otherwise.
-func (o *ListMetadata) GetIndex() int32 {
-	if o == nil || o.Index == nil {
-		var ret int32
+// GetLabels returns the Labels field value if set, zero value otherwise.
+func (o *ListMetadata) GetLabels() map[string]string {
+	if o == nil || o.Labels == nil {
+		var ret map[string]string
 		return ret
 	}
-	return *o.Index
+	return *o.Labels
 }
 
-// GetIndexOk returns a tuple with the Index field value if set, nil otherwise
+// GetLabelsOk returns a tuple with the Labels field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ListMetadata) GetIndexOk() (*int32, bool) {
-	if o == nil || o.Index == nil {
+func (o *ListMetadata) GetLabelsOk() (*map[string]string, bool) {
+	if o == nil || o.Labels == nil {
 		return nil, false
 	}
-	return o.Index, true
+	return o.Labels, true
 }
 
-// HasIndex returns a boolean if a field has been set.
-func (o *ListMetadata) HasIndex() bool {
-	if o != nil && o.Index != nil {
+// HasLabels returns a boolean if a field has been set.
+func (o *ListMetadata) HasLabels() bool {
+	if o != nil && o.Labels != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetIndex gets a reference to the given int32 and assigns it to the Index field.
-func (o *ListMetadata) SetIndex(v int32) {
-	o.Index = &v
+// SetLabels gets a reference to the given map[string]string and assigns it to the Labels field.
+func (o *ListMetadata) SetLabels(v map[string]string) {
+	o.Labels = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
@@ -136,11 +169,14 @@ func (o *ListMetadata) SetName(v string) {
 
 func (o ListMetadata) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.Description != nil {
+		toSerialize["description"] = o.Description
+	}
 	if o.Id != nil {
 		toSerialize["id"] = o.Id
 	}
-	if o.Index != nil {
-		toSerialize["index"] = o.Index
+	if o.Labels != nil {
+		toSerialize["labels"] = o.Labels
 	}
 	if o.Name != nil {
 		toSerialize["name"] = o.Name

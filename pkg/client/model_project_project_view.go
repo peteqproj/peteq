@@ -16,10 +16,8 @@ import (
 
 // ProjectProjectView struct for ProjectProjectView
 type ProjectProjectView struct {
-	Id       *string          `json:"id,omitempty"`
-	Metadata *ProjectMetadata `json:"metadata,omitempty"`
-	Tasks    *[]TaskTask      `json:"tasks,omitempty"`
-	Type     *string          `json:"type,omitempty"`
+	Project *ProjectProject `json:"project,omitempty"`
+	Tasks   *[]TaskTask     `json:"tasks,omitempty"`
 }
 
 // NewProjectProjectView instantiates a new ProjectProjectView object
@@ -39,68 +37,36 @@ func NewProjectProjectViewWithDefaults() *ProjectProjectView {
 	return &this
 }
 
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *ProjectProjectView) GetId() string {
-	if o == nil || o.Id == nil {
-		var ret string
+// GetProject returns the Project field value if set, zero value otherwise.
+func (o *ProjectProjectView) GetProject() ProjectProject {
+	if o == nil || o.Project == nil {
+		var ret ProjectProject
 		return ret
 	}
-	return *o.Id
+	return *o.Project
 }
 
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// GetProjectOk returns a tuple with the Project field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ProjectProjectView) GetIdOk() (*string, bool) {
-	if o == nil || o.Id == nil {
+func (o *ProjectProjectView) GetProjectOk() (*ProjectProject, bool) {
+	if o == nil || o.Project == nil {
 		return nil, false
 	}
-	return o.Id, true
+	return o.Project, true
 }
 
-// HasId returns a boolean if a field has been set.
-func (o *ProjectProjectView) HasId() bool {
-	if o != nil && o.Id != nil {
+// HasProject returns a boolean if a field has been set.
+func (o *ProjectProjectView) HasProject() bool {
+	if o != nil && o.Project != nil {
 		return true
 	}
 
 	return false
 }
 
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *ProjectProjectView) SetId(v string) {
-	o.Id = &v
-}
-
-// GetMetadata returns the Metadata field value if set, zero value otherwise.
-func (o *ProjectProjectView) GetMetadata() ProjectMetadata {
-	if o == nil || o.Metadata == nil {
-		var ret ProjectMetadata
-		return ret
-	}
-	return *o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ProjectProjectView) GetMetadataOk() (*ProjectMetadata, bool) {
-	if o == nil || o.Metadata == nil {
-		return nil, false
-	}
-	return o.Metadata, true
-}
-
-// HasMetadata returns a boolean if a field has been set.
-func (o *ProjectProjectView) HasMetadata() bool {
-	if o != nil && o.Metadata != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetMetadata gets a reference to the given ProjectMetadata and assigns it to the Metadata field.
-func (o *ProjectProjectView) SetMetadata(v ProjectMetadata) {
-	o.Metadata = &v
+// SetProject gets a reference to the given ProjectProject and assigns it to the Project field.
+func (o *ProjectProjectView) SetProject(v ProjectProject) {
+	o.Project = &v
 }
 
 // GetTasks returns the Tasks field value if set, zero value otherwise.
@@ -135,51 +101,13 @@ func (o *ProjectProjectView) SetTasks(v []TaskTask) {
 	o.Tasks = &v
 }
 
-// GetType returns the Type field value if set, zero value otherwise.
-func (o *ProjectProjectView) GetType() string {
-	if o == nil || o.Type == nil {
-		var ret string
-		return ret
-	}
-	return *o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ProjectProjectView) GetTypeOk() (*string, bool) {
-	if o == nil || o.Type == nil {
-		return nil, false
-	}
-	return o.Type, true
-}
-
-// HasType returns a boolean if a field has been set.
-func (o *ProjectProjectView) HasType() bool {
-	if o != nil && o.Type != nil {
-		return true
-	}
-
-	return false
-}
-
-// SetType gets a reference to the given string and assigns it to the Type field.
-func (o *ProjectProjectView) SetType(v string) {
-	o.Type = &v
-}
-
 func (o ProjectProjectView) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-	if o.Id != nil {
-		toSerialize["id"] = o.Id
-	}
-	if o.Metadata != nil {
-		toSerialize["metadata"] = o.Metadata
+	if o.Project != nil {
+		toSerialize["project"] = o.Project
 	}
 	if o.Tasks != nil {
 		toSerialize["tasks"] = o.Tasks
-	}
-	if o.Type != nil {
-		toSerialize["type"] = o.Type
 	}
 	return json.Marshal(toSerialize)
 }

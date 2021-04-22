@@ -58,5 +58,6 @@ test:
 
 .PHONY: gen-openapi-client
 gen-openapi-client:
-	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -i /local/docs/swagger.yaml -g go -o /local/package/client -p=isGoSubmodule=true -p=packageName=client
-	rm -rf package/client/api package/client/docs package/client/go.* package/client/git_push.sh package/client/README.md package/client/.openapi-generator package/client/.gitignore package/client/.openapi-generator-ignore package/client/.travis.yml
+	docker run --rm -v "${PWD}:/local" --user "$(id -u):$(id -g)" openapitools/openapi-generator-cli generate -i /local/docs/swagger.yaml -g go -o /local/pkg/client -p=isGoSubmodule=true -p=packageName=client
+	sudo rm -rf pkg/client/api pkg/client/docs pkg/client/go.* pkg/client/git_push.sh pkg/client/README.md pkg/client/.openapi-generator pkg/client/.gitignore pkg/client/.openapi-generator-ignore pkg/client/.travis.yml
+	gofmt -w -s .
