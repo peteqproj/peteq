@@ -1,0 +1,17 @@
+version: 2
+updates:
+- package-ecosystem: gomod
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: cloud.google.com/go/pubsub
+    versions:
+    - 1.10.2
+  - dependency-name: github.com/go-playground/validator/v10
+    versions:
+    - 10.4.2
+  - dependency-name: google.golang.org/api
+    versions:
+    - 0.38.0
