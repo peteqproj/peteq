@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go v1.37.32 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/docker/libkv v0.2.1 // indirect
-	github.com/doug-martin/goqu/v9 v9.11.0
+	github.com/doug-martin/goqu/v9 v9.12.0
 	github.com/gin-gonic/gin v1.7.1
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.4 // indirect
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.10.0
+	github.com/lib/pq v1.10.1
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
