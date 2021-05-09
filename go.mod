@@ -3,7 +3,7 @@ module github.com/peteqproj/peteq
 go 1.16
 
 require (
-	cloud.google.com/go/pubsub v1.10.1
+	cloud.google.com/go/pubsub v1.10.3
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Pallinder/go-randomdata v1.2.0
