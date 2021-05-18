@@ -34,3 +34,4 @@ dist
 ui/build
 telepresence.log
 .env*
+examples
