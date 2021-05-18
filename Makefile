@@ -1,5 +1,6 @@
 .PHONY: build
 build:
+	go mod tidy
 	make gen-openapi
 	make build-dev-cli
 	make gen-domain
