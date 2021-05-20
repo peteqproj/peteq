@@ -3,7 +3,7 @@ tenant: user
 root:
   resource: Sensor 
   database:
-    name: sensor_repo
+    name: sensor
     postgres:
       columns:
       - name: id

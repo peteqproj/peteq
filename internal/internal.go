@@ -6,7 +6,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/peteqproj/peteq/domain/user"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
-	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/event/storage"
@@ -14,9 +13,10 @@ import (
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"google.golang.org/api/option"
+	"gorm.io/gorm"
 )
 
-func NewEventBusFromFlagsOrDie(db db.Database, repo *user.Repo, watchQueues bool, logger logger.Logger) eventbus.Eventbus {
+func NewEventBusFromFlagsOrDie(db *gorm.DB, repo *user.Repo, watchQueues bool, logger logger.Logger) eventbus.Eventbus {
 	logger.Info("Connecting to eventbus")
 	etype := utils.GetEnvOrDie("EVENTBUS_TYPE")
 	var rabbit *eventbus.RabbitMQOptions

@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 
+	"gorm.io/gorm"
+
 	"github.com/peteqproj/peteq/domain/user"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	perrors "github.com/peteqproj/peteq/internal/errors"
-	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
 	"gopkg.in/yaml.v2"
@@ -26,7 +27,7 @@ tenant: user
 root:
   resource: Task
   database:
-    name: task_repo
+    name: task
     postgres:
       columns:
       - name: id
@@ -52,13 +53,13 @@ root:
 aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS task_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON task_repo ( userid);",
+	"CREATE TABLE IF NOT EXISTS task( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON task ( userid);",
 }
 
 type (
 	Repo struct {
-		DB        db.Database
+		DB        *gorm.DB
 		Logger    logger.Logger
 		initiated bool
 		def       *repo.RepoDef
@@ -68,8 +69,9 @@ type (
 func (r *Repo) Initiate(ctx context.Context) error {
 	for _, q := range queries {
 		r.Logger.Info("Running db init query", "query", q)
-		if _, err := r.DB.ExecContext(ctx, q); err != nil {
-			return err
+		res := r.DB.Exec(q)
+		if res.Error != nil {
+			return res.Error
 		}
 	}
 
@@ -105,7 +107,7 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("task_repo").
+		Insert("task").
 		Cols(
 			"id",
 			"userid",
@@ -120,7 +122,7 @@ func (r *Repo) Create(ctx context.Context, resource *Task) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	if err != nil {
 		return err
 	}
@@ -140,11 +142,11 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Task, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("task_repo").Where(e).ToSQL()
+	query, _, err := goqu.From("task").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.QueryRowContext(ctx, query)
+	row := r.DB.Raw(query).Row()
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -189,7 +191,7 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update("task_repo").
+		Update("task").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -202,7 +204,7 @@ func (r *Repo) UpdateTask(ctx context.Context, resource *Task) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	if err != nil {
 		return err
 	}
@@ -223,13 +225,13 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete("task_repo").
+		Delete("task").
 		Where(e).
 		ToSQL()
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	return err
 }
 
@@ -251,11 +253,11 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Task, error)
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("task_repo").Where(e).ToSQL()
+	sql, _, err := goqu.From("task").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.QueryContext(ctx, sql)
+	rows, err := r.DB.Raw(sql).Rows()
 	if err != nil {
 		return nil, err
 	}

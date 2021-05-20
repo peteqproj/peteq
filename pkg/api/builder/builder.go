@@ -21,9 +21,9 @@ import (
 	"github.com/peteqproj/peteq/pkg/api/view"
 	viewBuilder "github.com/peteqproj/peteq/pkg/api/view/builder"
 	commandbus "github.com/peteqproj/peteq/pkg/command/bus"
-	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/utils"
+	"gorm.io/gorm"
 )
 
 type (
@@ -37,7 +37,7 @@ type (
 		AutomationRepo *automation.Repo
 		Commandbus     commandbus.CommandBus
 		Logger         logger.Logger
-		DB             db.Database
+		DB             *gorm.DB
 	}
 )
 
