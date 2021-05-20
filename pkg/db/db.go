@@ -1,10 +1,11 @@
 package db
 
 import (
-	"context"
-	"database/sql"
+	context "context"
+	sql "database/sql"
 
-	"github.com/peteqproj/peteq/pkg/db/postgres"
+	pg "gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type (
@@ -12,18 +13,17 @@ type (
 	Database interface {
 		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 		QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
-		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+		ExecContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 	}
 
 	// Options to build db
 	Options struct {
-		DB *sql.DB
+		URL string
 	}
 )
 
 // New build db from options
-func New(opt Options) Database {
-	return &postgres.DB{
-		PG: opt.DB,
-	}
+func New(opt Options) (*gorm.DB, error) {
+	db, err := gorm.Open(pg.Open(opt.URL), &gorm.Config{})
+	return db, err
 }

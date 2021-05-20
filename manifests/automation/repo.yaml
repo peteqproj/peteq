@@ -3,7 +3,7 @@ tenant: user
 root:
   resource: Automation
   database:
-    name: automation_repo
+    name: automation
     postgres:
       columns:
       - name: id
@@ -27,7 +27,7 @@ root:
 aggregates:
 - resource: SensorBinding
   database:
-    name: sensor_binding_repo
+    name: sensor_binding
     postgres:
       columns:
       - name: id

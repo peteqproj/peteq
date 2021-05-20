@@ -14,7 +14,7 @@ func (r *Repo) List(ctx context.Context) ([]*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.QueryContext(ctx, query)
+	rows, err := r.DB.Raw(query).Rows()
 	if err != nil {
 		return nil, err
 	}

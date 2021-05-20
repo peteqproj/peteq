@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"gorm.io/gorm"
 
 	{{ if eq .Tenant "user" -}}
 	"github.com/peteqproj/peteq/domain/user"
@@ -29,7 +30,7 @@ var repoDefEmbed = {{ EmbedRepoDef . }}
 
 type (
 	Repo struct {
-		DB        db.Database 
+		DB        *gorm.DB
 		Logger    logger.Logger
 		initiated bool
 		def       *repo.RepoDef
@@ -38,8 +39,9 @@ type (
 func (r *Repo) Initiate(ctx context.Context) error {
     for _, q := range queries {
 		r.Logger.Info("Running db init query", "query", q)
-		if _, err := r.DB.ExecContext(ctx, q); err != nil {
-			return err
+		res := r.DB.Exec(q)
+		if res.Error != nil {
+			return res.Error
 		}
 	}
 	
@@ -110,7 +112,7 @@ func (r *Repo) Create(ctx context.Context, resource *{{ .Root.Resource}}) error 
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	if err != nil {
 		return err
 	}
@@ -138,7 +140,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryKey 
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.QueryRowContext(ctx, query)
+	row := r.DB.Raw(query).Row()
 	if row.Err() != nil {
 		return nil, row.Err() 
 	}
@@ -216,7 +218,7 @@ func (r *Repo) Update{{ .Root.Resource }}(ctx context.Context, resource *{{ .Roo
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	if err != nil {
 		return err
 	}
@@ -247,7 +249,7 @@ func (r *Repo) DeleteBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryK
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	return err
 }
 /*End of PrimeryKey functions*/
@@ -276,7 +278,7 @@ func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList .
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.QueryContext(ctx, sql)
+	rows, err := r.DB.Raw(sql).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +331,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . 
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.QueryRowContext(ctx, query)
+	row := r.DB.Raw(query).Row()
 	if row.Err() != nil {
 		return nil, row.Err() 
 	}
@@ -413,7 +415,7 @@ func (r *Repo)Create{{ .Resource }}(ctx context.Context, resource *{{ .Resource 
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.ExecContext(ctx, q)
+	_, err = r.DB.Raw(q).Rows()
 	if err != nil {
 		return err
 	}
@@ -452,7 +454,7 @@ func (r *Repo) List{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexe
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.QueryContext(ctx, sql)
+	rows, err := r.DB.Raw(sql).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -501,7 +503,7 @@ func (r *Repo) Get{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexes
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.QueryRowContext(ctx, query)
+	row := r.DB.Raw(query).Row()
 	if row.Err() != nil {
 		return nil, row.Err() 
 	}

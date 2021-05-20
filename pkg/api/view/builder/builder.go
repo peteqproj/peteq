@@ -2,7 +2,7 @@ package builder
 
 import (
 	"github.com/peteqproj/peteq/pkg/api/view"
-	"github.com/peteqproj/peteq/pkg/db"
+	"gorm.io/gorm"
 
 	"github.com/peteqproj/peteq/domain/list"
 	"github.com/peteqproj/peteq/domain/project"
@@ -21,7 +21,7 @@ type (
 		ListRepo    *list.Repo
 		ProjectRepo *project.Repo
 		Logger      logger.Logger
-		DB          db.Database
+		DB          *gorm.DB
 	}
 
 	Options struct {
@@ -29,7 +29,7 @@ type (
 		ListRepo    *list.Repo
 		ProjectRepo *project.Repo
 		Logger      logger.Logger
-		DB          db.Database
+		DB          *gorm.DB
 	}
 )
 

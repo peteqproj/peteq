@@ -3,7 +3,7 @@ tenant: user
 root:
   resource: List
   database:
-    name: list_repo
+    name: list
     postgres:
       columns:
       - name: id

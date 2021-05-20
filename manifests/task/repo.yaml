@@ -3,7 +3,7 @@ tenant: user
 root:
   resource: Task
   database:
-    name: task_repo
+    name: task
     postgres:
       columns:
       - name: id

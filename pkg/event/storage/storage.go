@@ -5,19 +5,19 @@ import (
 	"encoding/json"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/event"
+	"gorm.io/gorm"
 )
 
 const dbName = "event_log"
 
 type (
 	Storage struct {
-		db db.Database
+		db *gorm.DB
 	}
 
 	Options struct {
-		DB db.Database
+		DB *gorm.DB
 	}
 )
 
@@ -44,7 +44,7 @@ func (s *Storage) Persist(ctx context.Context, ev event.Event) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.db.ExecContext(ctx, q)
+	_, err = s.db.Raw(q).Rows()
 	if err != nil {
 		return err
 	}
