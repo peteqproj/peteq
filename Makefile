@@ -66,3 +66,7 @@ gen-openapi-client:
 	docker run --rm -v "${PWD}:/local" --user "$(UID):$(GIU)" openapitools/openapi-generator-cli generate -i /local/docs/swagger.yaml -g go -o /local/pkg/client -p=isGoSubmodule=true -p=packageName=client
 	rm -rf pkg/client/api pkg/client/docs pkg/client/go.* pkg/client/git_push.sh pkg/client/README.md pkg/client/.openapi-generator pkg/client/.gitignore pkg/client/.openapi-generator-ignore pkg/client/.travis.yml
 	gofmt -w -s .
+
+.PHONY: release
+release:
+	@sh ./scripts/release.sh
