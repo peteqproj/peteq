@@ -3,7 +3,7 @@ module github.com/peteqproj/peteq
 go 1.16
 
 require (
-	cloud.google.com/go/pubsub v1.10.3
+	cloud.google.com/go/pubsub v1.11.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Pallinder/go-randomdata v1.2.0
@@ -54,8 +54,8 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/oauth2 v0.0.0-20210427180440-81ed05c6b58c
-	google.golang.org/api v0.46.0
+	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
+	google.golang.org/api v0.47.0
 	gopkg.in/hairyhenderson/yaml.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
