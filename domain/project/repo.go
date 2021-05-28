@@ -29,6 +29,7 @@ root:
   database:
     name: project
     postgres:
+      dbname: projects
       columns:
       - name: id
         type: text
@@ -107,7 +108,7 @@ func (r *Repo) Create(ctx context.Context, resource *Project) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("project").
+		Insert("projects").
 		Cols(
 			"id",
 			"userid",
@@ -142,7 +143,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Project, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("project").Where(e).ToSQL()
+	query, _, err := goqu.From("projects").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +192,7 @@ func (r *Repo) UpdateProject(ctx context.Context, resource *Project) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update("project").
+		Update("projects").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -225,7 +226,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete("project").
+		Delete("projects").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -253,7 +254,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Project, err
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("project").Where(e).ToSQL()
+	sql, _, err := goqu.From("projects").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}

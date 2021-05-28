@@ -29,6 +29,7 @@ root:
   database:
     name: automation
     postgres:
+      dbname: automations
       columns:
       - name: id
         type: text
@@ -55,6 +56,7 @@ aggregates:
   database:
     name: sensor_binding
     postgres:
+      dbname: sensor_bindings
       columns:
       - name: id
         type: text
@@ -147,7 +149,7 @@ func (r *Repo) Create(ctx context.Context, resource *Automation) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("automation").
+		Insert("automations").
 		Cols(
 			"id",
 			"userid",
@@ -182,7 +184,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Automation, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("automation").Where(e).ToSQL()
+	query, _, err := goqu.From("automations").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +233,7 @@ func (r *Repo) UpdateAutomation(ctx context.Context, resource *Automation) error
 		return err
 	}
 	q, _, err := goqu.
-		Update("automation").
+		Update("automations").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -265,7 +267,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete("automation").
+		Delete("automations").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -293,7 +295,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Automation, 
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("automation").Where(e).ToSQL()
+	sql, _, err := goqu.From("automations").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +354,7 @@ func (r *Repo) CreateSensorBinding(ctx context.Context, resource *SensorBinding)
 		return err
 	}
 	q, _, err := goqu.
-		Insert("sensor_binding").
+		Insert("sensor_bindings").
 		Cols(
 			"id",
 			"userid",
@@ -400,7 +402,7 @@ func (r *Repo) ListSensorBindingByUserid(ctx context.Context, userid string) ([]
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("sensor_binding").Where(e).ToSQL()
+	sql, _, err := goqu.From("sensor_bindings").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +453,7 @@ func (r *Repo) GetSensorBindingByUseridSensor(ctx context.Context, userid string
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("sensor_binding").Where(e).ToSQL()
+	query, _, err := goqu.From("sensor_bindings").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}

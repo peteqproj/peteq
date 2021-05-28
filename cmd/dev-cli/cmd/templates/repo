@@ -97,7 +97,7 @@ func (r *Repo) Create(ctx context.Context, resource *{{ .Root.Resource}}) error 
 	{{- end -}}
 	
 	q, _, err := goqu.
-		Insert({{ $.Root.Database.Name | quote }}).
+		Insert({{ $.Root.Database.Postgres.DBName | quote }}).
 		Cols(
 		{{ range $.Root.Database.Postgres.Columns -}}
 			"{{.Name}}",
@@ -136,7 +136,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryKey 
 		e["userid"] = u.Metadata.ID
 	}
 	{{ end }}
-	query, _, err := goqu.From({{ $.Root.Database.Name | quote }}).Where(e).ToSQL()
+	query, _, err := goqu.From({{ $.Root.Database.Postgres.DBName | quote }}).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (r *Repo) Update{{ .Root.Resource }}(ctx context.Context, resource *{{ .Roo
 	{{- end -}}
 	
 	q, _, err := goqu.
-		Update({{ $.Root.Database.Name | quote }}).
+		Update({{ $.Root.Database.Postgres.DBName | quote }}).
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -243,7 +243,7 @@ func (r *Repo) DeleteBy{{- BuildIndexesFunction .Root.Database.Postgres.PrimeryK
 	}
 	{{ end }}
 	q, _, err := goqu.
-		Delete({{ $.Root.Database.Name | quote }}).
+		Delete({{ $.Root.Database.Postgres.DBName | quote }}).
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -274,7 +274,7 @@ func (r *Repo) ListBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList .
 		e["userid"] = u.Metadata.ID
 	}
 	{{ end }}
-	sql, _, err := goqu.From({{ $.Root.Database.Name | quote }}).Where(e).ToSQL()
+	sql, _, err := goqu.From({{ $.Root.Database.Postgres.DBName | quote }}).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +327,7 @@ func (r *Repo) GetBy{{- BuildIndexesFunction . }}({{ BuildIndexesArgumentList . 
 		e["userid"] = u.Metadata.ID
 	}
 	{{ end }}
-	query, _, err := goqu.From({{ $.Root.Database.Name | quote }}).Where(e).ToSQL()
+	query, _, err := goqu.From({{ $.Root.Database.Postgres.DBName | quote }}).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func (r *Repo)Create{{ .Resource }}(ctx context.Context, resource *{{ .Resource 
 	{{- end -}}
 	
 	q, _, err := goqu.
-		Insert({{ .Database.Name | quote }}).
+		Insert({{ .Database.Postgres.DBName | quote }}).
 		Cols(
 		{{ range .Database.Postgres.Columns -}}
 			"{{.Name}}",
@@ -450,7 +450,7 @@ func (r *Repo) List{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexe
 		e["userid"] = u.Metadata.ID
 	}
 	{{ end }}
-	sql, _, err := goqu.From({{ $database.Name | quote }}).Where(e).ToSQL()
+	sql, _, err := goqu.From({{ $database.Postgres.DBName | quote }}).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -499,7 +499,7 @@ func (r *Repo) Get{{ $resource }}By{{- BuildIndexesFunction . }}({{ BuildIndexes
 		e["userid"] = u.Metadata.ID
 	}
 	{{ end }}
-	query, _, err := goqu.From({{ $database.Name | quote }}).Where(e).ToSQL()
+	query, _, err := goqu.From({{ $database.Postgres.DBName | quote }}).Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
