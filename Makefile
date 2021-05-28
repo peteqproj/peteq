@@ -69,4 +69,4 @@ gen-openapi-client:
 
 .PHONY: release
 release:
-	@sh ./scripts/release.sh
+	@sh ./hack/release.sh
