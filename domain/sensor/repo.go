@@ -29,6 +29,7 @@ root:
   database:
     name: sensor
     postgres:
+      dbname: sensors
       columns:
       - name: id
         type: text
@@ -107,7 +108,7 @@ func (r *Repo) Create(ctx context.Context, resource *Sensor) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("sensor").
+		Insert("sensors").
 		Cols(
 			"id",
 			"userid",
@@ -142,7 +143,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Sensor, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("sensor").Where(e).ToSQL()
+	query, _, err := goqu.From("sensors").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +192,7 @@ func (r *Repo) UpdateSensor(ctx context.Context, resource *Sensor) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update("sensor").
+		Update("sensors").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -225,7 +226,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete("sensor").
+		Delete("sensors").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -253,7 +254,7 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Sensor, erro
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("sensor").Where(e).ToSQL()
+	sql, _, err := goqu.From("sensors").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}

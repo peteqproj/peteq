@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gertd/go-pluralize"
 	"github.com/hairyhenderson/gomplate"
 	"github.com/peteqproj/peteq/pkg/logger"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
@@ -36,10 +37,16 @@ var repoCmd = &cobra.Command{
 
 		d, err := ioutil.ReadFile(repoCmdFlags.repo)
 		utils.DieOnError(err, "Failed to read file")
-
 		r := &repo.RepoDef{}
 		err = yaml.Unmarshal(d, r)
 		utils.DieOnError(err, "")
+
+		p := pluralize.NewClient()
+		r.Root.Database.Postgres.DBName = p.Plural(r.Root.Database.Name)
+
+		for i, a := range r.Aggregates {
+			r.Aggregates[i].Database.Postgres.DBName = p.Plural(a.Database.Name)
+		}
 
 		dir := path.Join(wd, "domain", r.Name)
 		err = os.MkdirAll(dir, os.ModePerm)

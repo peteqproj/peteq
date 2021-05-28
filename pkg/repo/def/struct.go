@@ -23,6 +23,8 @@ type (
 	}
 
 	PostgresDB struct {
+		// DBName calculated and will be overwrite
+		DBName  string   `yaml:"dbname"`
 		Columns []Column `yaml:"columns"`
 		// Indexes will be used to create ListBy... Method
 		Indexes [][]string `yaml:"indexes"`
