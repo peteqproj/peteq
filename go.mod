@@ -20,7 +20,7 @@ require (
 	github.com/go-logr/zapr v0.4.0
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-playground/validator/v10 v10.6.0
+	github.com/go-playground/validator/v10 v10.6.1
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
