@@ -92,11 +92,11 @@ aggregates:
       - id
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS automation( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON automation ( userid);",
-	"CREATE TABLE IF NOT EXISTS sensor_binding( id text not null,userid text not null,automation text not null,sensor text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE UNIQUE INDEX IF NOT EXISTS userid_sensor ON sensor_binding ( userid,sensor);",
-	"CREATE INDEX IF NOT EXISTS userid ON sensor_binding ( userid);",
+	"CREATE TABLE IF NOT EXISTS automations( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON automations ( userid);",
+	"CREATE TABLE IF NOT EXISTS sensor_bindings( id text not null,userid text not null,automation text not null,sensor text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS userid_sensor ON sensor_bindings ( userid,sensor);",
+	"CREATE INDEX IF NOT EXISTS userid ON sensor_bindings ( userid);",
 }
 
 type (
