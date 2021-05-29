@@ -12,7 +12,9 @@ echo $minor > VERSION
 echo "Releasing version $minor"
 git add VERSION
 git commit -m "chore(release): version $minor"
+git push
 fqrn="v$minor"
 git checkout -b release-$fqrn
 git tag $fqrn
 git push --tags 
+git checkout master
