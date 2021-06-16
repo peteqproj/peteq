@@ -58,7 +58,7 @@ require (
 	gopkg.in/hairyhenderson/yaml.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/postgres v1.1.0
-	gorm.io/gorm v1.21.10
+	gorm.io/gorm v1.21.11
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/client-go v0.20.4 // indirect
 )
