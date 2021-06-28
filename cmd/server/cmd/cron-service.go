@@ -11,6 +11,7 @@ import (
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/cron"
 	"github.com/peteqproj/peteq/pkg/db"
+	"github.com/peteqproj/peteq/pkg/db/postgres"
 	eventbus "github.com/peteqproj/peteq/pkg/event/bus"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
@@ -51,13 +52,12 @@ var cronServiceCmd = &cobra.Command{
 			Config: cnf,
 		})
 
-		db, err := db.New(db.Options{
-			URL: utils.GetEnvOrDie("POSTGRES_URL"),
+		pg, err := postgres.Connect(utils.GetEnvOrDie("POSTGRES_URL"))
+		defer pg.Close()
+		db := db.New(db.Options{
+			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		sqldb, err := db.DB()
-		utils.DieOnError(err, "Failed to get sqldb object from gorm")
-		defer sqldb.Close()
 
 		userRepo := &userDomain.Repo{
 			DB:     db,

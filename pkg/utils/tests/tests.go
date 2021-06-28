@@ -7,12 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/peteqproj/peteq/domain/user"
 	"github.com/peteqproj/peteq/pkg/tenant"
 	"github.com/peteqproj/peteq/pkg/utils"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 const (
@@ -55,19 +52,4 @@ func NewIDBasicGenerator() utils.IDGenerator {
 	i := &utils.MockIDGenerator{}
 	i.On("GenerateV4").Return(GeneratedV4ID, nil)
 	return i
-}
-
-// BuildDBConnectionOrDie created mocked database
-func BuildDBConnectionOrDie() (*gorm.DB, sqlmock.Sqlmock) {
-	db, mock, err := sqlmock.New()
-	utils.DieOnError(err, "Failed to create sqlmock")
-	pg := postgres.New(postgres.Config{
-		DSN:                  "sqlmock_db_0",
-		DriverName:           "postgres",
-		Conn:                 db,
-		PreferSimpleProtocol: true,
-	})
-	gdb, err := gorm.Open(pg, &gorm.Config{})
-	utils.DieOnError(err, "Failed to connect to mocked database")
-	return gdb, mock
 }

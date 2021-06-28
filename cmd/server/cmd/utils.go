@@ -2,10 +2,10 @@ package cmd
 
 import (
 	_ "github.com/lib/pq"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/utils"
 	"github.com/peteqproj/peteq/saga"
-	"gorm.io/gorm"
 
 	"github.com/peteqproj/peteq/domain/automation"
 	automationCommands "github.com/peteqproj/peteq/domain/automation/command"
@@ -114,7 +114,7 @@ func registerSagas(eventbus eventbus.Eventbus, eh *saga.EventHandler) {
 	eventbus.Subscribe(userEventTypes.UserRegistredEvent, eh)
 }
 
-func registerViewEventHandlers(eventbus eventbus.Eventbus, db *gorm.DB, taskRepo *task.Repo, listRepo *listDomain.Repo, projectRepo *projectDomain.Repo, logger logger.Logger) {
+func registerViewEventHandlers(eventbus eventbus.Eventbus, db db.Database, taskRepo *task.Repo, listRepo *listDomain.Repo, projectRepo *projectDomain.Repo, logger logger.Logger) {
 	vb := viewBuilder.New(&viewBuilder.Options{
 		TaskRepo:    taskRepo,
 		ListRepo:    listRepo,

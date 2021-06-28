@@ -7,14 +7,14 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"gorm.io/gorm"
+	"github.com/peteqproj/peteq/pkg/db"
 )
 
 const dbTableName = "view_backlog"
 
 type (
 	DAL struct {
-		DB *gorm.DB
+		DB db.Database
 	}
 )
 
@@ -25,7 +25,8 @@ func (d *DAL) load(ctx context.Context, user string) (backlogView, error) {
 	if err != nil {
 		return backlogView{}, fmt.Errorf("Failed to build SQL query: %w", err)
 	}
-	row := d.DB.Raw(q).Row()
+	row := d.DB.QueryRowContext(ctx, q)
+
 	view := ""
 	userid := ""
 	if err := row.Scan(&userid, &view); err != nil {
@@ -49,7 +50,7 @@ func (d *DAL) create(ctx context.Context, user string, view backlogView) error {
 	if err != nil {
 		return err
 	}
-	rows, err := d.DB.Raw(q).Rows()
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ func (d *DAL) update(ctx context.Context, user string, view backlogView) error {
 	if err != nil {
 		return err
 	}
-	rows, err := d.DB.Raw(q).Rows()
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("Failed to update db: %v", err)
 	}

@@ -57,7 +57,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 				Repo: func() *list.Repo {
 					logger := &logger.MockLogger{}
 					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
-					db, mock := tests.BuildDBConnectionOrDie()
+					db, mock, _ := sqlmock.New()
 					q := ".*"
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
@@ -94,7 +94,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					logger := &logger.MockLogger{}
 					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
-					db, mock := tests.BuildDBConnectionOrDie()
+					db, mock, _ := sqlmock.New()
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					l := string(tests.MustMarshal(list.List{
@@ -143,7 +143,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					logger := &logger.MockLogger{}
 					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
-					db, mock := tests.BuildDBConnectionOrDie()
+					db, mock, _ := sqlmock.New()
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
@@ -205,7 +205,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					logger := &logger.MockLogger{}
 					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
-					db, mock := tests.BuildDBConnectionOrDie()
+					db, mock, _ := sqlmock.New()
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
@@ -269,7 +269,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					logger := &logger.MockLogger{}
 					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
-					db, mock := tests.BuildDBConnectionOrDie()
+					db, mock, _ := sqlmock.New()
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
@@ -333,7 +333,7 @@ func TestCommandAPI_MoveTasks(t *testing.T) {
 					logger := &logger.MockLogger{}
 					logger.On("Info", mock.Anything, mock.Anything, mock.Anything)
 					q := ".*"
-					db, mock := tests.BuildDBConnectionOrDie()
+					db, mock, _ := sqlmock.New()
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.ExpectExec(q).WithArgs().WillReturnResult(driver.ResultNoRows)
 					mock.
