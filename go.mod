@@ -13,9 +13,8 @@ require (
 	github.com/aws/aws-sdk-go v1.37.32 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/docker/libkv v0.2.1 // indirect
-	github.com/doug-martin/goqu/v9 v9.13.0
-	github.com/gertd/go-pluralize v0.1.7
-	github.com/gin-gonic/gin v1.7.2
+	github.com/doug-martin/goqu/v9 v9.12.0
+	github.com/gin-gonic/gin v1.7.1
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/go-openapi/spec v0.20.3 // indirect

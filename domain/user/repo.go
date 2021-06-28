@@ -24,7 +24,6 @@ root:
   database:
     name: user
     postgres:
-      dbname: users
       columns:
       - name: id
         type: text
@@ -103,7 +102,7 @@ func (r *Repo) Create(ctx context.Context, resource *User) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("users").
+		Insert("user").
 		Cols(
 			"id",
 			"email",
@@ -133,7 +132,7 @@ func (r *Repo) GetById(ctx context.Context, id string) (*User, error) {
 	e := exp.Ex{}
 	e["id"] = id
 
-	query, _, err := goqu.From("users").Where(e).ToSQL()
+	query, _, err := goqu.From("user").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +176,7 @@ func (r *Repo) UpdateUser(ctx context.Context, resource *User) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update("users").
+		Update("user").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -205,7 +204,7 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	e["id"] = id
 
 	q, _, err := goqu.
-		Delete("users").
+		Delete("user").
 		Where(e).
 		ToSQL()
 	if err != nil {
@@ -229,7 +228,7 @@ func (r *Repo) GetByEmail(ctx context.Context, email string) (*User, error) {
 	e := exp.Ex{}
 	e["email"] = email
 
-	query, _, err := goqu.From("users").Where(e).ToSQL()
+	query, _, err := goqu.From("user").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +266,7 @@ func (r *Repo) GetByToken(ctx context.Context, token string) (*User, error) {
 	e := exp.Ex{}
 	e["token"] = token
 
-	query, _, err := goqu.From("users").Where(e).ToSQL()
+	query, _, err := goqu.From("user").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
