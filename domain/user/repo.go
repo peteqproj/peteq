@@ -55,9 +55,9 @@ root:
 aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS users( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE UNIQUE INDEX IF NOT EXISTS email ON users ( email);",
-	"CREATE UNIQUE INDEX IF NOT EXISTS token ON users ( token);",
+	"CREATE TABLE IF NOT EXISTS user( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS email ON user ( email);",
+	"CREATE UNIQUE INDEX IF NOT EXISTS token ON user ( token);",
 }
 
 type (

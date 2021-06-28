@@ -54,8 +54,8 @@ root:
 aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS sensors( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON sensors ( userid);",
+	"CREATE TABLE IF NOT EXISTS sensor( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON sensor ( userid);",
 }
 
 type (

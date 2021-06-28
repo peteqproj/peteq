@@ -132,24 +132,24 @@ func postgresTypeToGolangType(t string) string {
 
 func buildInitQueries(r repo.RepoDef) string {
 	queries := []string{}
-	queries = append(queries, createTableString(r.Root.Database.Postgres.DBName, r.Root.Database.Postgres.Columns, r.Root.Database.Postgres.PrimeryKey))
+	queries = append(queries, createTableString(r.Root.Database.Name, r.Root.Database.Postgres.Columns, r.Root.Database.Postgres.PrimeryKey))
 	for _, idx := range r.Root.Database.Postgres.Indexes {
-		queries = append(queries, createIndexString(idx, false, r.Root.Database.Postgres.DBName))
+		queries = append(queries, createIndexString(idx, false, r.Root.Database.Name))
 	}
 
 	for _, idx := range r.Root.Database.Postgres.UniqueIndexes {
-		queries = append(queries, createIndexString(idx, true, r.Root.Database.Postgres.DBName))
+		queries = append(queries, createIndexString(idx, true, r.Root.Database.Name))
 	}
 	res := strings.Builder{}
 	res.WriteString("var queries = []string{\n")
 
 	for _, aggregate := range r.Aggregates {
-		queries = append(queries, createTableString(aggregate.Database.Postgres.DBName, aggregate.Database.Postgres.Columns, aggregate.Database.Postgres.PrimeryKey))
+		queries = append(queries, createTableString(aggregate.Database.Name, aggregate.Database.Postgres.Columns, aggregate.Database.Postgres.PrimeryKey))
 		for _, idx := range aggregate.Database.Postgres.UniqueIndexes {
-			queries = append(queries, createIndexString(idx, true, aggregate.Database.Postgres.DBName))
+			queries = append(queries, createIndexString(idx, true, aggregate.Database.Name))
 		}
 		for _, idx := range aggregate.Database.Postgres.Indexes {
-			queries = append(queries, createIndexString(idx, false, aggregate.Database.Postgres.DBName))
+			queries = append(queries, createIndexString(idx, false, aggregate.Database.Name))
 		}
 	}
 
