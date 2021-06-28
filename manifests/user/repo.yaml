@@ -2,7 +2,7 @@ name: user
 root:
   resource: User
   database:
-    name: user
+    name: user_repo
     postgres:
       columns:
       - name: id

@@ -9,14 +9,14 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/peteqproj/peteq/domain/project"
 	"github.com/peteqproj/peteq/domain/task"
-	"gorm.io/gorm"
+	"github.com/peteqproj/peteq/pkg/db"
 )
 
 const dbTableName = "view_home"
 
 type (
 	DAL struct {
-		DB *gorm.DB
+		DB db.Database
 	}
 
 	listCreatedHandler struct {
@@ -56,7 +56,7 @@ func (d *DAL) create(ctx context.Context, user string, view homeView) error {
 	if err != nil {
 		return err
 	}
-	res, err := d.DB.Raw(q).Rows()
+	res, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (d *DAL) load(ctx context.Context, user string) (homeView, error) {
 	if err != nil {
 		return homeView{}, fmt.Errorf("Failed to build SQL query: %w", err)
 	}
-	row := d.DB.Raw(q).Row()
+	row := d.DB.QueryRowContext(ctx, q)
 	view := ""
 	userid := ""
 	if err := row.Scan(&userid, &view); err != nil {
@@ -96,7 +96,7 @@ func (d *DAL) update(ctx context.Context, user string, view homeView) error {
 	if err != nil {
 		return err
 	}
-	rows, err := d.DB.Raw(q).Rows()
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("Failed to update view_home table: %v", err)
 	}

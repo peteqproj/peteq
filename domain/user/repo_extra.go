@@ -10,11 +10,11 @@ import (
 
 // List selects all the users from the database
 func (r *Repo) List(ctx context.Context) ([]*User, error) {
-	query, _, err := goqu.From("users").Where(exp.Ex{}).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(exp.Ex{}).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.Raw(query).Rows()
+	rows, err := r.DB.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

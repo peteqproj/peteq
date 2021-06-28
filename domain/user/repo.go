@@ -6,10 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"gorm.io/gorm"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
 	"gopkg.in/yaml.v2"
@@ -22,9 +21,8 @@ tenant: ""
 root:
   resource: User
   database:
-    name: user
+    name: user_repo
     postgres:
-      dbname: users
       columns:
       - name: id
         type: text
@@ -55,14 +53,14 @@ root:
 aggregates: []
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS users( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE UNIQUE INDEX IF NOT EXISTS email ON users ( email);",
-	"CREATE UNIQUE INDEX IF NOT EXISTS token ON users ( token);",
+	"CREATE TABLE IF NOT EXISTS user_repo( id text not null,email text not null,token text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS email ON user_repo ( email);",
+	"CREATE UNIQUE INDEX IF NOT EXISTS token ON user_repo ( token);",
 }
 
 type (
 	Repo struct {
-		DB        *gorm.DB
+		DB        db.Database
 		Logger    logger.Logger
 		initiated bool
 		def       *repo.RepoDef
@@ -72,9 +70,8 @@ type (
 func (r *Repo) Initiate(ctx context.Context) error {
 	for _, q := range queries {
 		r.Logger.Info("Running db init query", "query", q)
-		res := r.DB.Exec(q)
-		if res.Error != nil {
-			return res.Error
+		if _, err := r.DB.ExecContext(ctx, q); err != nil {
+			return err
 		}
 	}
 
@@ -103,7 +100,7 @@ func (r *Repo) Create(ctx context.Context, resource *User) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("users").
+		Insert("user_repo").
 		Cols(
 			"id",
 			"email",
@@ -120,7 +117,7 @@ func (r *Repo) Create(ctx context.Context, resource *User) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -133,11 +130,11 @@ func (r *Repo) GetById(ctx context.Context, id string) (*User, error) {
 	e := exp.Ex{}
 	e["id"] = id
 
-	query, _, err := goqu.From("users").Where(e).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.Raw(query).Row()
+	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -177,7 +174,7 @@ func (r *Repo) UpdateUser(ctx context.Context, resource *User) error {
 		return err
 	}
 	q, _, err := goqu.
-		Update("users").
+		Update("user_repo").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -191,7 +188,7 @@ func (r *Repo) UpdateUser(ctx context.Context, resource *User) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -205,13 +202,13 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	e["id"] = id
 
 	q, _, err := goqu.
-		Delete("users").
+		Delete("user_repo").
 		Where(e).
 		ToSQL()
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	return err
 }
 
@@ -229,11 +226,11 @@ func (r *Repo) GetByEmail(ctx context.Context, email string) (*User, error) {
 	e := exp.Ex{}
 	e["email"] = email
 
-	query, _, err := goqu.From("users").Where(e).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.Raw(query).Row()
+	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -267,11 +264,11 @@ func (r *Repo) GetByToken(ctx context.Context, token string) (*User, error) {
 	e := exp.Ex{}
 	e["token"] = token
 
-	query, _, err := goqu.From("users").Where(e).ToSQL()
+	query, _, err := goqu.From("user_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.Raw(query).Row()
+	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}

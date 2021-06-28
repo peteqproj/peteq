@@ -6,13 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	"gorm.io/gorm"
-
 	"github.com/peteqproj/peteq/domain/user"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	perrors "github.com/peteqproj/peteq/internal/errors"
+	"github.com/peteqproj/peteq/pkg/db"
 	"github.com/peteqproj/peteq/pkg/logger"
 	repo "github.com/peteqproj/peteq/pkg/repo/def"
 	"gopkg.in/yaml.v2"
@@ -27,9 +26,8 @@ tenant: user
 root:
   resource: Automation
   database:
-    name: automation
+    name: automation_repo
     postgres:
-      dbname: automations
       columns:
       - name: id
         type: text
@@ -54,9 +52,8 @@ root:
 aggregates:
 - resource: SensorBinding
   database:
-    name: sensor_binding
+    name: sensor_binding_repo
     postgres:
-      dbname: sensor_bindings
       columns:
       - name: id
         type: text
@@ -92,16 +89,16 @@ aggregates:
       - id
 `
 var queries = []string{
-	"CREATE TABLE IF NOT EXISTS automations( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE INDEX IF NOT EXISTS userid ON automations ( userid);",
-	"CREATE TABLE IF NOT EXISTS sensor_bindings( id text not null,userid text not null,automation text not null,sensor text not null,info json not null,PRIMARY KEY (id));",
-	"CREATE UNIQUE INDEX IF NOT EXISTS userid_sensor ON sensor_bindings ( userid,sensor);",
-	"CREATE INDEX IF NOT EXISTS userid ON sensor_bindings ( userid);",
+	"CREATE TABLE IF NOT EXISTS automation_repo( id text not null,userid text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE INDEX IF NOT EXISTS userid ON automation_repo ( userid);",
+	"CREATE TABLE IF NOT EXISTS sensor_binding_repo( id text not null,userid text not null,automation text not null,sensor text not null,info json not null,PRIMARY KEY (id));",
+	"CREATE UNIQUE INDEX IF NOT EXISTS userid_sensor ON sensor_binding_repo ( userid,sensor);",
+	"CREATE INDEX IF NOT EXISTS userid ON sensor_binding_repo ( userid);",
 }
 
 type (
 	Repo struct {
-		DB        *gorm.DB
+		DB        db.Database
 		Logger    logger.Logger
 		initiated bool
 		def       *repo.RepoDef
@@ -111,9 +108,8 @@ type (
 func (r *Repo) Initiate(ctx context.Context) error {
 	for _, q := range queries {
 		r.Logger.Info("Running db init query", "query", q)
-		res := r.DB.Exec(q)
-		if res.Error != nil {
-			return res.Error
+		if _, err := r.DB.ExecContext(ctx, q); err != nil {
+			return err
 		}
 	}
 
@@ -149,7 +145,7 @@ func (r *Repo) Create(ctx context.Context, resource *Automation) error {
 		return err
 	}
 	q, _, err := goqu.
-		Insert("automations").
+		Insert("automation_repo").
 		Cols(
 			"id",
 			"userid",
@@ -164,7 +160,7 @@ func (r *Repo) Create(ctx context.Context, resource *Automation) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -184,11 +180,11 @@ func (r *Repo) GetById(ctx context.Context, id string) (*Automation, error) {
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("automations").Where(e).ToSQL()
+	query, _, err := goqu.From("automation_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.Raw(query).Row()
+	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -233,7 +229,7 @@ func (r *Repo) UpdateAutomation(ctx context.Context, resource *Automation) error
 		return err
 	}
 	q, _, err := goqu.
-		Update("automations").
+		Update("automation_repo").
 		Where(exp.Ex{
 			"id": resource.Metadata.ID,
 		}).
@@ -246,7 +242,7 @@ func (r *Repo) UpdateAutomation(ctx context.Context, resource *Automation) error
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -267,13 +263,13 @@ func (r *Repo) DeleteById(ctx context.Context, id string) error {
 	}
 
 	q, _, err := goqu.
-		Delete("automations").
+		Delete("automation_repo").
 		Where(e).
 		ToSQL()
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	return err
 }
 
@@ -295,11 +291,11 @@ func (r *Repo) ListByUserid(ctx context.Context, userid string) ([]*Automation, 
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("automations").Where(e).ToSQL()
+	sql, _, err := goqu.From("automation_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.Raw(sql).Rows()
+	rows, err := r.DB.QueryContext(ctx, sql)
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +350,7 @@ func (r *Repo) CreateSensorBinding(ctx context.Context, resource *SensorBinding)
 		return err
 	}
 	q, _, err := goqu.
-		Insert("sensor_bindings").
+		Insert("sensor_binding_repo").
 		Cols(
 			"id",
 			"userid",
@@ -373,7 +369,7 @@ func (r *Repo) CreateSensorBinding(ctx context.Context, resource *SensorBinding)
 	if err != nil {
 		return err
 	}
-	_, err = r.DB.Raw(q).Rows()
+	_, err = r.DB.ExecContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -402,11 +398,11 @@ func (r *Repo) ListSensorBindingByUserid(ctx context.Context, userid string) ([]
 		e["userid"] = u.Metadata.ID
 	}
 
-	sql, _, err := goqu.From("sensor_bindings").Where(e).ToSQL()
+	sql, _, err := goqu.From("sensor_binding_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.DB.Raw(sql).Rows()
+	rows, err := r.DB.QueryContext(ctx, sql)
 	if err != nil {
 		return nil, err
 	}
@@ -453,11 +449,11 @@ func (r *Repo) GetSensorBindingByUseridSensor(ctx context.Context, userid string
 		e["userid"] = u.Metadata.ID
 	}
 
-	query, _, err := goqu.From("sensor_bindings").Where(e).ToSQL()
+	query, _, err := goqu.From("sensor_binding_repo").Where(e).ToSQL()
 	if err != nil {
 		return nil, err
 	}
-	row := r.DB.Raw(query).Row()
+	row := r.DB.QueryRowContext(ctx, query)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}

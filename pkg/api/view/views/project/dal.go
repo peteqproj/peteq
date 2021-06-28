@@ -7,14 +7,14 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"gorm.io/gorm"
+	"github.com/peteqproj/peteq/pkg/db"
 )
 
 const dbTableName = "view_project"
 
 type (
 	DAL struct {
-		DB *gorm.DB
+		DB db.Database
 	}
 )
 
@@ -27,7 +27,7 @@ func (d *DAL) create(ctx context.Context, user string, view projectView) error {
 	if err != nil {
 		return err
 	}
-	rows, err := d.DB.Raw(q).Rows()
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (d *DAL) load(ctx context.Context, user string, project string) (projectVie
 	if err != nil {
 		return projectView{}, fmt.Errorf("Failed to build SQL query: %w", err)
 	}
-	row := d.DB.Raw(q).Row()
+	row := d.DB.QueryRowContext(ctx, q)
 	view := ""
 	userid := ""
 	projectid := ""
@@ -72,7 +72,7 @@ func (d *DAL) update(ctx context.Context, user string, project string, view proj
 	if err != nil {
 		return err
 	}
-	rows, err := d.DB.Raw(q).Rows()
+	rows, err := d.DB.QueryContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("Failed to update view_project table: %v", err)
 	}

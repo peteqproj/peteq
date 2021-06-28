@@ -12,6 +12,7 @@ import (
 	"github.com/peteqproj/peteq/internal"
 	"github.com/peteqproj/peteq/pkg/config"
 	"github.com/peteqproj/peteq/pkg/db"
+	"github.com/peteqproj/peteq/pkg/db/postgres"
 	"github.com/peteqproj/peteq/pkg/logger"
 	"github.com/peteqproj/peteq/pkg/server"
 	"github.com/peteqproj/peteq/pkg/utils"
@@ -45,14 +46,12 @@ var eventHandlerServiceCmd = &cobra.Command{
 			Config: cnf,
 		})
 
-		db, err := db.New(db.Options{
-			URL: utils.GetEnvOrDie("POSTGRES_URL"),
+		pg, err := postgres.Connect(utils.GetEnvOrDie("POSTGRES_URL"))
+		defer pg.Close()
+		db := db.New(db.Options{
+			DB: pg,
 		})
 		utils.DieOnError(err, "Failed to connect to postgres")
-		sqldb, err := db.DB()
-		utils.DieOnError(err, "Failed to get sql object")
-		defer sqldb.Close()
-
 		taskRepo := &task.Repo{
 			DB:     db,
 			Logger: logr.Fork("repo", "task"),
